@@ -90,11 +90,17 @@ export class BorisArtAI {
     description: string
     price: number
     profitMargin: number
+    source?: string
+    addedDate?: string
   }>): Promise<BorisArtResponse> {
     const totalValue = artworks.reduce((sum, art) => sum + art.price, 0)
     const avgProfit = artworks.reduce((sum, art) => sum + art.profitMargin, 0) / artworks.length
     const totalPotential = artworks.reduce((sum, art) => sum + (art.price * art.profitMargin / 100), 0)
-
+    
+    // Kategorisera verk
+    const sources = [...new Set(artworks.map(art => art.source || 'Okänd'))]
+    const recentlyAdded = artworks.filter(art => art.addedDate).length
+    
     const prompt = `
       Analysera denna konstsamling som en professionell kurator:
       
@@ -102,14 +108,16 @@ export class BorisArtAI {
       Totalt värde: ${totalValue.toLocaleString()} kr
       Genomsnittlig vinstmarginal: ${avgProfit.toFixed(1)}%
       Total potential: ${totalPotential.toLocaleString()} kr
+      Källor: ${sources.join(', ')}
+      Nyligen tillagda: ${recentlyAdded} verk
       
       Verk i samlingen:
-      ${artworks.map((art, i) => `${i+1}. "${art.title}" av ${art.artist} - ${art.price.toLocaleString()} kr (${art.profitMargin}% vinst)`).join('\n')}
+      ${artworks.map((art, i) => `${i+1}. "${art.title}" av ${art.artist} - ${art.price.toLocaleString()} kr (${art.profitMargin}% vinst) - ${art.source || 'Okänd källa'}`).join('\n')}
       
-      Ge en professionell analys av samlingens styrkor, potentiella risker och investeringsvärde. Skriv på svenska.
+      Ge en professionell analys av samlingens styrkor, potentiella risker och investeringsvärde. Kommentera på konstnärernas kvalitet, prisnivåer och vinstpotential. Ge konkreta rekommendationer. Skriv på svenska.
     `
 
-    const systemPrompt = `Du är BorisArt AI, en expert konstkritiker och investeringsrådgivare. Du analyserar konstsamlingar med både konstnärlig och kommersiell insikt. Din analys är balanserad, kunnig och praktisk.`
+    const systemPrompt = `Du är BorisArt AI, en expert konstkritiker och investeringsrådgivare. Du analyserar konstsamlingar med både konstnärlig och kommersiell insikt. Din analys är balanserad, kunnig och praktisk. Du har tillgång till information om vilka konstverk som har skannats och sparats i portföljen.`
 
     const message = await this.callOpenAI(prompt, systemPrompt)
 
@@ -162,16 +170,35 @@ export class BorisArtAI {
     }
   }
 
-  async chatWithBoris(message: string): Promise<BorisArtResponse> {
+  async chatWithBoris(message: string, context?: {
+  scannedItems?: any[]
+  portfolio?: any[]
+  selectedArtwork?: any
+}): Promise<BorisArtResponse> {
     const prompt = `
       Användaren skriver: "${message}"
       
-      Svara som en kunnig och engagerad konstexpert. Anpassa ditt svar efter användarens fråga. Var hjälpsam, insiktsfull och personlig. Om användaren frågar om specifika konstverk, trender eller investeringar, ge relevanta och aktuella svar.
+      Kontext om användarens konstsamling:
+      - Skannade verk: ${context?.scannedItems?.length || 0} st
+      - Sparade i portfölj: ${context?.portfolio?.length || 0} st
+      - Valt verk: ${context?.selectedArtwork ? `"${context.selectedArtwork.title}" av ${context.selectedArtwork.artist}` : 'Inget valt'}
+      
+      ${context?.scannedItems && context.scannedItems.length > 0 ? `
+      Nyligen skannade verk:
+      ${context.scannedItems.slice(0, 3).map((art, i) => `${i+1}. "${art.title}" - ${art.price} kr`).join('\n')}
+      ` : ''}
+      
+      ${context?.portfolio && context.portfolio.length > 0 ? `
+      Verk i portfölj:
+      ${context.portfolio.slice(0, 3).map((art, i) => `${i+1}. "${art.title}" - ${art.price} kr`).join('\n')}
+      ` : ''}
+      
+      Svara som en kunnig och engagerad konstexpert som har tillgång till information om användarens konstsamling. Anpassa ditt svar efter användarens fråga och den kontext du har. Var hjälpsam, insiktsfull och personlig. Ge relevanta och aktuella svar baserat på de verk du kan se.
       
       Skriv på svenska.
     `
 
-    const systemPrompt = `Du är BorisArt AI, en passionerad konstexpert som älskar att diskutera konst. Du är kunnig om konsthistoria, nuvarande trender, investeringar och tekniker. Din ton är varm, engagerad och lättillgänglig. Du strävar efter att göra konstvärlden mer förståelig och tillgänglig för alla.`
+    const systemPrompt = `Du är BorisArt AI, en passionerad konstexpert som älskar att diskutera konst. Du har tillgång till information om vilka konstverk användaren har skannat och sparat i sin portfölj. Du är kunnig om konsthistoria, nuvarande trender, investeringar och tekniker. Din ton är varm, engagerad och lättillgänglig. Du strävar efter att göra konstvärlden mer förståelig och tillgänglig för alla.`
 
     const aiMessage = await this.callOpenAI(prompt, systemPrompt)
 

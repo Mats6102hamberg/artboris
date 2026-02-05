@@ -624,6 +624,8 @@ export default function Home() {
               <BorisArtChat 
                 artworks={portfolio} 
                 selectedArtwork={selectedItem}
+                scannedItems={results}
+                portfolio={portfolio}
               />
             </div>
           </div>

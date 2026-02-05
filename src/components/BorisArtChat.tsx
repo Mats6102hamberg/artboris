@@ -13,13 +13,15 @@ interface Message {
 interface BorisArtChatProps {
   artworks?: any[]
   selectedArtwork?: any
+  scannedItems?: any[]
+  portfolio?: any[]
 }
 
-export default function BorisArtChat({ artworks, selectedArtwork }: BorisArtChatProps) {
+export default function BorisArtChat({ artworks, selectedArtwork, scannedItems, portfolio }: BorisArtChatProps) {
   const [messages, setMessages] = useState<Message[]>([
     {
       id: '1',
-      text: 'Hej! Jag är BorisArt AI, din personliga konstexpert. Jag kan hjälpa dig med att analysera konstverk, berätta historier, diskutera trender och ge investeringsråd. Vad vill du utforska idag?',
+      text: 'Hej! Jag är BorisArt AI, din personliga konstexpert. Jag kan hjälpa dig med att analysera konstverk, berätta historier, diskutera trender och ge investeringsråd. Jag kan även se vilka verk du har skannat och sparat i din portfölj. Vad vill du utforska idag?',
       sender: 'boris',
       timestamp: new Date().toISOString(),
       type: 'opinion'
@@ -28,14 +30,14 @@ export default function BorisArtChat({ artworks, selectedArtwork }: BorisArtChat
   const [inputText, setInputText] = useState('')
   const [isTyping, setIsTyping] = useState(false)
 
-  const callBorisAI = async (action: string, data?: any) => {
+  const callBorisAI = async (action: string, data?: any, context?: any) => {
     setIsTyping(true)
     
     try {
       const response = await fetch('/api/boris-ai', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ action, data })
+        body: JSON.stringify({ action, data, ...context })
       })
       
       const result = await response.json()
@@ -80,7 +82,12 @@ export default function BorisArtChat({ artworks, selectedArtwork }: BorisArtChat
     setMessages(prev => [...prev, userMessage])
     setInputText('')
 
-    await callBorisAI('chat', { message: inputText })
+    await callBorisAI('chat', { 
+      message: inputText,
+      scannedItems,
+      portfolio,
+      selectedArtwork
+    })
   }
 
   const handleQuickAction = async (action: string) => {
@@ -104,12 +111,13 @@ export default function BorisArtChat({ artworks, selectedArtwork }: BorisArtChat
         break
 
       case 'analyze-artworks':
-        if (artworks && artworks.length > 0) {
-          data.artworks = artworks
+        const allArtworks = [...(portfolio || []), ...(scannedItems || [])]
+        if (allArtworks.length > 0) {
+          data.artworks = allArtworks
         } else {
           const userMessage: Message = {
             id: Date.now().toString(),
-            text: 'Du behöver ha några konstverk i din portfölj för att jag ska kunna analysera dem.',
+            text: 'Du behöver ha några konstverk i din portfölj eller från skanning för att jag ska kunna analysera dem. Prova att skanna några konstverk först!',
             sender: 'boris',
             timestamp: new Date().toISOString(),
             type: 'opinion'
@@ -177,7 +185,7 @@ export default function BorisArtChat({ artworks, selectedArtwork }: BorisArtChat
         </button>
         <button
           onClick={() => handleQuickAction('analyze-artworks')}
-          disabled={!artworks || artworks.length === 0}
+          disabled={(!portfolio || portfolio.length === 0) && (!scannedItems || scannedItems.length === 0)}
           className="px-3 py-1 bg-blue-100 text-blue-700 rounded text-sm hover:bg-blue-200 disabled:opacity-50 disabled:cursor-not-allowed"
         >
           📊 Analysera

@@ -57,7 +57,11 @@ export async function POST(request: NextRequest) {
             { status: 400 }
           )
         }
-        response = await borisAI.chatWithBoris(data.message)
+        response = await borisAI.chatWithBoris(data.message, {
+          scannedItems: data.scannedItems,
+          portfolio: data.portfolio,
+          selectedArtwork: data.selectedArtwork
+        })
         break
 
       default:
