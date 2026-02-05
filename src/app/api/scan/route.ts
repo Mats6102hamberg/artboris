@@ -59,6 +59,34 @@ export async function POST(request: NextRequest) {
         confidence: 0.70,
         marketTrend: "stable" as const,
         recommendation: "hold" as const
+      },
+      {
+        title: "Stilleben med frukter",
+        artist: "Maria Lindberg",
+        price: 12000,
+        estimatedValue: 28000,
+        profitMargin: 133,
+        source: "Bukowskis (Mock)",
+        imageUrl: "https://picsum.photos/seed/mock-lowprice/400/300",
+        description: "Akvarell, 40x50cm",
+        riskLevel: "high" as const,
+        confidence: 0.65,
+        marketTrend: "rising" as const,
+        recommendation: "buy" as const
+      },
+      {
+        title: "Porträtt av herre",
+        artist: "Sven Eriksson",
+        price: 85000,
+        estimatedValue: 95000,
+        profitMargin: 12,
+        source: "Barnebys (Mock)",
+        imageUrl: "https://picsum.photos/seed/mock-highprice/400/300",
+        description: "Oljemålning på duk, 70x90cm",
+        riskLevel: "low" as const,
+        confidence: 0.90,
+        marketTrend: "stable" as const,
+        recommendation: "hold" as const
       }
     ]
 

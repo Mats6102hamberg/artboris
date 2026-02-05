@@ -10,6 +10,15 @@ export default function Home() {
   const [showAnalysis, setShowAnalysis] = useState(false)
   const [portfolio, setPortfolio] = useState<any[]>([])
   const [showPortfolio, setShowPortfolio] = useState(false)
+  const [showFilters, setShowFilters] = useState(false)
+  const [filters, setFilters] = useState({
+    minPrice: 0,
+    maxPrice: 100000,
+    minProfitMargin: 20,
+    maxProfitMargin: 200,
+    riskLevel: 'all' as 'all' | 'low' | 'medium' | 'high',
+    recommendation: 'all' as 'all' | 'buy' | 'hold' | 'avoid'
+  })
 
   const startScan = async () => {
     setIsScanning(true)
@@ -67,6 +76,26 @@ export default function Home() {
     setShowAnalysis(false)
   }
 
+  const filterResults = (items: any[]) => {
+    return items.filter(item => {
+      // Pris-filter
+      if (item.price < filters.minPrice || item.price > filters.maxPrice) return false
+      
+      // Vinstmarginal-filter
+      if (item.profitMargin < filters.minProfitMargin || item.profitMargin > filters.maxProfitMargin) return false
+      
+      // Risk-filter
+      if (filters.riskLevel !== 'all' && item.riskLevel !== filters.riskLevel) return false
+      
+      // Rekommendation-filter
+      if (filters.recommendation !== 'all' && item.recommendation !== filters.recommendation) return false
+      
+      return true
+    })
+  }
+
+  const filteredResults = filterResults(results)
+
   return (
     <div className="min-h-screen bg-gray-50">
       <header className="bg-white shadow-sm">
@@ -89,7 +118,149 @@ export default function Home() {
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Kontrollpanel */}
         <div className="bg-white rounded-lg shadow-lg p-6 mb-8">
-          <h2 className="text-xl font-semibold text-gray-900 mb-4">Sök-inställningar</h2>
+          <div className="flex items-center justify-between mb-4">
+            <h2 className="text-xl font-semibold text-gray-900">Sök-inställningar</h2>
+            <button
+              onClick={() => setShowFilters(!showFilters)}
+              className="text-blue-600 hover:text-blue-800 text-sm font-medium"
+            >
+              {showFilters ? 'Dölj filter' : 'Visa filter'} ⚙️
+            </button>
+          </div>
+          
+          {/* Filter Panel */}
+          {showFilters && (
+            <div className="bg-gray-50 rounded-lg p-4 mb-6 space-y-4">
+              <h3 className="font-semibold text-gray-900 mb-3">🔍 Avancerade Filter</h3>
+              
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                {/* Pris-intervall */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Prisintervall (kr)
+                  </label>
+                  <div className="flex space-x-2">
+                    <input
+                      type="number"
+                      placeholder="Min"
+                      value={filters.minPrice}
+                      onChange={(e) => setFilters({...filters, minPrice: parseInt(e.target.value) || 0})}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    />
+                    <input
+                      type="number"
+                      placeholder="Max"
+                      value={filters.maxPrice}
+                      onChange={(e) => setFilters({...filters, maxPrice: parseInt(e.target.value) || 100000})}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    />
+                  </div>
+                </div>
+
+                {/* Vinstmarginal */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Vinstmarginal (%)
+                  </label>
+                  <div className="flex space-x-2">
+                    <input
+                      type="number"
+                      placeholder="Min"
+                      value={filters.minProfitMargin}
+                      onChange={(e) => setFilters({...filters, minProfitMargin: parseInt(e.target.value) || 0})}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    />
+                    <input
+                      type="number"
+                      placeholder="Max"
+                      value={filters.maxProfitMargin}
+                      onChange={(e) => setFilters({...filters, maxProfitMargin: parseInt(e.target.value) || 200})}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    />
+                  </div>
+                </div>
+
+                {/* Risknivå */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Risknivå
+                  </label>
+                  <select
+                    value={filters.riskLevel}
+                    onChange={(e) => setFilters({...filters, riskLevel: e.target.value as any})}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  >
+                    <option value="all">Alla</option>
+                    <option value="low">Låg risk</option>
+                    <option value="medium">Medium risk</option>
+                    <option value="high">Hög risk</option>
+                  </select>
+                </div>
+
+                {/* Rekommendation */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Rekommendation
+                  </label>
+                  <select
+                    value={filters.recommendation}
+                    onChange={(e) => setFilters({...filters, recommendation: e.target.value as any})}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  >
+                    <option value="all">Alla</option>
+                    <option value="buy">KÖP</option>
+                    <option value="hold">HÅLL</option>
+                    <option value="avoid">UNDVIK</option>
+                  </select>
+                </div>
+
+                {/* Snabb-filter knappar */}
+                <div className="md:col-span-2 lg:col-span-3">
+                  <div className="flex flex-wrap gap-2">
+                    <button
+                      onClick={() => setFilters({
+                        minPrice: 0,
+                        maxPrice: 30000,
+                        minProfitMargin: 50,
+                        maxProfitMargin: 200,
+                        riskLevel: 'all',
+                        recommendation: 'all'
+                      })}
+                      className="px-3 py-1 bg-green-100 text-green-800 rounded text-sm hover:bg-green-200"
+                    >
+                      💰 Låg pris, hög vinst
+                    </button>
+                    <button
+                      onClick={() => setFilters({
+                        minPrice: 0,
+                        maxPrice: 50000,
+                        minProfitMargin: 30,
+                        maxProfitMargin: 100,
+                        riskLevel: 'low',
+                        recommendation: 'buy'
+                      })}
+                      className="px-3 py-1 bg-blue-100 text-blue-800 rounded text-sm hover:bg-blue-200"
+                    >
+                      🛡️ Säkert val
+                    </button>
+                    <button
+                      onClick={() => setFilters({
+                        minPrice: 0,
+                        maxPrice: 100000,
+                        minProfitMargin: 0,
+                        maxProfitMargin: 200,
+                        riskLevel: 'all',
+                        recommendation: 'all'
+                      })}
+                      className="px-3 py-1 bg-gray-100 text-gray-800 rounded text-sm hover:bg-gray-200"
+                    >
+                      🔄 Återställ
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
           
           <div className="flex space-x-4 mb-6">
             <button
@@ -133,12 +304,19 @@ export default function Home() {
         {/* Resultat */}
         {results.length > 0 && (
           <div className="bg-white rounded-lg shadow-lg p-6">
-            <h2 className="text-xl font-semibold text-gray-900 mb-4">
-              Hittade objekt ({results.length})
-            </h2>
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="text-xl font-semibold text-gray-900">
+                Hittade objekt ({filteredResults.length} av {results.length})
+              </h2>
+              {filteredResults.length !== results.length && (
+                <span className="text-sm text-gray-500">
+                  {results.length - filteredResults.length} objekt filtrerade
+                </span>
+              )}
+            </div>
             
             <div className="space-y-4">
-              {results.map((item, index) => (
+              {filteredResults.map((item, index) => (
                 <div key={index} className="border border-gray-200 rounded-lg p-4 hover:shadow-md transition-shadow">
                   <div className="flex justify-between items-start">
                     <div className="flex-1">
