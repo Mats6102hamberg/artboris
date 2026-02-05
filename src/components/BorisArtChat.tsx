@@ -140,11 +140,11 @@ export default function BorisArtChat({ artworks, selectedArtwork }: BorisArtChat
 
   const getTypeColor = (type?: string) => {
     switch (type) {
-      case 'story': return 'text-purple-600'
-      case 'analysis': return 'text-blue-600'
-      case 'trend': return 'text-green-600'
-      case 'opinion': return 'text-orange-600'
-      default: return 'text-gray-600'
+      case 'story': return 'text-purple-300'
+      case 'analysis': return 'text-blue-300'
+      case 'trend': return 'text-green-300'
+      case 'opinion': return 'text-orange-300'
+      default: return 'text-gray-300'
     }
   }
 
@@ -207,7 +207,7 @@ export default function BorisArtChat({ artworks, selectedArtwork }: BorisArtChat
               className={`max-w-[80%] ${
                 message.sender === 'user'
                   ? 'bg-blue-600 text-white'
-                  : 'bg-gray-100 text-gray-900'
+                  : 'bg-gray-800 text-white'
               } rounded-lg px-4 py-2`}
             >
               <div className="flex items-start space-x-2">
@@ -226,7 +226,7 @@ export default function BorisArtChat({ artworks, selectedArtwork }: BorisArtChat
                   )}
                 </div>
               </div>
-              <p className={`text-xs mt-1 ${message.sender === 'user' ? 'text-blue-200' : 'text-gray-500'}`}>
+              <p className={`text-xs mt-1 ${message.sender === 'user' ? 'text-blue-200' : 'text-gray-400'}`}>
                 {new Date(message.timestamp).toLocaleTimeString('sv-SE', { hour: '2-digit', minute: '2-digit' })}
               </p>
             </div>
@@ -235,7 +235,7 @@ export default function BorisArtChat({ artworks, selectedArtwork }: BorisArtChat
         
         {isTyping && (
           <div className="flex justify-start">
-            <div className="bg-gray-100 text-gray-900 rounded-lg px-4 py-2">
+            <div className="bg-gray-800 text-white rounded-lg px-4 py-2">
               <div className="flex items-center space-x-2">
                 <span className="text-lg">🤖</span>
                 <div className="flex space-x-1">
@@ -257,7 +257,7 @@ export default function BorisArtChat({ artworks, selectedArtwork }: BorisArtChat
           onChange={(e) => setInputText(e.target.value)}
           onKeyPress={(e) => e.key === 'Enter' && handleSendMessage()}
           placeholder="Fråga Boris om konst..."
-          className="flex-1 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+          className="flex-1 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white text-gray-900 placeholder-gray-500"
           disabled={isTyping}
         />
         <button
