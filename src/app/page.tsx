@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import BorisArtChat from '@/components/BorisArtChat'
 
 export default function Home() {
   const [isScanning, setIsScanning] = useState(false)
@@ -11,6 +12,7 @@ export default function Home() {
   const [portfolio, setPortfolio] = useState<any[]>([])
   const [showPortfolio, setShowPortfolio] = useState(false)
   const [showFilters, setShowFilters] = useState(false)
+  const [showBorisChat, setShowBorisChat] = useState(false)
   const [filters, setFilters] = useState({
     minPrice: 0,
     maxPrice: 100000,
@@ -105,12 +107,20 @@ export default function Home() {
               <h1 className="text-3xl font-bold text-gray-900">Art Scanner</h1>
               <p className="text-gray-600 mt-2">Hitta undervärderade konstverk med vinstpotential</p>
             </div>
-            <button
-              onClick={() => setShowPortfolio(!showPortfolio)}
-              className="bg-purple-600 text-white px-4 py-2 rounded-md hover:bg-purple-700 transition-colors"
-            >
-              📊 Portfölj ({portfolio.length})
-            </button>
+            <div className="flex space-x-2">
+              <button
+                onClick={() => setShowBorisChat(!showBorisChat)}
+                className="bg-gradient-to-r from-purple-600 to-blue-600 text-white px-4 py-2 rounded-md hover:from-purple-700 hover:to-blue-700 transition-all"
+              >
+                🤖 BorisArt AI
+              </button>
+              <button
+                onClick={() => setShowPortfolio(!showPortfolio)}
+                className="bg-purple-600 text-white px-4 py-2 rounded-md hover:bg-purple-700 transition-colors"
+              >
+                📊 Portfölj ({portfolio.length})
+              </button>
+            </div>
           </div>
         </div>
       </header>
@@ -594,6 +604,31 @@ export default function Home() {
           </div>
         )}
       </main>
+
+      {/* BorisArt AI Chat */}
+      {showBorisChat && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+          <div className="bg-white rounded-lg shadow-xl max-w-2xl w-full max-h-[80vh] flex flex-col">
+            <div className="p-4 border-b">
+              <div className="flex items-center justify-between">
+                <h2 className="text-xl font-bold text-gray-900">🤖 BorisArt AI</h2>
+                <button
+                  onClick={() => setShowBorisChat(false)}
+                  className="text-gray-400 hover:text-gray-600 text-2xl"
+                >
+                  ×
+                </button>
+              </div>
+            </div>
+            <div className="flex-1 p-4">
+              <BorisArtChat 
+                artworks={portfolio} 
+                selectedArtwork={selectedItem}
+              />
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 }
