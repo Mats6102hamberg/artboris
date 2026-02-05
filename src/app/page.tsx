@@ -25,9 +25,22 @@ export default function Home() {
       })
       
       const data = await response.json()
+      
+      if (!response.ok) {
+        throw new Error(data.error || 'Scanning failed')
+      }
+      
       setResults(data.results || [])
+      
+      // Visa info om scraping-metod
+      if (data.scrapingMethod) {
+        console.log(`Scraping method: ${data.scrapingMethod}`)
+        console.log(`Data quality: ${data.dataQuality || 'unknown'}`)
+      }
+      
     } catch (error) {
       console.error('Scan error:', error)
+      alert(`Scanning fel: ${error instanceof Error ? error.message : 'Okänt fel'}`)
     } finally {
       setIsScanning(false)
     }

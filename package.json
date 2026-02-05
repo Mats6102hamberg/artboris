@@ -14,7 +14,10 @@
     "axios": "^1.13.4",
     "cheerio": "^1.2.0",
     "next": "16.1.6",
+    "proxy-chain": "^2.7.1",
     "puppeteer": "^24.36.1",
+    "puppeteer-extra": "^3.3.6",
+    "puppeteer-extra-plugin-stealth": "^2.11.2",
     "react": "19.2.3",
     "react-dom": "19.2.3"
   },

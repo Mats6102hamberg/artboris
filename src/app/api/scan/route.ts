@@ -1,7 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { ArtScraper } from '@/lib/scrapers'
-import { PriceAnalyzer } from '@/lib/priceAnalyzer'
 
+// Mock implementation för att undvika Puppeteer build issues
 export async function POST(request: NextRequest) {
   try {
     const { type } = await request.json()
@@ -13,55 +12,79 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    console.log(`Starting real art scan for ${type}...`)
+    console.log(`🚀 Starting MOCK art scan for ${type} (Puppeteer disabled for build)...`)
     
-    // Hämta riktig data från web scraping
-    const scrapedItems = await ArtScraper.scrapeAll(type)
+    // Simulera scraping med mock data
+    await new Promise(resolve => setTimeout(resolve, 2000))
     
-    if (scrapedItems.length === 0) {
-      return NextResponse.json({
-        success: true,
-        results: [],
-        totalFound: 0,
-        scanType: type,
-        timestamp: new Date().toISOString(),
-        message: 'Inga objekt hittades i denna sökning. Försök igen senare.'
-      })
-    }
-
-    // Analysera varje objekt med riktig AI-analys
-    const analyzedItems = scrapedItems.map(item => {
-      const analysis = PriceAnalyzer.analyzeItem(item)
-      return {
-        ...item,
-        ...analysis
+    const mockItems = [
+      {
+        title: "Abstrakt komposition",
+        artist: "Erik Johansson",
+        price: 25000,
+        estimatedValue: 45000,
+        profitMargin: 80,
+        source: "Bukowskis (Mock)",
+        imageUrl: "https://picsum.photos/seed/mock-bukowskis/400/300",
+        description: "Oljemålning på duk, 60x80cm",
+        riskLevel: "medium" as const,
+        confidence: 0.75,
+        marketTrend: "rising" as const,
+        recommendation: "buy" as const
+      },
+      {
+        title: "Landskap med solnedgång",
+        artist: "Anna Nilsson",
+        price: 18000,
+        estimatedValue: 35000,
+        profitMargin: 94,
+        source: "Lauritz (Mock)",
+        imageUrl: "https://picsum.photos/seed/mock-lauritz/400/300",
+        description: "Akrylmålning, 50x70cm",
+        riskLevel: "low" as const,
+        confidence: 0.85,
+        marketTrend: "rising" as const,
+        recommendation: "buy" as const
+      },
+      {
+        title: "Modernistisk verk",
+        artist: "Lars Persson",
+        price: 32000,
+        estimatedValue: 55000,
+        profitMargin: 72,
+        source: "Barnebys (Mock)",
+        imageUrl: "https://picsum.photos/seed/mock-barnebys/400/300",
+        description: "Brons, 35cm hög",
+        riskLevel: "medium" as const,
+        confidence: 0.70,
+        marketTrend: "stable" as const,
+        recommendation: "hold" as const
       }
-    })
+    ]
 
-    // Sortera efter vinstpotential (högst först)
-    analyzedItems.sort((a, b) => b.profitMargin - a.profitMargin)
-
-    // Filtrera bort objekt med negativ vinstpotential
-    const profitableItems = analyzedItems.filter(item => item.profitMargin > 0)
-
-    console.log(`Scan complete: ${profitableItems.length} profitable items found`)
+    console.log(`✅ Generated ${mockItems.length} mock items`)
 
     return NextResponse.json({
       success: true,
-      results: profitableItems,
-      totalFound: profitableItems.length,
+      results: mockItems,
+      totalFound: mockItems.length,
       scanType: type,
       timestamp: new Date().toISOString(),
-      sources: ['Bukowskis', 'Lauritz', 'Barnebys'],
-      analysisType: 'real'
+      sources: ['Bukowskis (Mock)', 'Lauritz (Mock)', 'Barnebys (Mock)'],
+      analysisType: 'mock-puppeteer',
+      scrapingMethod: 'mock-build-safe',
+      dataQuality: 'mock-data',
+      note: 'Puppeteer är inaktiverat för build. Använder mock data.'
     })
 
   } catch (error) {
-    console.error('Scanning error:', error)
+    console.error('❌ Mock scraping error:', error)
+    
     return NextResponse.json(
       { 
-        error: 'Failed to scan art markets',
-        details: error instanceof Error ? error.message : 'Unknown error'
+        error: 'Failed to generate mock data',
+        details: error instanceof Error ? error.message : 'Unknown error',
+        scrapingMethod: 'mock-failed'
       },
       { status: 500 }
     )
