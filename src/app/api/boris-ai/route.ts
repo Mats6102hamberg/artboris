@@ -50,6 +50,16 @@ export async function POST(request: NextRequest) {
         response = await borisAI.getArtOpinion(data.topic)
         break
 
+      case 'analyze-my-artwork':
+        if (!data?.artwork) {
+          return NextResponse.json(
+            { error: 'Artwork data is required for analysis' },
+            { status: 400 }
+          )
+        }
+        response = await borisAI.analyzeMyArtwork(data.artwork)
+        break
+
       case 'chat':
         if (!data?.message) {
           return NextResponse.json(

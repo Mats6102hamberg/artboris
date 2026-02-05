@@ -170,6 +170,44 @@ export class BorisArtAI {
     }
   }
 
+  async analyzeMyArtwork(artwork: {
+    title: string
+    artist: string
+    description: string
+    price: number
+    category: string
+    year: number
+  }): Promise<BorisArtResponse> {
+    const prompt = `
+      Analysera detta konstverk som en professionell konstkritiker och värderingsexpert:
+      
+      Titel: ${artwork.title}
+      Konstnär: ${artwork.artist}
+      Kategori: ${artwork.category}
+      År: ${artwork.year}
+      Pris: ${artwork.price.toLocaleString()} kr
+      Beskrivning: ${artwork.description}
+      
+      Ge en professionell analys som inkluderar:
+      1. Konstnärlig bedömning (stil, teknik, komposition)
+      2. Marknadsvärde och prisrekommendation
+      3. Investeringpotential
+      4. Målgrupp och marknadsplacering
+      5. Eventuell förbättringspotential
+      
+      Var konkret och ge konkreta råd. Skriv på svenska.
+    `
+
+    const systemPrompt = `Du är BorisArt AI, en expert konstkritiker och värderingsexpert. Du analyserar konstverk med både konstnärlig och kommersiell insikt. Din analys är balanserad, kunnig och praktisk. Du ger ärliga, välgrundade omdömen om konstrelaterade ämnen.`
+
+    const message = await this.callOpenAI(prompt, systemPrompt)
+
+    return {
+      message,
+      type: 'analysis',
+      timestamp: new Date().toISOString()
+    }
+  }
   async chatWithBoris(message: string, context?: {
   scannedItems?: any[]
   portfolio?: any[]
@@ -185,12 +223,12 @@ export class BorisArtAI {
       
       ${context?.scannedItems && context.scannedItems.length > 0 ? `
       Nyligen skannade verk:
-      ${context.scannedItems.slice(0, 3).map((art, i) => `${i+1}. "${art.title}" - ${art.price} kr`).join('\n')}
+      ${context.scannedItems.slice(0, 3).map((art: any, i: number) => `${i+1}. "${art.title}" - ${art.price} kr`).join('\n')}
       ` : ''}
       
       ${context?.portfolio && context.portfolio.length > 0 ? `
       Verk i portfölj:
-      ${context.portfolio.slice(0, 3).map((art, i) => `${i+1}. "${art.title}" - ${art.price} kr`).join('\n')}
+      ${context.portfolio.slice(0, 3).map((art: any, i: number) => `${i+1}. "${art.title}" - ${art.price} kr`).join('\n')}
       ` : ''}
       
       Svara som en kunnig och engagerad konstexpert som har tillgång till information om användarens konstsamling. Anpassa ditt svar efter användarens fråga och den kontext du har. Var hjälpsam, insiktsfull och personlig. Ge relevanta och aktuella svar baserat på de verk du kan se.

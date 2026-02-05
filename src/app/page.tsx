@@ -2,6 +2,7 @@
 
 import { useState } from 'react'
 import BorisArtChat from '@/components/BorisArtChat'
+import MyArtworks from '@/components/MyArtworks'
 
 export default function Home() {
   const [isScanning, setIsScanning] = useState(false)
@@ -13,6 +14,7 @@ export default function Home() {
   const [showPortfolio, setShowPortfolio] = useState(false)
   const [showFilters, setShowFilters] = useState(false)
   const [showBorisChat, setShowBorisChat] = useState(false)
+  const [activeTab, setActiveTab] = useState<'scanner' | 'my-artworks'>('scanner')
   const [filters, setFilters] = useState({
     minPrice: 0,
     maxPrice: 100000,
@@ -121,6 +123,30 @@ export default function Home() {
                 📊 Portfölj ({portfolio.length})
               </button>
             </div>
+          </div>
+
+          {/* Tab Navigation */}
+          <div className="flex space-x-1 bg-gray-100 p-1 rounded-lg">
+            <button
+              onClick={() => setActiveTab('scanner')}
+              className={`flex-1 px-4 py-2 rounded-md transition-colors ${
+                activeTab === 'scanner'
+                  ? 'bg-white text-blue-600 shadow-sm'
+                  : 'text-gray-600 hover:text-gray-900'
+              }`}
+            >
+              🔍 Art Scanner
+            </button>
+            <button
+              onClick={() => setActiveTab('my-artworks')}
+              className={`flex-1 px-4 py-2 rounded-md transition-colors ${
+                activeTab === 'my-artworks'
+                  ? 'bg-white text-blue-600 shadow-sm'
+                  : 'text-gray-600 hover:text-gray-900'
+              }`}
+            >
+              🎨 Mina Tavlor
+            </button>
           </div>
         </div>
       </header>
@@ -604,6 +630,13 @@ export default function Home() {
           </div>
         )}
       </main>
+
+      {/* Tab Content */}
+      {activeTab === 'my-artworks' && (
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+          <MyArtworks />
+        </div>
+      )}
 
       {/* BorisArt AI Chat */}
       {showBorisChat && (
