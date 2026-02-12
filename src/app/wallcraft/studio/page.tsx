@@ -64,7 +64,7 @@ export default function StudioPage() {
       })
       const data = await res.json()
       if (data.success) {
-        router.push(`/wallcraft/result?designId=${data.designId}`)
+        router.push(`/wallcraft/design/${data.designId}`)
       } else {
         alert(data.error || t('common.error'))
       }
