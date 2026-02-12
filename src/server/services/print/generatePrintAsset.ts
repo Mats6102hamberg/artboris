@@ -1,13 +1,24 @@
 import { prisma } from '@/lib/prisma'
+import { put } from '@vercel/blob'
 import { upscaleImage, getTargetDimensions, meetsTargetDpi } from '../ai/upscale'
 import type { PrintProductType } from '@prisma/client'
+
+// Auto-select upscale factor based on sizeCode for optimal DPI
+const SIZE_UPSCALE_FACTOR: Record<string, number> = {
+  '21x30': 4,  // 4096×7168 → ~340 DPI ✅
+  'A4': 4,     // 4096×7168 → ~340 DPI ✅
+  '30x40': 4,  // 4096×7168 → ~240 DPI ✅
+  'A3': 4,     // 4096×7168 → ~240 DPI ✅
+  '50x70': 4,  // 4096×7168 → ~145 DPI ✅ (poster-ok)
+  '70x100': 8, // 8192×14336 → ~290 DPI ✅ (premium)
+}
 
 export interface GeneratePrintAssetInput {
   designId: string
   imageUrl: string
   sizeCode: string
   productType: PrintProductType
-  upscaleFactor?: number
+  upscaleFactor?: number  // override auto-select
   targetDpi?: number
 }
 
@@ -18,19 +29,20 @@ export interface GeneratePrintAssetResult {
 }
 
 /**
- * Orchestrator: upscale → save → create DesignAsset.
+ * Orchestrator: upscale → Vercel Blob → create DesignAsset.
  * Idempotent: checks if PRINT asset already exists before doing work.
+ * Auto-selects 4× or 8× based on sizeCode (70×100 gets 8×).
  */
 export async function generatePrintAsset(
   input: GeneratePrintAssetInput,
 ): Promise<GeneratePrintAssetResult> {
   const { designId, imageUrl, sizeCode, productType } = input
-  const upscaleFactor = input.upscaleFactor ?? 4
+  const upscaleFactor = input.upscaleFactor ?? SIZE_UPSCALE_FACTOR[sizeCode] ?? 4
   const targetDpi = input.targetDpi ?? 150
 
   const logPrefix = `[generatePrintAsset] design=${designId} size=${sizeCode}`
 
-  // ── Idempotens: kolla om PRINT-asset redan finns ──
+  // ── Idempotens: kolla om PRINT-asset redan finns (med upscale-data) ──
   const existing = await prisma.designAsset.findUnique({
     where: {
       designId_role_sizeCode_productType: {
@@ -74,43 +86,48 @@ export async function generatePrintAsset(
     )
   }
 
-  // ── Ladda ner upscalad bild och beräkna filstorlek ──
+  // ── Ladda ner upscalad bild ──
   console.log(`${logPrefix} Downloading upscaled image...`)
   const imageResponse = await fetch(upscaleResult.url)
   if (!imageResponse.ok) {
     throw new Error(`Failed to download upscaled image: ${imageResponse.status}`)
   }
-  const imageBuffer = await imageResponse.arrayBuffer()
+  const imageBuffer = Buffer.from(await imageResponse.arrayBuffer())
   const fileSize = imageBuffer.byteLength
   const mimeType = imageResponse.headers.get('content-type') || 'image/png'
 
   console.log(`${logPrefix} Downloaded: ${(fileSize / 1024 / 1024).toFixed(1)} MB`)
 
-  // ── Spara till Vercel Blob (eller behåll Replicate-URL temporärt) ──
-  // TODO: Implementera Vercel Blob upload för permanent lagring
-  // För nu: använd Replicate-URL:en (temporär, ~1h livstid)
-  // I produktion: upload till Blob här
-  const finalUrl = upscaleResult.url
+  // ── Upload till Vercel Blob (permanent lagring) ──
+  const blobPath = `print-assets/${designId}/${sizeCode}-${productType}-${upscaleFactor}x.png`
+  console.log(`${logPrefix} Uploading to Vercel Blob: ${blobPath}`)
 
-  console.log(`${logPrefix} Saving DesignAsset...`)
+  const blob = await put(blobPath, imageBuffer, {
+    access: 'public',
+    contentType: mimeType,
+  })
+
+  console.log(`${logPrefix} Blob saved: ${blob.url}`)
 
   // ── Skapa eller uppdatera DesignAsset ──
+  const assetData = {
+    url: blob.url,
+    widthPx: upscaleResult.finalWidthPx,
+    heightPx: upscaleResult.finalHeightPx,
+    dpi: targetDpi,
+    fileSize,
+    mimeType,
+    sourceWidthPx: upscaleResult.sourceWidthPx,
+    sourceHeightPx: upscaleResult.sourceHeightPx,
+    upscaleFactor: upscaleResult.upscaleFactor,
+    upscaleProvider: upscaleResult.upscaleProvider,
+  }
+
   // Om placeholder redan finns (från webhook), uppdatera den
   const asset = existing
     ? await prisma.designAsset.update({
         where: { id: existing.id },
-        data: {
-          url: finalUrl,
-          widthPx: upscaleResult.finalWidthPx,
-          heightPx: upscaleResult.finalHeightPx,
-          dpi: targetDpi,
-          fileSize,
-          mimeType,
-          sourceWidthPx: upscaleResult.sourceWidthPx,
-          sourceHeightPx: upscaleResult.sourceHeightPx,
-          upscaleFactor: upscaleResult.upscaleFactor,
-          upscaleProvider: upscaleResult.upscaleProvider,
-        },
+        data: assetData,
       })
     : await prisma.designAsset.create({
         data: {
@@ -118,16 +135,7 @@ export async function generatePrintAsset(
           role: 'PRINT',
           sizeCode,
           productType,
-          url: finalUrl,
-          widthPx: upscaleResult.finalWidthPx,
-          heightPx: upscaleResult.finalHeightPx,
-          dpi: targetDpi,
-          fileSize,
-          mimeType,
-          sourceWidthPx: upscaleResult.sourceWidthPx,
-          sourceHeightPx: upscaleResult.sourceHeightPx,
-          upscaleFactor: upscaleResult.upscaleFactor,
-          upscaleProvider: upscaleResult.upscaleProvider,
+          ...assetData,
         },
       })
 

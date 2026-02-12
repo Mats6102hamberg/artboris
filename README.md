@@ -192,7 +192,8 @@ npx prisma migrate dev
 | `OPENAI_API_KEY` | OpenAI API-nyckel (GPT-4 + DALL-E 3) | Nej (demo-läge utan) |
 | `STRIPE_SECRET_KEY` | Stripe secret key (sk_...) | Ja, för betalning |
 | `STRIPE_WEBHOOK_SECRET` | Stripe webhook signing secret (whsec_...) | Ja, för webhook |
-| `REPLICATE_API_TOKEN` | Replicate API-token för 4× upscaling | Ja, för print |
+| `REPLICATE_API_TOKEN` | Replicate API-token för 4×/8× upscaling | Ja, för print |
+| `BLOB_READ_WRITE_TOKEN` | Vercel Blob token för permanent bildlagring | Ja, för print |
 | `NEXT_PUBLIC_APP_URL` | App-URL för redirects (default: http://localhost:3000) | Nej |
 
 ## Databasmodeller (Prisma)

@@ -13,6 +13,7 @@
     "@prisma/client": "^6.19.2",
     "@types/cheerio": "^0.22.35",
     "@types/puppeteer": "^5.4.7",
+    "@vercel/blob": "^2.2.0",
     "axios": "^1.13.4",
     "cheerio": "^1.2.0",
     "next": "16.1.6",
