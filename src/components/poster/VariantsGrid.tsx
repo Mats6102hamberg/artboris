@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 
 interface Variant {
   id: string
@@ -32,6 +32,13 @@ export default function VariantsGrid({
   controls,
 }: VariantsGridProps) {
   const [viewIndex, setViewIndex] = useState(0)
+
+  // Auto-select first variant when variants load
+  useEffect(() => {
+    if (variants.length > 0 && selectedIndex === null) {
+      onSelect(0)
+    }
+  }, [variants.length])
 
   // CSS filter + zoom from controls (50 = neutral for filters, 100 = normal zoom)
   const zoomScale = controls?.zoom ? controls.zoom / 100 : 1
@@ -75,8 +82,16 @@ export default function VariantsGrid({
     )
   }
 
-  const goPrev = () => setViewIndex((prev) => (prev - 1 + variants.length) % variants.length)
-  const goNext = () => setViewIndex((prev) => (prev + 1) % variants.length)
+  const goPrev = () => {
+    const next = (viewIndex - 1 + variants.length) % variants.length
+    setViewIndex(next)
+    onSelect(next)
+  }
+  const goNext = () => {
+    const next = (viewIndex + 1) % variants.length
+    setViewIndex(next)
+    onSelect(next)
+  }
 
   const variant = variants[viewIndex]
 
@@ -140,7 +155,7 @@ export default function VariantsGrid({
           {variants.map((v, i) => (
             <button
               key={v.id}
-              onClick={() => setViewIndex(i)}
+              onClick={() => { setViewIndex(i); onSelect(i) }}
               className={`
                 relative rounded-lg overflow-hidden border-2 transition-all duration-200
                 ${i === viewIndex
@@ -168,21 +183,6 @@ export default function VariantsGrid({
           ))}
         </div>
 
-        {/* Select button */}
-        <div className="mt-4 flex justify-center">
-          <button
-            onClick={() => onSelect(viewIndex)}
-            className={`
-              px-6 py-2.5 rounded-xl font-medium transition-all duration-200 text-sm
-              ${selectedIndex === viewIndex
-                ? 'bg-blue-100 text-blue-700 border border-blue-200'
-                : 'bg-blue-600 hover:bg-blue-700 text-white shadow-lg shadow-blue-200 hover:scale-105'
-              }
-            `}
-          >
-            {selectedIndex === viewIndex ? 'Variant vald' : `Välj variant ${viewIndex + 1}`}
-          </button>
-        </div>
       </div>
 
       <style jsx>{`
