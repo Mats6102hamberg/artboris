@@ -326,6 +326,12 @@ model DesignAsset {
   fileSize   Int?
   mimeType   String?
 
+  // Upscale metadata
+  sourceWidthPx    Int?
+  sourceHeightPx   Int?
+  upscaleFactor    Int?
+  upscaleProvider  String?  // e.g. "replicate"
+
   sizeCode   String?
   productType PrintProductType?
 
