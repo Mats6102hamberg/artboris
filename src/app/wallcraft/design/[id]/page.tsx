@@ -53,6 +53,18 @@ export default function WallcraftDesignPage() {
   const [selectedVariantIndex, setSelectedVariantIndex] = useState<number | null>(0)
   const [wantPublish, setWantPublish] = useState(false)
   const [isShuffling, setIsShuffling] = useState(false)
+  const [credits, setCredits] = useState<number | null>(null)
+  const [showCreditsModal, setShowCreditsModal] = useState(false)
+  const [shuffleCooldown, setShuffleCooldown] = useState(false)
+  const lastShuffleTime = useRef(0)
+
+  // Fetch credit balance
+  useEffect(() => {
+    fetch('/api/credits/balance?userId=demo-user')
+      .then(res => res.json())
+      .then(data => { if (data.success) setCredits(data.balance) })
+      .catch(() => setCredits(null))
+  }, [])
 
   useEffect(() => {
     if (!id) return
@@ -110,8 +122,29 @@ export default function WallcraftDesignPage() {
   }
 
   const handleShuffle = async () => {
-    if (!design || isShuffling) return
+    if (!design || isShuffling || shuffleCooldown) return
+
+    // Client-side rate limit: 3s cooldown
+    const now = Date.now()
+    if (now - lastShuffleTime.current < 3000) return
+
+    // Client-side credit check
+    if (credits !== null && credits < 1) {
+      setShowCreditsModal(true)
+      return
+    }
+
+    // Client-side variant cap
+    if (design.variants.length >= 30) {
+      alert('Maximum 30 variants per design reached.')
+      return
+    }
+
     setIsShuffling(true)
+    lastShuffleTime.current = now
+    setShuffleCooldown(true)
+    setTimeout(() => setShuffleCooldown(false), 3000)
+
     try {
       const res = await fetch('/api/designs/refine', {
         method: 'POST',
@@ -120,9 +153,20 @@ export default function WallcraftDesignPage() {
           originalPrompt: design.prompt,
           feedback: 'Generate a new unique variation in the same style',
           controls: null,
+          designId: id,
+          variantCount: design.variants.length,
         }),
       })
       const data = await res.json()
+
+      if (data.insufficientCredits) {
+        setCredits(data.balance ?? 0)
+        setShowCreditsModal(true)
+        return
+      }
+
+      if (data.rateLimited) return
+
       if (data.success && data.variant) {
         const newVariant: DesignVariantData = {
           id: data.variant.id || `var_${Date.now()}`,
@@ -131,14 +175,23 @@ export default function WallcraftDesignPage() {
           seed: data.variant.seed || Math.floor(Math.random() * 999999),
           sortOrder: design.variants.length,
         }
-        const updatedDesign = {
-          ...design,
-          variants: [...design.variants, newVariant],
+        // Cap at 30: remove oldest if needed
+        let variants = [...design.variants, newVariant]
+        if (variants.length > 30) {
+          variants = variants.slice(variants.length - 30)
         }
+        const updatedDesign = { ...design, variants }
         setDesign(updatedDesign)
-        const newIndex = updatedDesign.variants.length - 1
+        const newIndex = variants.length - 1
         setSelectedVariantIndex(newIndex)
         saveToDb({ selectedVariantId: newVariant.id, imageUrl: newVariant.imageUrl })
+
+        // Update credits from server response
+        if (typeof data.creditsRemaining === 'number') {
+          setCredits(data.creditsRemaining)
+        } else if (credits !== null) {
+          setCredits(credits - 1)
+        }
       }
     } catch (err) {
       console.error('Shuffle error:', err)
@@ -230,7 +283,14 @@ export default function WallcraftDesignPage() {
             </span>
             <span className="text-xs text-green-600 bg-green-50 px-2 py-0.5 rounded-full border border-green-200">✓</span>
           </div>
-          <CreditBadge />
+          <div className="flex items-center gap-3">
+            {credits !== null && (
+              <span className="text-xs font-medium text-gray-500 bg-gray-100 px-2.5 py-1 rounded-full">
+                {credits} credits
+              </span>
+            )}
+            <CreditBadge />
+          </div>
         </div>
       </header>
 
@@ -261,8 +321,10 @@ export default function WallcraftDesignPage() {
               {/* Shuffle overlay */}
               <button
                 onClick={handleShuffle}
-                disabled={isShuffling}
-                className="absolute top-4 right-4 z-30 bg-white/90 backdrop-blur-sm border border-gray-200/60 rounded-xl px-4 py-2.5 flex items-center gap-2 shadow-lg hover:bg-white hover:shadow-xl transition-all disabled:opacity-70"
+                disabled={isShuffling || shuffleCooldown}
+                className={`absolute top-4 right-4 z-30 bg-white/90 backdrop-blur-sm border border-gray-200/60 rounded-xl px-4 py-2.5 flex items-center gap-2 shadow-lg transition-all ${
+                  isShuffling || shuffleCooldown ? 'opacity-60 cursor-not-allowed' : 'hover:bg-white hover:shadow-xl'
+                }`}
               >
                 {isShuffling ? (
                   <div className="w-4 h-4 border-2 border-gray-400 border-t-gray-900 rounded-full animate-spin" />
@@ -271,7 +333,10 @@ export default function WallcraftDesignPage() {
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
                   </svg>
                 )}
-                <span className="text-sm font-medium text-gray-700">{isShuffling ? 'Generating...' : 'Shuffle'}</span>
+                <span className="text-sm font-medium text-gray-700">
+                  {isShuffling ? 'Generating...' : shuffleCooldown ? 'Wait...' : 'Shuffle'}
+                </span>
+                <span className="text-[10px] text-gray-400 font-medium">1 cr</span>
               </button>
 
               {/* Prev / Next navigation */}
@@ -370,6 +435,29 @@ export default function WallcraftDesignPage() {
           {t('studio.editor.addToCart')} — {formatSEK(pricing.totalPriceSEK)}
         </Button>
       </div>
+
+      {/* Out of credits modal */}
+      {showCreditsModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm">
+          <div className="bg-white rounded-2xl p-8 max-w-sm mx-4 shadow-2xl text-center">
+            <div className="w-14 h-14 bg-amber-100 rounded-full flex items-center justify-center mx-auto mb-4">
+              <svg className="w-7 h-7 text-amber-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L4.082 16.5c-.77.833.192 2.5 1.732 2.5z" />
+              </svg>
+            </div>
+            <h3 className="text-lg font-semibold text-gray-900">Out of credits</h3>
+            <p className="text-sm text-gray-500 mt-2">Each shuffle costs 1 credit. Buy more to keep exploring designs.</p>
+            <div className="mt-6 flex flex-col gap-2">
+              <Button size="lg" onClick={() => router.push('/wallcraft/checkout?buyCredits=1')}>
+                {t('credits.buy')}
+              </Button>
+              <Button variant="ghost" onClick={() => setShowCreditsModal(false)}>
+                {t('common.cancel')}
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 }
