@@ -83,6 +83,8 @@ export default function EditorPage() {
                 positionX={positionX}
                 positionY={positionY}
                 scale={scale}
+                onPositionChange={(x, y) => { setPositionX(x); setPositionY(y) }}
+                onScaleChange={setScale}
               />
             ) : (
               <div className="aspect-video bg-gray-100 rounded-2xl flex items-center justify-center">
