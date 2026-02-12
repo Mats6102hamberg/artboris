@@ -46,22 +46,63 @@ model CreditTransaction {
   @@index([userId])
 }
 
-model GalleryItem {
+model Design {
   id          String   @id @default(cuid())
-  designId    String
   userId      String
   title       String
   description String   @default("")
   imageUrl    String
   mockupUrl   String   @default("")
+
+  // Core metadata for gallery + "Create similar"
+  roomType    String?  // e.g. "livingroom", "kidsroom"
   style       String
-  likes       Int      @default(0)
-  isPublished Boolean  @default(true)
+  colorMood   String?  // e.g. "warm", "cool", "dark"
+
+  isPublic    Boolean  @default(false)
+  likesCount  Int      @default(0)
+
   createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  // Relations
+  likes       Like[]
+  roomMeta    RoomMeta?
 
   @@index([userId])
   @@index([style])
-  @@index([isPublished, createdAt])
+  @@index([isPublic, createdAt])
+}
+
+model Like {
+  id        String   @id @default(cuid())
+  designId  String
+  anonId    String   // from cookie/session (no login required)
+  createdAt DateTime @default(now())
+
+  // Relations
+  design    Design   @relation(fields: [designId], references: [id], onDelete: Cascade)
+
+  @@unique([designId, anonId])
+  @@index([designId])
+  @@index([anonId])
+}
+
+model RoomMeta {
+  id        String   @id @default(cuid())
+  designId  String   @unique
+
+  wallColor String?
+  lightType String?  // e.g. "north", "warm-lamp", "mixed"
+  vibe      String?  // e.g. "cozy", "minimal", "playful"
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relations
+  design    Design   @relation(fields: [designId], references: [id], onDelete: Cascade)
+
+  @@index([designId])
 }
 
 model PosterOrder {

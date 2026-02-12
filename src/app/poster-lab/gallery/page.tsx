@@ -13,7 +13,7 @@ interface GalleryItem {
   imageUrl: string
   mockupUrl: string
   style: string
-  likes: number
+  likesCount: number
   createdAt: string
 }
 
@@ -54,13 +54,15 @@ export default function GalleryPage() {
       const res = await fetch('/api/gallery/list', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ galleryItemId: itemId }),
+        body: JSON.stringify({ designId: itemId }),
       })
       const data = await res.json()
       if (data.success) {
         setItems(prev =>
           prev.map(item =>
-            item.id === itemId ? { ...item, likes: data.likes } : item
+            item.id === itemId
+              ? { ...item, likesCount: item.likesCount + (data.liked ? 1 : -1) }
+              : item
           )
         )
       }
@@ -173,7 +175,7 @@ export default function GalleryPage() {
                       <svg className="w-3.5 h-3.5 sm:w-4 sm:h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
                       </svg>
-                      {item.likes}
+                      {item.likesCount}
                     </button>
                   </div>
                 </div>

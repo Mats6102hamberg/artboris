@@ -109,14 +109,15 @@ export interface WallCorner {
 
 export interface GalleryItem {
   id: string
-  designId: string
   userId: string
   title: string
   description: string
   imageUrl: string
   mockupUrl: string
+  roomType?: string
   style: StylePreset
-  likes: number
-  isPublished: boolean
+  colorMood?: string
+  likesCount: number
+  isPublic: boolean
   createdAt: string
 }

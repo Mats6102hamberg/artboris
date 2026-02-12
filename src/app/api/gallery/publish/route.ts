@@ -4,23 +4,24 @@ import { publishToGallery, unpublishFromGallery } from '@/server/services/galler
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json()
-    const { designId, userId, title, description, imageUrl, mockupUrl, style } = body
+    const { userId, title, description, imageUrl, mockupUrl, style, roomType, colorMood } = body
 
-    if (!designId || !userId || !title || !imageUrl) {
+    if (!userId || !title || !imageUrl) {
       return NextResponse.json(
-        { error: 'designId, userId, title och imageUrl krävs.' },
+        { error: 'userId, title och imageUrl krävs.' },
         { status: 400 }
       )
     }
 
     const result = await publishToGallery({
-      designId,
       userId,
       title,
       description: description || '',
       imageUrl,
       mockupUrl: mockupUrl || '',
       style: style || 'minimal',
+      roomType,
+      colorMood,
     })
 
     return NextResponse.json(result)

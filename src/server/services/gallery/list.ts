@@ -10,29 +10,47 @@ export interface GalleryListOptions {
 export async function listGallery(options: GalleryListOptions = {}) {
   const { style, limit = 20, offset = 0, sortBy = 'recent' } = options
 
-  const where: any = { isPublished: true }
+  const where: any = { isPublic: true }
   if (style) where.style = style
 
   const orderBy = sortBy === 'popular'
-    ? { likes: 'desc' as const }
+    ? { likesCount: 'desc' as const }
     : { createdAt: 'desc' as const }
 
   const [items, total] = await Promise.all([
-    prisma.galleryItem.findMany({
+    prisma.design.findMany({
       where,
       orderBy,
       take: limit,
       skip: offset,
     }),
-    prisma.galleryItem.count({ where }),
+    prisma.design.count({ where }),
   ])
 
   return { items, total, hasMore: offset + limit < total }
 }
 
-export async function likeGalleryItem(galleryItemId: string) {
-  return prisma.galleryItem.update({
-    where: { id: galleryItemId },
-    data: { likes: { increment: 1 } },
+export async function likeDesign(designId: string, anonId: string) {
+  // Upsert: om like redan finns gör inget, annars skapa och öka räknaren
+  const existing = await prisma.like.findUnique({
+    where: { designId_anonId: { designId, anonId } },
   })
+
+  if (existing) {
+    // Redan gillad — ta bort like (toggle)
+    await prisma.like.delete({ where: { id: existing.id } })
+    await prisma.design.update({
+      where: { id: designId },
+      data: { likesCount: { decrement: 1 } },
+    })
+    return { liked: false }
+  }
+
+  await prisma.like.create({ data: { designId, anonId } })
+  const updated = await prisma.design.update({
+    where: { id: designId },
+    data: { likesCount: { increment: 1 } },
+  })
+
+  return { liked: true, likesCount: updated.likesCount }
 }

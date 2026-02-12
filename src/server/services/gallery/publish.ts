@@ -1,38 +1,40 @@
 import { prisma } from '@/lib/prisma'
 
 export interface PublishInput {
-  designId: string
   userId: string
   title: string
   description: string
   imageUrl: string
   mockupUrl: string
   style: string
+  roomType?: string
+  colorMood?: string
 }
 
 export interface PublishResult {
   success: boolean
-  galleryItemId?: string
+  designId?: string
   error?: string
 }
 
 export async function publishToGallery(input: PublishInput): Promise<PublishResult> {
   try {
-    const item = await prisma.galleryItem.create({
+    const item = await prisma.design.create({
       data: {
-        designId: input.designId,
         userId: input.userId,
         title: input.title,
         description: input.description,
         imageUrl: input.imageUrl,
         mockupUrl: input.mockupUrl,
         style: input.style,
-        likes: 0,
-        isPublished: true,
+        roomType: input.roomType,
+        colorMood: input.colorMood,
+        likesCount: 0,
+        isPublic: true,
       },
     })
 
-    return { success: true, galleryItemId: item.id }
+    return { success: true, designId: item.id }
   } catch (error) {
     console.error('[publishToGallery] Error:', error)
     return {
@@ -42,14 +44,14 @@ export async function publishToGallery(input: PublishInput): Promise<PublishResu
   }
 }
 
-export async function unpublishFromGallery(galleryItemId: string, userId: string): Promise<PublishResult> {
+export async function unpublishFromGallery(designId: string, userId: string): Promise<PublishResult> {
   try {
-    await prisma.galleryItem.updateMany({
-      where: { id: galleryItemId, userId },
-      data: { isPublished: false },
+    await prisma.design.updateMany({
+      where: { id: designId, userId },
+      data: { isPublic: false },
     })
 
-    return { success: true, galleryItemId }
+    return { success: true, designId }
   } catch (error) {
     console.error('[unpublishFromGallery] Error:', error)
     return {
