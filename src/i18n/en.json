@@ -1,0 +1,113 @@
+{
+  "brand": {
+    "name": "Wallcraft",
+    "tagline": "AI designed art for your home"
+  },
+  "nav": {
+    "studio": "Studio",
+    "gallery": "Gallery",
+    "pricing": "Pricing",
+    "signIn": "Sign in"
+  },
+  "landing": {
+    "hero": {
+      "title": "Your personal AI art studio",
+      "subtitle": "Design unique artwork tailored to your room. See it on your wall before you buy.",
+      "cta": "Design your wall",
+      "ctaSecondary": "Explore the gallery"
+    },
+    "steps": {
+      "title": "How it works",
+      "step1": {
+        "title": "Upload your room",
+        "description": "Take a photo of your wall and upload it. Mark the area where you want your artwork."
+      },
+      "step2": {
+        "title": "Choose your style",
+        "description": "Pick from curated styles — minimal, Scandinavian, abstract, modern, photography and more."
+      },
+      "step3": {
+        "title": "See it on your wall",
+        "description": "Get 4 unique concepts placed directly on your wall. Adjust size, frame and position."
+      }
+    },
+    "trust": {
+      "printedLocal": "Printed locally",
+      "fineArt": "Fine art paper",
+      "delivery": "Delivery 3–5 days",
+      "guarantee": "Satisfaction guarantee"
+    },
+    "featured": {
+      "title": "Popular designs",
+      "viewOnWall": "View on my wall"
+    }
+  },
+  "studio": {
+    "upload": {
+      "title": "Upload your room",
+      "description": "Take a photo of your room or use our demo room to get started.",
+      "dropzone": "Drop your photo here or click to browse",
+      "useDemo": "Use demo room",
+      "formats": "JPG, PNG or HEIC — max 10 MB"
+    },
+    "wallMarker": {
+      "title": "Mark the wall",
+      "description": "Click on the image to mark the 4 corners of the wall area",
+      "corners": "corners",
+      "done": "Done!",
+      "clearAll": "Clear all",
+      "clickToPlace": "Click to place",
+      "labels": ["Top left", "Top right", "Bottom right", "Bottom left"]
+    },
+    "style": {
+      "title": "Choose your style",
+      "description": "What feeling do you want?",
+      "generate": "Generate concepts",
+      "generating": "Creating your artwork...",
+      "descriptionPlaceholder": "Describe what you want (optional)"
+    },
+    "editor": {
+      "variants": "Variants",
+      "frame": "Frame",
+      "size": "Size",
+      "addToCart": "Order print",
+      "price": "Price"
+    }
+  },
+  "checkout": {
+    "title": "Complete your order",
+    "orderSummary": "Order summary",
+    "pay": "Pay now",
+    "secure": "Secure payment via Stripe"
+  },
+  "gallery": {
+    "title": "Gallery",
+    "subtitle": "Get inspired by designs from our community",
+    "viewDesign": "View design"
+  },
+  "credits": {
+    "balance": "Credits",
+    "buy": "Buy credits",
+    "free": "3 free generations included",
+    "packages": {
+      "small": "10 credits",
+      "medium": "30 credits",
+      "large": "100 credits"
+    }
+  },
+  "common": {
+    "next": "Next",
+    "back": "Back",
+    "cancel": "Cancel",
+    "save": "Save",
+    "loading": "Loading...",
+    "error": "Something went wrong",
+    "tryAgain": "Try again"
+  },
+  "sizes": {
+    "chooseSize": "Choose size"
+  },
+  "frames": {
+    "chooseFrame": "Choose frame"
+  }
+}

@@ -1,0 +1,113 @@
+{
+  "brand": {
+    "name": "Wallcraft",
+    "tagline": "AI-designad konst för ditt hem"
+  },
+  "nav": {
+    "studio": "Studio",
+    "gallery": "Galleri",
+    "pricing": "Priser",
+    "signIn": "Logga in"
+  },
+  "landing": {
+    "hero": {
+      "title": "Din personliga AI-konststudio",
+      "subtitle": "Designa unik konst anpassad efter ditt rum. Se den på din vägg innan du köper.",
+      "cta": "Designa din vägg",
+      "ctaSecondary": "Utforska galleriet"
+    },
+    "steps": {
+      "title": "Så fungerar det",
+      "step1": {
+        "title": "Ladda upp ditt rum",
+        "description": "Ta ett foto av din vägg och ladda upp det. Markera ytan där du vill ha din konst."
+      },
+      "step2": {
+        "title": "Välj din stil",
+        "description": "Välj bland kurerade stilar — minimal, skandinavisk, abstrakt, modern, fotografi och mer."
+      },
+      "step3": {
+        "title": "Se den på din vägg",
+        "description": "Få 4 unika koncept placerade direkt på din vägg. Justera storlek, ram och position."
+      }
+    },
+    "trust": {
+      "printedLocal": "Trycks lokalt",
+      "fineArt": "Fine art-papper",
+      "delivery": "Leverans 3–5 dagar",
+      "guarantee": "Nöjd-kund-garanti"
+    },
+    "featured": {
+      "title": "Populära designs",
+      "viewOnWall": "Visa på min vägg"
+    }
+  },
+  "studio": {
+    "upload": {
+      "title": "Ladda upp ditt rum",
+      "description": "Ta ett foto av ditt rum eller använd vårt demorum för att komma igång.",
+      "dropzone": "Släpp ditt foto här eller klicka för att bläddra",
+      "useDemo": "Använd demorum",
+      "formats": "JPG, PNG eller HEIC — max 10 MB"
+    },
+    "wallMarker": {
+      "title": "Markera väggen",
+      "description": "Klicka på bilden för att markera de 4 hörnen av väggytan",
+      "corners": "hörn",
+      "done": "Klart!",
+      "clearAll": "Rensa alla",
+      "clickToPlace": "Klicka för att placera",
+      "labels": ["Uppe vänster", "Uppe höger", "Nere höger", "Nere vänster"]
+    },
+    "style": {
+      "title": "Välj din stil",
+      "description": "Vilken känsla vill du ha?",
+      "generate": "Generera koncept",
+      "generating": "Skapar din konst...",
+      "descriptionPlaceholder": "Beskriv vad du vill ha (valfritt)"
+    },
+    "editor": {
+      "variants": "Varianter",
+      "frame": "Ram",
+      "size": "Storlek",
+      "addToCart": "Beställ tryck",
+      "price": "Pris"
+    }
+  },
+  "checkout": {
+    "title": "Slutför din beställning",
+    "orderSummary": "Ordersammanfattning",
+    "pay": "Betala nu",
+    "secure": "Säker betalning via Stripe"
+  },
+  "gallery": {
+    "title": "Galleri",
+    "subtitle": "Låt dig inspireras av designs från vårt community",
+    "viewDesign": "Visa design"
+  },
+  "credits": {
+    "balance": "Credits",
+    "buy": "Köp credits",
+    "free": "3 gratis genereringar ingår",
+    "packages": {
+      "small": "10 credits",
+      "medium": "30 credits",
+      "large": "100 credits"
+    }
+  },
+  "common": {
+    "next": "Nästa",
+    "back": "Tillbaka",
+    "cancel": "Avbryt",
+    "save": "Spara",
+    "loading": "Laddar...",
+    "error": "Något gick fel",
+    "tryAgain": "Försök igen"
+  },
+  "sizes": {
+    "chooseSize": "Välj storlek"
+  },
+  "frames": {
+    "chooseFrame": "Välj ram"
+  }
+}
