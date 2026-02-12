@@ -190,6 +190,9 @@ npx prisma migrate dev
 |----------|-------------|--------|
 | `DATABASE_URL` | PostgreSQL connection string | Nej (demo-läge utan) |
 | `OPENAI_API_KEY` | OpenAI API-nyckel (GPT-4 + DALL-E 3) | Nej (demo-läge utan) |
+| `STRIPE_SECRET_KEY` | Stripe secret key (sk_...) | Ja, för betalning |
+| `STRIPE_WEBHOOK_SECRET` | Stripe webhook signing secret (whsec_...) | Ja, för webhook |
+| `NEXT_PUBLIC_APP_URL` | App-URL för redirects (default: http://localhost:3000) | Nej |
 
 ## Databasmodeller (Prisma)
 
@@ -246,7 +249,7 @@ npx prisma migrate dev
 | Inspirationsgalleri (filter, "Skapa liknande") | ✅ Klar |
 | Order/Fulfillment-modeller | ✅ Klar (schema + migration) |
 | PrintPartner (Crimson) | ✅ Seedat |
-| Stripe-checkout | 🔜 Nästa steg |
+| Stripe-checkout | ✅ Klar |
 | Tryckflöde (Fulfillment → Crimson) | 🔜 Nästa steg |
 
 ---
