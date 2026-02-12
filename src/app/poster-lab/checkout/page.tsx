@@ -124,33 +124,80 @@ export default function CheckoutPage() {
 
   if (orderComplete) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-green-50 to-emerald-50 flex items-center justify-center">
-        <div className="max-w-md mx-auto text-center p-8">
-          <div className="w-20 h-20 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-6">
-            <svg className="w-10 h-10 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+      <div className="min-h-screen bg-gradient-to-br from-green-50 to-emerald-50 flex items-center justify-center relative overflow-hidden">
+        {/* Confetti */}
+        <div className="absolute inset-0 pointer-events-none overflow-hidden">
+          {Array.from({ length: 50 }).map((_, i) => (
+            <div
+              key={i}
+              className="confetti-piece absolute"
+              style={{
+                left: `${Math.random() * 100}%`,
+                top: `-5%`,
+                width: `${6 + Math.random() * 8}px`,
+                height: `${6 + Math.random() * 8}px`,
+                background: ['#7c3aed', '#3b82f6', '#10b981', '#f59e0b', '#ef4444', '#ec4899'][i % 6],
+                borderRadius: Math.random() > 0.5 ? '50%' : '2px',
+                animationDelay: `${Math.random() * 3}s`,
+                animationDuration: `${2 + Math.random() * 3}s`,
+              }}
+            />
+          ))}
+        </div>
+
+        <div className="max-w-md mx-auto text-center p-8 relative z-10">
+          <div className="w-24 h-24 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-6 animate-bounceIn">
+            <svg className="w-12 h-12 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 13l4 4L19 7" />
             </svg>
           </div>
-          <h1 className="text-3xl font-bold text-gray-900 mb-3">Beställning lagd!</h1>
-          <p className="text-gray-600 mb-2">Order-ID: <span className="font-mono text-sm">{orderId}</span></p>
-          <p className="text-gray-500 mb-8">
+          <h1 className="text-4xl font-black text-gray-900 mb-3 animate-fadeUp">Beställning lagd!</h1>
+          <p className="text-gray-600 mb-2 animate-fadeUp" style={{ animationDelay: '0.1s' }}>
+            Order-ID: <span className="font-mono text-sm bg-gray-100 px-2 py-0.5 rounded">{orderId}</span>
+          </p>
+          <p className="text-gray-500 mb-8 animate-fadeUp" style={{ animationDelay: '0.2s' }}>
             Din poster renderas nu i hög upplösning. Du får ett meddelande när den är klar för tryck.
           </p>
-          <div className="flex flex-col gap-3">
+          <div className="flex flex-col gap-3 animate-fadeUp" style={{ animationDelay: '0.4s' }}>
             <button
               onClick={() => router.push('/poster-lab')}
-              className="px-6 py-3 bg-gradient-to-r from-purple-600 to-blue-600 text-white rounded-xl hover:from-purple-700 hover:to-blue-700 font-medium"
+              className="px-6 py-3.5 bg-gradient-to-r from-purple-600 to-blue-600 text-white rounded-xl hover:from-purple-700 hover:to-blue-700 font-semibold shadow-lg shadow-purple-200 hover:shadow-xl transition-all hover:scale-105"
             >
               Skapa en till poster
             </button>
             <button
               onClick={() => router.push('/poster-lab/gallery')}
-              className="px-6 py-3 text-gray-600 hover:text-gray-900 transition-colors"
+              className="px-6 py-3 text-gray-600 hover:text-gray-900 transition-colors font-medium"
             >
               Utforska galleriet
             </button>
           </div>
         </div>
+
+        <style jsx>{`
+          @keyframes confettiFall {
+            0% { transform: translateY(0) rotate(0deg); opacity: 1; }
+            100% { transform: translateY(100vh) rotate(720deg); opacity: 0; }
+          }
+          .confetti-piece {
+            animation: confettiFall 3s ease-in forwards;
+          }
+          @keyframes bounceIn {
+            0% { transform: scale(0); opacity: 0; }
+            50% { transform: scale(1.2); }
+            100% { transform: scale(1); opacity: 1; }
+          }
+          .animate-bounceIn {
+            animation: bounceIn 0.6s ease-out;
+          }
+          @keyframes fadeUp {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+          }
+          .animate-fadeUp {
+            animation: fadeUp 0.5s ease-out both;
+          }
+        `}</style>
       </div>
     )
   }
