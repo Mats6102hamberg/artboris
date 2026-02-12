@@ -99,7 +99,7 @@ export default function PosterLabPage() {
             Artboris
           </span>
           <div className="flex items-center gap-6">
-            <a href="/poster-lab/gallery" className="text-sm text-gray-500 hover:text-gray-900 transition-colors">Kollektion</a>
+            <a href="/poster-lab/gallery" className="text-sm font-medium text-gray-700 hover:text-gray-900 border border-gray-200 px-4 py-2 rounded-lg hover:border-gray-300 transition-all">Kollektion</a>
             <CreditBadge />
           </div>
         </nav>
@@ -123,11 +123,11 @@ export default function PosterLabPage() {
                 <div className="flex flex-col sm:flex-row items-start gap-4 mt-10">
                   <button
                     onClick={() => startCreate(false)}
-                    className="group px-8 py-4 bg-gray-900 text-white rounded-xl font-medium text-base hover:bg-gray-800 transition-all duration-200 shadow-lg shadow-gray-900/10"
+                    className="group px-10 py-5 bg-black text-white rounded-xl font-semibold text-lg hover:bg-gray-900 transition-all duration-200 shadow-xl shadow-black/20"
                   >
                     <span className="flex items-center gap-2">
                       Se den p&aring; min v&auml;gg
-                      <svg className="w-4 h-4 group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <svg className="w-5 h-5 group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" />
                       </svg>
                     </span>
@@ -154,11 +154,35 @@ export default function PosterLabPage() {
                       alt="Skandinaviskt vardagsrum med tavla"
                       className="w-full h-full object-cover"
                     />
-                    {/* Poster overlay on wall */}
-                    <div className="absolute top-[12%] left-[32%] w-[22%]">
-                      <div className="bg-white p-1 rounded shadow-xl">
-                        <div className="aspect-[2/3] bg-gray-100 rounded-sm overflow-hidden">
+                    {/* Poster overlay on wall — realistic shadow + perspective */}
+                    <div className="absolute top-[12%] left-[32%] w-[22%]" style={{ perspective: '800px' }}>
+                      {/* Wall shadow (soft, offset, simulates depth) */}
+                      <div
+                        className="absolute inset-0 rounded-sm"
+                        style={{
+                          transform: 'translateX(6px) translateY(8px)',
+                          background: 'rgba(0,0,0,0.18)',
+                          filter: 'blur(12px)',
+                          borderRadius: '2px',
+                        }}
+                      />
+                      {/* Frame */}
+                      <div
+                        className="relative bg-white p-[3px] rounded-[2px]"
+                        style={{
+                          transform: 'rotateY(-1.5deg) rotateX(0.5deg)',
+                          boxShadow: '0 2px 8px rgba(0,0,0,0.10), 0 8px 24px rgba(0,0,0,0.08), inset 0 0 0 1px rgba(0,0,0,0.04)',
+                        }}
+                      >
+                        <div className="aspect-[2/3] bg-gray-100 rounded-[1px] overflow-hidden relative">
                           <img src="/assets/demo/botanical-1.svg" alt="Poster" className="w-full h-full object-cover" />
+                          {/* Glass reflection highlight */}
+                          <div
+                            className="absolute inset-0 pointer-events-none"
+                            style={{
+                              background: 'linear-gradient(135deg, rgba(255,255,255,0.12) 0%, transparent 40%, transparent 60%, rgba(255,255,255,0.04) 100%)',
+                            }}
+                          />
                         </div>
                       </div>
                     </div>
@@ -168,6 +192,25 @@ export default function PosterLabPage() {
                 <div className="absolute -bottom-4 -right-4 w-32 h-32 bg-amber-50 rounded-full -z-10" />
                 <div className="absolute -top-4 -left-4 w-24 h-24 bg-gray-50 rounded-full -z-10" />
               </div>
+            </div>
+          </div>
+        </section>
+
+        {/* Social proof strip */}
+        <section className="border-y border-gray-100 bg-white">
+          <div className="max-w-5xl mx-auto px-6 py-5">
+            <div className="flex flex-wrap items-center justify-center gap-x-8 gap-y-3">
+              {[
+                { icon: '\u2713', text: 'Trycks i Stockholm' },
+                { icon: '\u2713', text: 'Fine art-papper' },
+                { icon: '\u2713', text: 'Leverans 3\u20135 dagar' },
+                { icon: '\u2713', text: 'N\u00f6jd-kund-garanti' },
+              ].map((item, i) => (
+                <div key={i} className="flex items-center gap-2">
+                  <span className="text-green-600 font-bold text-sm">{item.icon}</span>
+                  <span className="text-sm font-medium text-gray-600">{item.text}</span>
+                </div>
+              ))}
             </div>
           </div>
         </section>
@@ -203,7 +246,7 @@ export default function PosterLabPage() {
                     <h3 className="text-sm font-medium text-gray-900">{poster.title}</h3>
                     <p className="text-xs text-gray-400 mt-0.5">{poster.sizes}</p>
                     <div className="flex items-center justify-between mt-2">
-                      <span className="text-sm font-semibold text-gray-900">fr&aring;n {poster.price} kr</span>
+                      <span className="text-base font-bold text-gray-900">{poster.price} kr</span>
                       <span className="text-xs text-gray-400 group-hover:text-gray-600 transition-colors">
                         Visa p&aring; min v&auml;gg &rarr;
                       </span>
