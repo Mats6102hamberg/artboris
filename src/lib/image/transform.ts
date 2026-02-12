@@ -132,11 +132,11 @@ export function calculatePosterPlacement(
   const wallWidth = Math.abs(tr.x - tl.x)
   const wallHeight = Math.abs(bl.y - tl.y)
 
-  const baseWidth = wallWidth * 0.3 * scale
+  const baseWidth = wallWidth * 0.35 * scale
   const baseHeight = baseWidth / posterAspectRatio
 
-  const maxWidth = wallWidth * 0.8
-  const maxHeight = wallHeight * 0.8
+  const maxWidth = wallWidth * 1.2
+  const maxHeight = wallHeight * 1.2
   const width = Math.min(baseWidth, maxWidth)
   const height = Math.min(baseHeight, maxHeight)
 

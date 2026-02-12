@@ -111,7 +111,7 @@ export default function MockupPreview({
       const dx = (cx - resizeStart.current.x) / rect.width
       const dy = (cy - resizeStart.current.y) / rect.height
       const delta = (dx + dy) * 2
-      const newScale = Math.max(0.3, Math.min(2.0, resizeStart.current.scale + delta))
+      const newScale = Math.max(0.2, Math.min(4.0, resizeStart.current.scale + delta))
       onScaleChange(newScale)
     }
 
@@ -202,7 +202,7 @@ export default function MockupPreview({
           ].map((handle, i) => (
             <div
               key={i}
-              className={`absolute ${handle.pos} ${handle.translate} w-4 h-4 bg-white border-2 border-blue-500 rounded-full shadow-md hover:bg-blue-50 hover:scale-125 transition-all z-20 ${isDragging || isResizing ? 'opacity-100' : 'opacity-0 group-hover/mockup:opacity-100'}`}
+              className={`absolute ${handle.pos} ${handle.translate} w-3 h-3 bg-white/80 border border-gray-400 rounded-full shadow-sm hover:bg-white hover:border-blue-500 hover:scale-150 transition-all z-20 ${isDragging || isResizing ? 'opacity-100' : 'opacity-0 group-hover/mockup:opacity-70'}`}
               style={{
                 left: handle.pos.includes('left-0')
                   ? `${placement.left * 100}%`

@@ -8,14 +8,17 @@ interface SizePickerProps {
 }
 
 export default function SizePicker({ selectedSizeId, onSelect }: SizePickerProps) {
+  const maxCm = Math.max(...POSTER_SIZES.map(s => Math.max(s.widthCm, s.heightCm)))
+  const maxPreviewH = 64
+
   return (
     <div className="w-full">
       <h3 className="text-sm font-medium text-gray-700 mb-3">Välj storlek</h3>
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
         {POSTER_SIZES.map((size) => {
-          const aspect = size.widthCm / size.heightCm
-          const previewH = 48
-          const previewW = previewH * aspect
+          const scaleFactor = size.heightCm / maxCm
+          const previewH = Math.round(maxPreviewH * scaleFactor)
+          const previewW = Math.round(previewH * (size.widthCm / size.heightCm))
 
           return (
             <button
@@ -30,10 +33,12 @@ export default function SizePicker({ selectedSizeId, onSelect }: SizePickerProps
               `}
             >
               <div className="flex items-center gap-3">
-                <div
-                  className="border border-gray-300 bg-gray-100 rounded-sm flex-shrink-0"
-                  style={{ width: previewW, height: previewH }}
-                />
+                <div className="flex items-center justify-center flex-shrink-0" style={{ width: 48, height: maxPreviewH }}>
+                  <div
+                    className={`rounded-[2px] ${selectedSizeId === size.id ? 'border-2 border-blue-400 bg-blue-50 shadow-sm' : 'border-2 border-gray-300 bg-gray-50'}`}
+                    style={{ width: previewW, height: previewH }}
+                  />
+                </div>
                 <div>
                   <p className="text-sm font-medium text-gray-900">{size.label}</p>
                   <p className="text-xs text-gray-500">{size.priceCredits} credits</p>
