@@ -18,12 +18,20 @@ export default function WallMarker({
   const containerRef = useRef<HTMLDivElement>(null)
   const [draggingIndex, setDraggingIndex] = useState<number | null>(null)
 
-  const getRelativePosition = useCallback((e: React.MouseEvent | MouseEvent) => {
+  const getRelativePosition = useCallback((e: React.MouseEvent | MouseEvent | React.TouchEvent | TouchEvent) => {
     const rect = containerRef.current?.getBoundingClientRect()
     if (!rect) return { x: 0, y: 0 }
+    let clientX: number, clientY: number
+    if ('touches' in e) {
+      clientX = e.touches[0]?.clientX ?? e.changedTouches[0]?.clientX ?? 0
+      clientY = e.touches[0]?.clientY ?? e.changedTouches[0]?.clientY ?? 0
+    } else {
+      clientX = e.clientX
+      clientY = e.clientY
+    }
     return {
-      x: Math.max(0, Math.min(1, (e.clientX - rect.left) / rect.width)),
-      y: Math.max(0, Math.min(1, (e.clientY - rect.top) / rect.height)),
+      x: Math.max(0, Math.min(1, (clientX - rect.left) / rect.width)),
+      y: Math.max(0, Math.min(1, (clientY - rect.top) / rect.height)),
     }
   }, [])
 
@@ -54,6 +62,28 @@ export default function WallMarker({
 
     window.addEventListener('mousemove', handleMouseMove)
     window.addEventListener('mouseup', handleMouseUp)
+  }, [corners, getRelativePosition, onCornersChange])
+
+  const handleTouchStart = useCallback((index: number, e: React.TouchEvent) => {
+    e.stopPropagation()
+    setDraggingIndex(index)
+
+    const handleTouchMove = (moveEvent: TouchEvent) => {
+      moveEvent.preventDefault()
+      const pos = getRelativePosition(moveEvent)
+      const newCorners = [...corners]
+      newCorners[index] = pos
+      onCornersChange(newCorners)
+    }
+
+    const handleTouchEnd = () => {
+      setDraggingIndex(null)
+      window.removeEventListener('touchmove', handleTouchMove)
+      window.removeEventListener('touchend', handleTouchEnd)
+    }
+
+    window.addEventListener('touchmove', handleTouchMove, { passive: false })
+    window.addEventListener('touchend', handleTouchEnd)
   }, [corners, getRelativePosition, onCornersChange])
 
   const handleRemoveCorner = useCallback((index: number, e: React.MouseEvent) => {
@@ -127,15 +157,16 @@ export default function WallMarker({
           <div
             key={index}
             onMouseDown={(e) => handleMouseDown(index, e)}
+            onTouchStart={(e) => handleTouchStart(index, e)}
             onDoubleClick={(e) => handleRemoveCorner(index, e)}
-            className="absolute w-5 h-5 -translate-x-1/2 -translate-y-1/2 cursor-grab active:cursor-grabbing z-10"
+            className="absolute w-8 h-8 sm:w-6 sm:h-6 -translate-x-1/2 -translate-y-1/2 cursor-grab active:cursor-grabbing z-10 touch-none"
             style={{
               left: `${corner.x * 100}%`,
               top: `${corner.y * 100}%`,
             }}
           >
             <div className="w-full h-full rounded-full bg-blue-500 border-2 border-white shadow-lg" />
-            <span className="absolute -top-6 left-1/2 -translate-x-1/2 text-[10px] bg-blue-600 text-white px-1.5 py-0.5 rounded whitespace-nowrap">
+            <span className="absolute -top-6 left-1/2 -translate-x-1/2 text-[10px] bg-blue-600 text-white px-1.5 py-0.5 rounded whitespace-nowrap hidden sm:block">
               {cornerLabels[index] || `Punkt ${index + 1}`}
             </span>
           </div>

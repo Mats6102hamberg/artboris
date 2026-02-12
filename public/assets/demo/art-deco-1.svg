@@ -1,0 +1,23 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="800" height="1100" viewBox="0 0 800 1100">
+  <rect width="800" height="1100" fill="#1a1a2e"/>
+  <!-- Gold fan patterns -->
+  <path d="M400,550 L200,200 L300,200 Z" fill="#d4af37" opacity="0.8"/>
+  <path d="M400,550 L300,200 L400,150 Z" fill="#c4a030" opacity="0.7"/>
+  <path d="M400,550 L400,150 L500,200 Z" fill="#d4af37" opacity="0.8"/>
+  <path d="M400,550 L500,200 L600,200 Z" fill="#c4a030" opacity="0.7"/>
+  <!-- Symmetrical lines -->
+  <line x1="400" y1="100" x2="400" y2="1000" stroke="#d4af37" stroke-width="1" opacity="0.3"/>
+  <line x1="100" y1="550" x2="700" y2="550" stroke="#d4af37" stroke-width="1" opacity="0.3"/>
+  <!-- Decorative arches -->
+  <path d="M150,700 Q400,500 650,700" fill="none" stroke="#d4af37" stroke-width="2" opacity="0.6"/>
+  <path d="M200,750 Q400,580 600,750" fill="none" stroke="#d4af37" stroke-width="1.5" opacity="0.5"/>
+  <path d="M250,800 Q400,660 550,800" fill="none" stroke="#d4af37" stroke-width="1" opacity="0.4"/>
+  <!-- Corner ornaments -->
+  <rect x="50" y="50" width="80" height="80" fill="none" stroke="#d4af37" stroke-width="2" opacity="0.5"/>
+  <rect x="60" y="60" width="60" height="60" fill="none" stroke="#d4af37" stroke-width="1" opacity="0.3"/>
+  <rect x="670" y="50" width="80" height="80" fill="none" stroke="#d4af37" stroke-width="2" opacity="0.5"/>
+  <rect x="680" y="60" width="60" height="60" fill="none" stroke="#d4af37" stroke-width="1" opacity="0.3"/>
+  <!-- Bottom diamond -->
+  <polygon points="400,850 450,900 400,950 350,900" fill="#d4af37" opacity="0.6"/>
+  <polygon points="400,870 430,900 400,930 370,900" fill="#1a1a2e"/>
+</svg>

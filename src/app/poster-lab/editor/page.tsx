@@ -58,19 +58,19 @@ export default function EditorPage() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-50 to-blue-50">
       <header className="bg-white/80 backdrop-blur-sm border-b border-gray-200 sticky top-0 z-30">
-        <div className="max-w-7xl mx-auto px-4 py-4 flex items-center justify-between">
-          <div className="flex items-center gap-3">
+        <div className="max-w-7xl mx-auto px-4 py-3 sm:py-4 flex items-center justify-between">
+          <div className="flex items-center gap-2 sm:gap-3">
             <button onClick={() => router.back()} className="text-gray-400 hover:text-gray-600 text-sm">
-              &larr; Tillbaka
+              &larr;
             </button>
-            <h1 className="text-xl font-bold text-gray-900">Redigera & Placera</h1>
+            <h1 className="text-lg sm:text-xl font-bold text-gray-900">Redigera & Placera</h1>
           </div>
           <CreditBadge balance={credits} />
         </div>
       </header>
 
-      <main className="max-w-7xl mx-auto px-4 py-8">
-        <div className="grid grid-cols-1 lg:grid-cols-5 gap-8">
+      <main className="max-w-7xl mx-auto px-4 py-5 sm:py-8 pb-28 lg:pb-8">
+        <div className="grid grid-cols-1 lg:grid-cols-5 gap-5 sm:gap-8">
           {/* Preview — large */}
           <div className="lg:col-span-3">
             {roomImageUrl && designImageUrl ? (
@@ -91,9 +91,9 @@ export default function EditorPage() {
             )}
 
             {/* Position controls */}
-            <div className="mt-6 bg-white rounded-2xl shadow-sm p-5 border border-gray-100">
-              <h3 className="text-sm font-semibold text-gray-900 mb-4">Placering på väggen</h3>
-              <div className="grid grid-cols-3 gap-4">
+            <div className="mt-4 sm:mt-6 bg-white rounded-xl sm:rounded-2xl shadow-sm p-4 sm:p-5 border border-gray-100">
+              <h3 className="text-sm font-semibold text-gray-900 mb-3 sm:mb-4">Placering på väggen</h3>
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4">
                 <div>
                   <label className="block text-xs text-gray-500 mb-1">Horisontell</label>
                   <input
@@ -132,19 +132,19 @@ export default function EditorPage() {
           </div>
 
           {/* Sidebar */}
-          <div className="lg:col-span-2 space-y-6">
+          <div className="lg:col-span-2 space-y-4 sm:space-y-6">
             {/* Frame picker */}
-            <div className="bg-white rounded-2xl shadow-sm p-5 border border-gray-100">
+            <div className="bg-white rounded-xl sm:rounded-2xl shadow-sm p-4 sm:p-5 border border-gray-100">
               <FramePicker selectedFrameId={frameId} onSelect={setFrameId} />
             </div>
 
             {/* Size picker */}
-            <div className="bg-white rounded-2xl shadow-sm p-5 border border-gray-100">
+            <div className="bg-white rounded-xl sm:rounded-2xl shadow-sm p-4 sm:p-5 border border-gray-100">
               <SizePicker selectedSizeId={sizeId} onSelect={setSizeId} />
             </div>
 
             {/* Pricing summary */}
-            <div className="bg-white rounded-2xl shadow-sm p-5 border border-gray-100">
+            <div className="bg-white rounded-xl sm:rounded-2xl shadow-sm p-4 sm:p-5 border border-gray-100">
               <h3 className="text-sm font-semibold text-gray-900 mb-3">Prisöversikt</h3>
               <div className="space-y-2 text-sm">
                 <div className="flex justify-between">
@@ -170,20 +170,30 @@ export default function EditorPage() {
             </div>
 
             {/* Publish toggle */}
-            <div className="bg-white rounded-2xl shadow-sm p-5 border border-gray-100">
+            <div className="bg-white rounded-xl sm:rounded-2xl shadow-sm p-4 sm:p-5 border border-gray-100">
               <PublishToggle isPublished={wantPublish} onToggle={setWantPublish} />
             </div>
 
-            {/* Checkout button */}
+            {/* Checkout button — desktop */}
             <button
               onClick={handleCheckout}
-              className="w-full py-4 bg-gradient-to-r from-green-600 to-emerald-600 text-white rounded-xl hover:from-green-700 hover:to-emerald-700 transition-all font-semibold text-lg shadow-lg shadow-green-200"
+              className="hidden lg:block w-full py-4 bg-gradient-to-r from-green-600 to-emerald-600 text-white rounded-xl hover:from-green-700 hover:to-emerald-700 transition-all font-semibold text-lg shadow-lg shadow-green-200"
             >
               Gå till kassan — {formatSEK(pricing.totalPriceSEK)}
             </button>
           </div>
         </div>
       </main>
+
+      {/* Mobile sticky checkout */}
+      <div className="fixed bottom-0 left-0 right-0 p-4 bg-white/90 backdrop-blur-sm border-t border-gray-200 lg:hidden z-20">
+        <button
+          onClick={handleCheckout}
+          className="w-full py-3.5 bg-gradient-to-r from-green-600 to-emerald-600 text-white rounded-xl font-semibold text-base shadow-lg shadow-green-200"
+        >
+          Gå till kassan — {formatSEK(pricing.totalPriceSEK)}
+        </button>
+      </div>
     </div>
   )
 }

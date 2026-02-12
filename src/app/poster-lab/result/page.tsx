@@ -115,13 +115,13 @@ export default function ResultPage() {
         </div>
       </header>
 
-      <main className="max-w-6xl mx-auto px-4 py-8">
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+      <main className="max-w-6xl mx-auto px-4 py-6 sm:py-8 pb-24 lg:pb-8">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 lg:gap-8">
           {/* Variants */}
           <div className="lg:col-span-2">
             <div className="mb-4">
-              <h2 className="text-2xl font-bold text-gray-900">Dina förslag</h2>
-              <p className="text-gray-600 mt-1">Välj den variant du gillar bäst, eller förfina med kontrollerna</p>
+              <h2 className="text-xl sm:text-2xl font-bold text-gray-900">Dina förslag</h2>
+              <p className="text-sm sm:text-base text-gray-600 mt-1">Välj den variant du gillar bäst, eller förfina med kontrollerna</p>
             </div>
             <VariantsGrid
               variants={variants}
@@ -132,7 +132,7 @@ export default function ResultPage() {
 
           {/* Controls sidebar */}
           <div className="space-y-6">
-            <div className="bg-white rounded-2xl shadow-sm p-5 border border-gray-100">
+            <div className="bg-white rounded-2xl shadow-sm p-4 sm:p-5 border border-gray-100">
               <ControlsPanel
                 controls={controls}
                 onChange={setControls}
@@ -144,13 +144,24 @@ export default function ResultPage() {
             <button
               onClick={handleContinueToEditor}
               disabled={selectedIndex === null}
-              className="w-full py-3.5 bg-gradient-to-r from-purple-600 to-blue-600 text-white rounded-xl hover:from-purple-700 hover:to-blue-700 disabled:from-gray-300 disabled:to-gray-300 disabled:cursor-not-allowed transition-all font-medium shadow-lg shadow-blue-200 text-lg"
+              className="hidden lg:block w-full py-3.5 bg-gradient-to-r from-purple-600 to-blue-600 text-white rounded-xl hover:from-purple-700 hover:to-blue-700 disabled:from-gray-300 disabled:to-gray-300 disabled:cursor-not-allowed transition-all font-medium shadow-lg shadow-blue-200 text-lg"
             >
               {selectedIndex !== null ? 'Gå till editorn →' : 'Välj en variant först'}
             </button>
           </div>
         </div>
       </main>
+
+      {/* Mobile sticky CTA */}
+      <div className="fixed bottom-0 left-0 right-0 p-4 bg-white/90 backdrop-blur-sm border-t border-gray-200 lg:hidden z-20">
+        <button
+          onClick={handleContinueToEditor}
+          disabled={selectedIndex === null}
+          className="w-full py-3.5 bg-gradient-to-r from-purple-600 to-blue-600 text-white rounded-xl hover:from-purple-700 hover:to-blue-700 disabled:from-gray-300 disabled:to-gray-300 disabled:cursor-not-allowed transition-all font-semibold shadow-lg shadow-blue-200 text-base"
+        >
+          {selectedIndex !== null ? 'Gå till editorn →' : 'Välj en variant först'}
+        </button>
+      </div>
     </div>
   )
 }

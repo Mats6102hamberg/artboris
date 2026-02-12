@@ -13,14 +13,14 @@ export default function StylePicker({ selectedStyle, onSelect }: StylePickerProp
 
   return (
     <div className="w-full">
-      <h3 className="text-sm font-medium text-gray-700 mb-3">Välj stil</h3>
-      <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 gap-3">
+      <h3 className="text-sm font-medium text-gray-700 mb-3">Välj stil ({styles.length} stilar)</h3>
+      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-2.5 sm:gap-3">
         {styles.map((style) => (
           <button
             key={style.id}
             onClick={() => onSelect(style.id)}
             className={`
-              group relative rounded-xl overflow-hidden border-2 transition-all duration-200
+              group relative rounded-xl overflow-hidden border-2 transition-all duration-200 active:scale-95
               ${selectedStyle === style.id
                 ? 'border-blue-500 ring-2 ring-blue-200 scale-[1.02]'
                 : 'border-gray-200 hover:border-gray-300 hover:shadow-md'
@@ -34,14 +34,14 @@ export default function StylePicker({ selectedStyle, onSelect }: StylePickerProp
                   background: `linear-gradient(135deg, ${style.defaultColors[0]}, ${style.defaultColors[1] || style.defaultColors[0]})`,
                 }}
               >
-                <span className="text-2xl opacity-80">
+                <span className="text-2xl sm:text-2xl opacity-80">
                   {getStyleEmoji(style.id)}
                 </span>
               </div>
             </div>
-            <div className="p-2 bg-white">
-              <p className="text-xs font-medium text-gray-900 truncate">{style.label}</p>
-              <p className="text-[10px] text-gray-500 truncate">{style.description}</p>
+            <div className="p-1.5 sm:p-2 bg-white">
+              <p className="text-[11px] sm:text-xs font-medium text-gray-900 truncate">{style.label}</p>
+              <p className="text-[9px] sm:text-[10px] text-gray-500 truncate hidden sm:block">{style.description}</p>
             </div>
             {selectedStyle === style.id && (
               <div className="absolute top-1.5 right-1.5 w-5 h-5 bg-blue-500 rounded-full flex items-center justify-center">
@@ -71,6 +71,12 @@ function getStyleEmoji(style: StylePreset): string {
     typographic: '🔤',
     'pop-art': '💥',
     japanese: '🌸',
+    'art-deco': '✨',
+    surreal: '👁️',
+    graffiti: '🎤',
+    pastel: '🧁',
+    'dark-moody': '🌑',
+    'mid-century': '💎',
   }
   return emojis[style] || '🎨'
 }

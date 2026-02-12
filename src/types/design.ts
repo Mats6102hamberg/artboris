@@ -55,6 +55,12 @@ export type StylePreset =
   | 'typographic'
   | 'pop-art'
   | 'japanese'
+  | 'art-deco'
+  | 'surreal'
+  | 'graffiti'
+  | 'pastel'
+  | 'dark-moody'
+  | 'mid-century'
 
 export interface StyleDefinition {
   id: StylePreset

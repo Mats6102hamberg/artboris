@@ -1,0 +1,26 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="800" height="1100" viewBox="0 0 800 1100">
+  <rect width="800" height="1100" fill="#e8d8c8"/>
+  <!-- Melting clock -->
+  <ellipse cx="350" cy="350" rx="120" ry="80" fill="#c8b8a0" stroke="#8a7a60" stroke-width="2" transform="rotate(-15 350 350)"/>
+  <path d="M280,380 Q300,450 350,460 Q400,450 380,380" fill="#c8b8a0" stroke="#8a7a60" stroke-width="2"/>
+  <circle cx="350" cy="340" r="5" fill="#8a7a60"/>
+  <line x1="350" y1="340" x2="350" y2="300" stroke="#8a7a60" stroke-width="2"/>
+  <line x1="350" y1="340" x2="380" y2="350" stroke="#8a7a60" stroke-width="1.5"/>
+  <!-- Floating staircase -->
+  <rect x="500" y="300" width="60" height="12" fill="#a08870" opacity="0.7"/>
+  <rect x="520" y="260" width="60" height="12" fill="#a08870" opacity="0.7"/>
+  <rect x="540" y="220" width="60" height="12" fill="#a08870" opacity="0.7"/>
+  <rect x="560" y="180" width="60" height="12" fill="#a08870" opacity="0.6"/>
+  <rect x="540" y="140" width="60" height="12" fill="#a08870" opacity="0.5"/>
+  <!-- Desert landscape -->
+  <rect x="0" y="650" width="800" height="450" fill="#d4c0a0"/>
+  <ellipse cx="200" cy="650" rx="150" ry="40" fill="#c8b090"/>
+  <ellipse cx="600" cy="680" rx="180" ry="50" fill="#c8b090"/>
+  <!-- Floating eye -->
+  <ellipse cx="400" cy="550" rx="80" ry="50" fill="#fff" stroke="#333" stroke-width="2"/>
+  <circle cx="400" cy="550" r="30" fill="#4a7a6a"/>
+  <circle cx="400" cy="550" r="15" fill="#1a1a1a"/>
+  <circle cx="408" cy="542" r="5" fill="#fff"/>
+  <!-- Long shadow -->
+  <polygon points="400,700 380,1050 420,1050" fill="#a09080" opacity="0.3"/>
+</svg>

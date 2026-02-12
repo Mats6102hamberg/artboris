@@ -1,0 +1,27 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="800" height="1100" viewBox="0 0 800 1100">
+  <rect width="800" height="1100" fill="#0d0d0d"/>
+  <!-- Deep fog layers -->
+  <rect x="0" y="400" width="800" height="200" fill="#1a1a2e" opacity="0.6"/>
+  <rect x="0" y="500" width="800" height="300" fill="#1a1a2e" opacity="0.4"/>
+  <!-- Dramatic light beam -->
+  <polygon points="350,0 450,0 550,1100 250,1100" fill="#4a0e4e" opacity="0.15"/>
+  <polygon points="380,0 420,0 480,1100 320,1100" fill="#8b0000" opacity="0.1"/>
+  <!-- Moon -->
+  <circle cx="400" cy="200" r="80" fill="#2c2c2c"/>
+  <circle cx="400" cy="200" r="78" fill="#0d0d0d"/>
+  <circle cx="420" cy="190" r="78" fill="#2c2c2c"/>
+  <!-- Silhouette trees -->
+  <rect x="100" y="500" width="8" height="600" fill="#0a0a0a"/>
+  <polygon points="60,500 104,350 148,500" fill="#0a0a0a"/>
+  <polygon points="70,420 104,300 138,420" fill="#0a0a0a"/>
+  <rect x="650" y="450" width="10" height="650" fill="#0a0a0a"/>
+  <polygon points="600,450 655,280 710,450" fill="#0a0a0a"/>
+  <polygon points="615,370 655,250 695,370" fill="#0a0a0a"/>
+  <!-- Ground mist -->
+  <ellipse cx="200" cy="900" rx="200" ry="30" fill="#1a1a2e" opacity="0.5"/>
+  <ellipse cx="550" cy="920" rx="250" ry="35" fill="#1a1a2e" opacity="0.4"/>
+  <!-- Red accent -->
+  <circle cx="400" cy="700" r="4" fill="#8b0000" opacity="0.8"/>
+  <circle cx="400" cy="700" r="20" fill="#8b0000" opacity="0.1"/>
+  <circle cx="400" cy="700" r="40" fill="#8b0000" opacity="0.05"/>
+</svg>

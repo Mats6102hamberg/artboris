@@ -1,0 +1,28 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="800" height="1100" viewBox="0 0 800 1100">
+  <rect width="800" height="1100" fill="#2a2a2a"/>
+  <!-- Concrete texture -->
+  <rect x="0" y="0" width="800" height="1100" fill="#3a3a3a" opacity="0.3"/>
+  <!-- Dripping paint -->
+  <rect x="100" y="200" width="120" height="300" rx="10" fill="#ff2d55" opacity="0.9"/>
+  <rect x="110" y="500" width="15" height="80" rx="7" fill="#ff2d55" opacity="0.7"/>
+  <rect x="140" y="500" width="10" height="120" rx="5" fill="#ff2d55" opacity="0.6"/>
+  <rect x="190" y="500" width="12" height="60" rx="6" fill="#ff2d55" opacity="0.5"/>
+  <!-- Blue splash -->
+  <circle cx="500" cy="400" r="130" fill="#00d4ff" opacity="0.7"/>
+  <circle cx="550" cy="350" r="40" fill="#00d4ff" opacity="0.5"/>
+  <circle cx="440" cy="450" r="30" fill="#00d4ff" opacity="0.4"/>
+  <rect x="490" y="530" width="8" height="100" rx="4" fill="#00d4ff" opacity="0.5"/>
+  <rect x="520" y="530" width="12" height="150" rx="6" fill="#00d4ff" opacity="0.4"/>
+  <!-- Yellow tag -->
+  <path d="M200,700 Q300,650 400,720 Q500,780 600,700 Q650,670 700,710" fill="none" stroke="#ffd60a" stroke-width="8" stroke-linecap="round"/>
+  <path d="M250,750 Q350,700 450,770 Q550,830 650,750" fill="none" stroke="#ffd60a" stroke-width="5" stroke-linecap="round" opacity="0.6"/>
+  <!-- Stencil star -->
+  <polygon points="400,150 420,210 480,210 430,250 450,310 400,270 350,310 370,250 320,210 380,210" fill="#fff" opacity="0.8"/>
+  <!-- Spray dots -->
+  <circle cx="300" cy="900" r="3" fill="#ff2d55" opacity="0.6"/>
+  <circle cx="320" cy="920" r="2" fill="#ff2d55" opacity="0.5"/>
+  <circle cx="350" cy="890" r="4" fill="#00d4ff" opacity="0.4"/>
+  <circle cx="500" cy="880" r="3" fill="#ffd60a" opacity="0.5"/>
+  <circle cx="480" cy="910" r="2" fill="#ffd60a" opacity="0.6"/>
+  <circle cx="550" cy="930" r="3" fill="#ff2d55" opacity="0.4"/>
+</svg>

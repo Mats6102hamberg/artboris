@@ -13,10 +13,16 @@ const DEMO_ROOM_IMAGE = '/assets/demo/room-sample.svg'
 const SHOWCASE_ITEMS = [
   { style: 'Nordic', image: '/assets/demo/nordic-1.svg', color: 'from-blue-400 to-cyan-300' },
   { style: 'Abstract', image: '/assets/demo/abstract-1.svg', color: 'from-purple-500 to-pink-400' },
+  { style: 'Art Deco', image: '/assets/demo/art-deco-1.svg', color: 'from-yellow-500 to-amber-400' },
   { style: 'Minimal', image: '/assets/demo/minimal-1.svg', color: 'from-gray-400 to-gray-300' },
+  { style: 'Graffiti', image: '/assets/demo/graffiti-1.svg', color: 'from-red-500 to-cyan-400' },
   { style: 'Botanical', image: '/assets/demo/botanical-1.svg', color: 'from-green-400 to-emerald-300' },
+  { style: 'Surreal', image: '/assets/demo/surreal-1.svg', color: 'from-violet-400 to-rose-300' },
   { style: 'Retro', image: '/assets/demo/retro-1.svg', color: 'from-orange-400 to-yellow-300' },
-  { style: 'Abstract II', image: '/assets/demo/abstract-2.svg', color: 'from-indigo-400 to-blue-300' },
+  { style: 'Pastell', image: '/assets/demo/pastel-1.svg', color: 'from-pink-300 to-blue-200' },
+  { style: 'Dark & Moody', image: '/assets/demo/dark-moody-1.svg', color: 'from-gray-700 to-purple-900' },
+  { style: 'Mid-Century', image: '/assets/demo/mid-century-1.svg', color: 'from-orange-400 to-teal-400' },
+  { style: 'Nordic II', image: '/assets/demo/nordic-2.svg', color: 'from-emerald-400 to-gray-300' },
 ]
 
 export default function PosterLabPage() {
@@ -285,7 +291,7 @@ export default function PosterLabPage() {
         <section className={`relative z-10 max-w-4xl mx-auto px-6 py-16 transition-all duration-1000 ${statsVisible ? 'opacity-100' : 'opacity-0'}`}>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
             {[
-              { value: '12', label: 'Konststilar' },
+              { value: '18', label: 'Konststilar' },
               { value: '4', label: 'AI-varianter per generering' },
               { value: '8', label: 'Storlekar' },
               { value: '6', label: 'Ramalternativ' },
