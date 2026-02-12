@@ -107,6 +107,32 @@ Blocklista med ~30 termer (SV+EN) + regex-mönster. Kontrolleras innan varje AI-
 
 ---
 
+## Rekommenderade nästa steg (för att locka användare)
+
+Konceptet "skapa AI-konst → se den på din vägg → beställ tryck" har potential — det löser ett riktigt problem som Desenio/Poster Store inte gör. Men just nu är det ett tekniskt skelett. Här är vad som behövs för att göra det visningsbart:
+
+### 1. Demo-läge med mockbilder (PRIO 1)
+Hela flödet kräver idag en OpenAI API-nyckel. Bygg ett demo-läge som returnerar fördefinierade exempelbilder så att vem som helst kan klicka igenom hela flödet utan API-nyckel. Gör det till default om `OPENAI_API_KEY` saknas.
+
+### 2. Landingpage med "wow"-faktor (PRIO 1)
+`/poster-lab` går idag rakt in i upload-steget. Behöver en hero-sektion med:
+- Stor mockup-bild (poster i snyggt rum)
+- Kort pitch: "Skapa unik konst med AI — se den på din vägg"
+- CTA-knapp
+- 3-stegs-förklaring med ikoner
+- Exempelgalleri (3-4 bilder)
+
+### 3. Seed:a galleriet (PRIO 2)
+Galleriet är tomt. Fyll med 10-20 snygga exempeldesigns i olika stilar så det finns inspiration direkt. Lägg till social proof ("Skapad av 247 användare" etc.)
+
+### 4. Mobilanpassning (PRIO 2)
+WallMarker-komponenten kräver troligen touch-events för att fungera på mobil. Testa och fixa.
+
+### 5. Onboarding (PRIO 3)
+Kort intro/tutorial vid första besöket som visar flödet i 3 steg.
+
+---
+
 ## Git-remotes
 
 | Remote | URL |
