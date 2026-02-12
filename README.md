@@ -93,7 +93,7 @@ Skapa unik konst för din vägg med AI. Komplett flöde från rum till beställn
 - **Demo-läge** — Fungerar helt utan OpenAI API-nyckel med lokala SVG-konstverk
 - **Mobilanpassad** — Touch-stöd för väggmarkering, responsiva layouter, sticky knappar
 - **Zoom-lightbox** — Dubbelklicka för fullscreen på varianter
-- **Galleri** — Seedade designs med filtrering, sortering och likes
+- **Galleri** — Designs med filtrering, sortering, optimistic like-toggle och "Skapa liknande"-CTA
 - **Credit-system** — Prisberäkning för tryck och ramar
 - **Konfetti-animation** — Vid orderbekräftelse
 - **Animerad landingpage** — Mörkt tema med scrollande stilgalleri och glödande CTA
@@ -123,17 +123,21 @@ src/
 │       ├── credits/                # Creditsaldo + köp/dra
 │       ├── orders/create/          # Skapa order
 │       ├── renders/final/          # Slutrender för tryck
-│       └── gallery/                # Lista + gilla i galleri
+│       └── gallery/
+│           ├── list/              # Lista galleri med filter/sortering
+│           ├── like/              # Toggle like (POST) / unlike (DELETE)
+│           └── publish/           # Publicera/avpublicera design
 ├── components/
 │   ├── BorisArtChat.tsx            # AI-chattassistent
-│   ├── MyArtworks.tsx              # Mina tavlor
-│   └── poster/                     # 10 Poster Lab-komponenter
 ├── server/services/
 │   ├── ai/                         # generatePreview, refinePreview, generateFinalPrint
 │   ├── mockup/                     # composeMockup (CSS-baserad)
 │   ├── credits/                    # canSpend, spend
-│   ├── gallery/                    # publish, list
-│   └── orders/                     # createOrder
+│   ├── gallery/
+│   │   ├── list.ts                # listGallery
+│   │   ├── like.ts                # toggleLike, removeLike, hasLiked ($transaction)
+│   │   └── publish.ts             # publishToGallery, unpublish
+│   └── orders/                    # createOrder (Order + OrderItem)
 ├── lib/
 │   ├── prompts/                    # 18 stilar, promptmallar, säkerhetsfilter
 │   ├── image/                      # transform, resize, watermark
@@ -143,7 +147,8 @@ src/
 │   ├── aiValuation.ts              # GPT-4 värdering
 │   ├── borisArtAI.ts               # BorisArt chatbot
 │   ├── priceAnalyzer.ts            # Heuristisk prisanalys (fallback)
-│   └── prisma.ts                   # Prisma singleton
+│   ├── anonId.ts                   # Cookie-baserad anonym identifiering
+│   ├── prisma.ts                   # Prisma singleton
 ├── types/
 │   ├── design.ts                   # Design, Variant, Controls, Style, Frame, Size
 │   ├── room.ts                     # Room, WallCorners
@@ -188,11 +193,27 @@ npx prisma migrate dev
 
 ## Databasmodeller (Prisma)
 
+### Konst & Galleri
 - **Artwork** — Sparade konstverk (Art Scanner)
+- **Design** — Skapade designs med style, roomType, colorMood, likesCount. Relationer: Like[], RoomMeta, OrderItem[], DesignAsset[]
+- **Like** — Anonyma likes med anonId (cookie), `@@unique([designId, anonId])`, toggle med Prisma-transaktioner
+- **RoomMeta** — Väggfärg, ljustyp, stämning (1:1 till Design)
+
+### Credits
 - **CreditAccount** — Creditsaldo per användare
 - **CreditTransaction** — Köp/förbrukningshistorik
-- **GalleryItem** — Publicerade designs i galleriet
-- **PosterOrder** — Beställningar med status-tracking
+
+### Order & Fulfillment
+- **Order** — Huvudorder med anonId, status (enum), priser i cents (SEK)
+- **OrderItem** — Produktrad: productType (POSTER/CANVAS/METAL/FRAMED_POSTER), sizeCode, frameColor, paperType, prissnap
+- **Payment** — Stripe-integration (checkout session, payment intent)
+- **ShippingAddress** — Fullständig leveransadress med ISO-landskod
+- **Fulfillment** — Tryckstatus per rad: partner, tracking, timestamps
+- **PrintPartner** — Tryckeri-koppling (seedat: Crimson, crimson.se, Stockholm)
+- **DesignAsset** — Tryckfiler i roller (PREVIEW/PRINT/THUMB) med DPI, storlek, URL
+
+### Enums
+`OrderStatus` · `FulfillmentStatus` · `PaymentProvider` · `AssetRole` · `PrintProductType` · `FrameColor` · `PaperType`
 
 ## Credits-system
 
@@ -221,6 +242,12 @@ npx prisma migrate dev
 | Poster Lab (18 stilar) | ✅ Klar |
 | Demo-läge | ✅ Klar |
 | Mobilanpassning | ✅ Klar |
+| Likes-system (anonId, toggle, transaktioner) | ✅ Klar |
+| Inspirationsgalleri (filter, "Skapa liknande") | ✅ Klar |
+| Order/Fulfillment-modeller | ✅ Klar (schema + migration) |
+| PrintPartner (Crimson) | ✅ Seedat |
+| Stripe-checkout | 🔜 Nästa steg |
+| Tryckflöde (Fulfillment → Crimson) | 🔜 Nästa steg |
 
 ---
 
