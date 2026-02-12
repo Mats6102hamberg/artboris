@@ -1,4 +1,13 @@
-import { ArtItem } from './scrapers'
+export interface ArtItem {
+  title: string
+  artist: string
+  price: number
+  estimatedValue: number
+  profitMargin: number
+  source: string
+  imageUrl: string
+  description: string
+}
 
 export interface PriceAnalysis {
   estimatedValue: number

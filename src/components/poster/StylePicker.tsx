@@ -1,0 +1,76 @@
+'use client'
+
+import { StylePreset, StyleDefinition } from '@/types/design'
+import { getAllStyles } from '@/lib/prompts/styles'
+
+interface StylePickerProps {
+  selectedStyle: StylePreset | null
+  onSelect: (style: StylePreset) => void
+}
+
+export default function StylePicker({ selectedStyle, onSelect }: StylePickerProps) {
+  const styles = getAllStyles()
+
+  return (
+    <div className="w-full">
+      <h3 className="text-sm font-medium text-gray-700 mb-3">Välj stil</h3>
+      <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 gap-3">
+        {styles.map((style) => (
+          <button
+            key={style.id}
+            onClick={() => onSelect(style.id)}
+            className={`
+              group relative rounded-xl overflow-hidden border-2 transition-all duration-200
+              ${selectedStyle === style.id
+                ? 'border-blue-500 ring-2 ring-blue-200 scale-[1.02]'
+                : 'border-gray-200 hover:border-gray-300 hover:shadow-md'
+              }
+            `}
+          >
+            <div className="aspect-[3/4] bg-gradient-to-br from-gray-100 to-gray-200 flex items-center justify-center">
+              <div
+                className="w-full h-full flex items-center justify-center p-2"
+                style={{
+                  background: `linear-gradient(135deg, ${style.defaultColors[0]}, ${style.defaultColors[1] || style.defaultColors[0]})`,
+                }}
+              >
+                <span className="text-2xl opacity-80">
+                  {getStyleEmoji(style.id)}
+                </span>
+              </div>
+            </div>
+            <div className="p-2 bg-white">
+              <p className="text-xs font-medium text-gray-900 truncate">{style.label}</p>
+              <p className="text-[10px] text-gray-500 truncate">{style.description}</p>
+            </div>
+            {selectedStyle === style.id && (
+              <div className="absolute top-1.5 right-1.5 w-5 h-5 bg-blue-500 rounded-full flex items-center justify-center">
+                <svg className="w-3 h-3 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
+                </svg>
+              </div>
+            )}
+          </button>
+        ))}
+      </div>
+    </div>
+  )
+}
+
+function getStyleEmoji(style: StylePreset): string {
+  const emojis: Record<StylePreset, string> = {
+    nordic: '🌿',
+    retro: '📻',
+    minimal: '◻️',
+    abstract: '🎨',
+    botanical: '🌸',
+    geometric: '🔷',
+    watercolor: '💧',
+    'line-art': '✏️',
+    photography: '📷',
+    typographic: '🔤',
+    'pop-art': '💥',
+    japanese: '🌸',
+  }
+  return emojis[style] || '🎨'
+}

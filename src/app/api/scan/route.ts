@@ -1,118 +1,88 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { scrapeAll, AVAILABLE_SOURCES } from '@/lib/scrapers'
+import { valuateItems, ValuatedItem } from '@/lib/aiValuation'
 
-// Mock implementation för att undvika Puppeteer build issues
+interface ScanFilters {
+  minPrice: number
+  maxPrice: number
+  minProfit: number
+  minProfitMargin: number
+  maxProfitMargin: number
+  riskLevel: 'all' | 'low' | 'medium' | 'high'
+  recommendation: 'all' | 'buy' | 'hold' | 'avoid'
+}
+
+function applyFilters(items: ValuatedItem[], filters: ScanFilters): ValuatedItem[] {
+  return items.filter(item => {
+    if (item.price < filters.minPrice || item.price > filters.maxPrice) return false
+    if (item.profit < filters.minProfit) return false
+    if (item.profitMargin < filters.minProfitMargin) return false
+    if (item.profitMargin > filters.maxProfitMargin) return false
+    if (filters.riskLevel !== 'all' && item.riskLevel !== filters.riskLevel) return false
+    if (filters.recommendation !== 'all' && item.recommendation !== filters.recommendation) return false
+    return true
+  })
+}
+
 export async function POST(request: NextRequest) {
   try {
-    const { type } = await request.json()
-    
-    if (!type || !['paintings', 'sculptures'].includes(type)) {
-      return NextResponse.json(
-        { error: 'Invalid scan type' },
-        { status: 400 }
-      )
+    const body = await request.json()
+    const type = body.type || 'paintings'
+    const sources: string[] = body.sources || AVAILABLE_SOURCES
+    const sortBy: string = body.sortBy || 'profit'
+    const filters: ScanFilters = {
+      minPrice: body.filters?.minPrice ?? 0,
+      maxPrice: body.filters?.maxPrice ?? 10000000,
+      minProfit: body.filters?.minProfit ?? 0,
+      minProfitMargin: body.filters?.minProfitMargin ?? 0,
+      maxProfitMargin: body.filters?.maxProfitMargin ?? 1000,
+      riskLevel: body.filters?.riskLevel ?? 'all',
+      recommendation: body.filters?.recommendation ?? 'all',
     }
 
-    console.log(`🚀 Starting MOCK art scan for ${type} (Puppeteer disabled for build)...`)
-    
-    // Simulera scraping med mock data
-    await new Promise(resolve => setTimeout(resolve, 2000))
-    
-    const mockItems = [
-      {
-        title: "Abstrakt komposition",
-        artist: "Erik Johansson",
-        price: 25000,
-        estimatedValue: 45000,
-        profitMargin: 80,
-        source: "Bukowskis (Mock)",
-        imageUrl: "https://picsum.photos/seed/mock-bukowskis/400/300",
-        description: "Oljemålning på duk, 60x80cm",
-        riskLevel: "medium" as const,
-        confidence: 0.75,
-        marketTrend: "rising" as const,
-        recommendation: "buy" as const
-      },
-      {
-        title: "Landskap med solnedgång",
-        artist: "Anna Nilsson",
-        price: 18000,
-        estimatedValue: 35000,
-        profitMargin: 94,
-        source: "Lauritz (Mock)",
-        imageUrl: "https://picsum.photos/seed/mock-lauritz/400/300",
-        description: "Akrylmålning, 50x70cm",
-        riskLevel: "low" as const,
-        confidence: 0.85,
-        marketTrend: "rising" as const,
-        recommendation: "buy" as const
-      },
-      {
-        title: "Modernistisk verk",
-        artist: "Lars Persson",
-        price: 32000,
-        estimatedValue: 55000,
-        profitMargin: 72,
-        source: "Barnebys (Mock)",
-        imageUrl: "https://picsum.photos/seed/mock-barnebys/400/300",
-        description: "Brons, 35cm hög",
-        riskLevel: "medium" as const,
-        confidence: 0.70,
-        marketTrend: "stable" as const,
-        recommendation: "hold" as const
-      },
-      {
-        title: "Stilleben med frukter",
-        artist: "Maria Lindberg",
-        price: 12000,
-        estimatedValue: 28000,
-        profitMargin: 133,
-        source: "Bukowskis (Mock)",
-        imageUrl: "https://picsum.photos/seed/mock-lowprice/400/300",
-        description: "Akvarell, 40x50cm",
-        riskLevel: "high" as const,
-        confidence: 0.65,
-        marketTrend: "rising" as const,
-        recommendation: "buy" as const
-      },
-      {
-        title: "Porträtt av herre",
-        artist: "Sven Eriksson",
-        price: 85000,
-        estimatedValue: 95000,
-        profitMargin: 12,
-        source: "Barnebys (Mock)",
-        imageUrl: "https://picsum.photos/seed/mock-highprice/400/300",
-        description: "Oljemålning på duk, 70x90cm",
-        riskLevel: "low" as const,
-        confidence: 0.90,
-        marketTrend: "stable" as const,
-        recommendation: "hold" as const
-      }
-    ]
+    if (!['paintings', 'sculptures'].includes(type)) {
+      return NextResponse.json({ error: 'Invalid scan type' }, { status: 400 })
+    }
 
-    console.log(`✅ Generated ${mockItems.length} mock items`)
+    // 1. Scrape selected sources
+    const { items: scrapedItems, sourceResults } = await scrapeAll(sources, type)
+
+    // 2. AI-valuate all items
+    const valuatedItems = await valuateItems(scrapedItems)
+
+    // 3. Apply filters
+    const filtered = applyFilters(valuatedItems, filters)
+
+    // 4. Sort
+    const sorted = [...filtered].sort((a, b) => {
+      switch (sortBy) {
+        case 'profit': return b.profit - a.profit
+        case 'profitMargin': return b.profitMargin - a.profitMargin
+        case 'price': return a.price - b.price
+        case 'priceDesc': return b.price - a.price
+        case 'confidence': return b.confidence - a.confidence
+        default: return b.profit - a.profit
+      }
+    })
 
     return NextResponse.json({
       success: true,
-      results: mockItems,
-      totalFound: mockItems.length,
+      results: sorted,
+      totalFound: valuatedItems.length,
+      totalFiltered: sorted.length,
       scanType: type,
       timestamp: new Date().toISOString(),
-      sources: ['Bukowskis (Mock)', 'Lauritz (Mock)', 'Barnebys (Mock)'],
-      analysisType: 'mock-puppeteer',
-      scrapingMethod: 'mock-build-safe',
-      dataQuality: 'mock-data',
-      note: 'Puppeteer är inaktiverat för build. Använder mock data.'
+      sources: Object.keys(sourceResults),
+      sourceResults,
+      hasAIValuation: !!process.env.OPENAI_API_KEY && process.env.OPENAI_API_KEY !== 'sk-mock-key',
     })
 
   } catch (error) {
-    console.error('❌ Mock scraping error:', error)
-    
+    console.error('Scan error:', error)
     return NextResponse.json(
-      { 
-        error: 'Failed to generate mock data',
+      {
+        error: 'Scan failed',
         details: error instanceof Error ? error.message : 'Unknown error',
-        scrapingMethod: 'mock-failed'
       },
       { status: 500 }
     )
