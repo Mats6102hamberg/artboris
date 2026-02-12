@@ -31,6 +31,8 @@ export default function VariantsGrid({
   isLoading = false,
   controls,
 }: VariantsGridProps) {
+  const [viewIndex, setViewIndex] = useState(0)
+
   // CSS filter + zoom from controls (50 = neutral for filters, 100 = normal zoom)
   const zoomScale = controls?.zoom ? controls.zoom / 100 : 1
   const filterStyle = controls
@@ -44,7 +46,6 @@ export default function VariantsGrid({
         transition: 'filter 0.3s ease, transform 0.3s ease',
       }
     : {}
-  const [zoomedIndex, setZoomedIndex] = useState<number | null>(null)
 
   if (isLoading) {
     return (
@@ -74,96 +75,115 @@ export default function VariantsGrid({
     )
   }
 
+  const goPrev = () => setViewIndex((prev) => (prev - 1 + variants.length) % variants.length)
+  const goNext = () => setViewIndex((prev) => (prev + 1) % variants.length)
+
+  const variant = variants[viewIndex]
+
   return (
     <>
-      <div className="grid grid-cols-2 gap-5">
-        {variants.map((variant, index) => (
+      <div className="relative">
+        {/* Main image */}
+        <div
+          className={`
+            relative aspect-[2/3] rounded-2xl overflow-hidden border-2 transition-all duration-300
+            ${selectedIndex === viewIndex
+              ? 'border-blue-500 ring-4 ring-blue-100 shadow-xl shadow-blue-100'
+              : 'border-gray-200 shadow-lg'
+            }
+          `}
+        >
+          <img
+            key={viewIndex}
+            src={variant.thumbnailUrl || variant.imageUrl}
+            alt={`Variant ${viewIndex + 1}`}
+            className="w-full h-full object-cover animate-fadeIn"
+            style={filterStyle}
+          />
+
+          {/* Selected badge */}
+          {selectedIndex === viewIndex && (
+            <div className="absolute top-4 right-4 bg-blue-500 text-white text-xs font-semibold px-3 py-1.5 rounded-full shadow-lg flex items-center gap-1.5 animate-scaleIn">
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
+              </svg>
+              Vald
+            </div>
+          )}
+
+          {/* Prev / Next arrows */}
           <button
-            key={variant.id}
-            onClick={() => onSelect(index)}
-            onDoubleClick={() => setZoomedIndex(index)}
+            onClick={goPrev}
+            className="absolute left-3 top-1/2 -translate-y-1/2 w-11 h-11 bg-white/90 hover:bg-white rounded-full flex items-center justify-center shadow-lg transition-all hover:scale-110"
+          >
+            <svg className="w-5 h-5 text-gray-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+            </svg>
+          </button>
+          <button
+            onClick={goNext}
+            className="absolute right-3 top-1/2 -translate-y-1/2 w-11 h-11 bg-white/90 hover:bg-white rounded-full flex items-center justify-center shadow-lg transition-all hover:scale-110"
+          >
+            <svg className="w-5 h-5 text-gray-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+            </svg>
+          </button>
+
+          {/* Counter badge */}
+          <div className="absolute top-4 left-4 bg-black/60 backdrop-blur-sm text-white text-sm font-medium px-3 py-1.5 rounded-full">
+            {viewIndex + 1} / {variants.length}
+          </div>
+        </div>
+
+        {/* Dot indicators + thumbnails */}
+        <div className="flex items-center justify-center gap-3 mt-4">
+          {variants.map((v, i) => (
+            <button
+              key={v.id}
+              onClick={() => setViewIndex(i)}
+              className={`
+                relative rounded-lg overflow-hidden border-2 transition-all duration-200
+                ${i === viewIndex
+                  ? 'border-blue-500 ring-2 ring-blue-200 scale-110'
+                  : selectedIndex === i
+                    ? 'border-blue-300 opacity-80 hover:opacity-100'
+                    : 'border-gray-200 opacity-60 hover:opacity-100'
+                }
+              `}
+              style={{ width: 52, height: 72 }}
+            >
+              <img
+                src={v.thumbnailUrl || v.imageUrl}
+                alt={`Variant ${i + 1}`}
+                className="w-full h-full object-cover"
+              />
+              {selectedIndex === i && (
+                <div className="absolute inset-0 bg-blue-500/20 flex items-center justify-center">
+                  <svg className="w-4 h-4 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
+                  </svg>
+                </div>
+              )}
+            </button>
+          ))}
+        </div>
+
+        {/* Select button */}
+        <div className="mt-4 flex justify-center">
+          <button
+            onClick={() => onSelect(viewIndex)}
             className={`
-              group relative aspect-[2/3] rounded-2xl overflow-hidden border-2 transition-all duration-300
-              ${selectedIndex === index
-                ? 'border-blue-500 ring-4 ring-blue-100 shadow-xl shadow-blue-100 scale-[1.02]'
-                : 'border-gray-200 hover:border-blue-300 hover:shadow-lg hover:scale-[1.01]'
+              px-6 py-2.5 rounded-xl font-medium transition-all duration-200 text-sm
+              ${selectedIndex === viewIndex
+                ? 'bg-blue-100 text-blue-700 border border-blue-200'
+                : 'bg-blue-600 hover:bg-blue-700 text-white shadow-lg shadow-blue-200 hover:scale-105'
               }
             `}
           >
-            <img
-              src={variant.thumbnailUrl || variant.imageUrl}
-              alt={`Variant ${index + 1}`}
-              className="w-full h-full object-cover group-hover:scale-110 transition-all duration-700 ease-out"
-              style={filterStyle}
-            />
-
-            {/* Gradient overlay */}
-            <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
-
-            {/* Selection indicator */}
-            {selectedIndex === index ? (
-              <div className="absolute top-3 right-3 w-8 h-8 bg-blue-500 rounded-full flex items-center justify-center shadow-lg animate-scaleIn">
-                <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
-                </svg>
-              </div>
-            ) : (
-              <div className="absolute top-3 right-3 w-8 h-8 bg-white/80 backdrop-blur-sm rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity shadow">
-                <span className="text-gray-500 text-xs font-bold">{index + 1}</span>
-              </div>
-            )}
-
-            {/* Hover zoom hint */}
-            <div className="absolute bottom-3 left-3 right-3 flex items-center justify-between opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-              <span className="bg-black/60 backdrop-blur-sm text-white text-xs px-3 py-1.5 rounded-full font-medium">
-                Variant {index + 1}
-              </span>
-              <span className="bg-white/80 backdrop-blur-sm text-gray-600 text-xs px-2 py-1.5 rounded-full">
-                Dubbelklicka för zoom
-              </span>
-            </div>
+            {selectedIndex === viewIndex ? 'Variant vald' : `Välj variant ${viewIndex + 1}`}
           </button>
-        ))}
-      </div>
-
-      {/* Zoom lightbox */}
-      {zoomedIndex !== null && variants[zoomedIndex] && (
-        <div
-          className="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-8 animate-fadeIn cursor-pointer"
-          onClick={() => setZoomedIndex(null)}
-        >
-          <div className="relative max-w-2xl w-full max-h-[90vh] animate-scaleIn" onClick={(e) => e.stopPropagation()}>
-            <img
-              src={variants[zoomedIndex].imageUrl}
-              alt={`Variant ${zoomedIndex + 1}`}
-              className="w-full h-auto max-h-[85vh] object-contain rounded-2xl shadow-2xl"
-              style={filterStyle}
-            />
-            <div className="absolute -top-4 -right-4 flex gap-2">
-              <button
-                onClick={() => { onSelect(zoomedIndex); setZoomedIndex(null) }}
-                className="w-10 h-10 bg-blue-500 hover:bg-blue-600 rounded-full flex items-center justify-center text-white shadow-lg transition-colors"
-                title="Välj denna"
-              >
-                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                </svg>
-              </button>
-              <button
-                onClick={() => setZoomedIndex(null)}
-                className="w-10 h-10 bg-white/90 hover:bg-white rounded-full flex items-center justify-center text-gray-700 shadow-lg transition-colors"
-              >
-                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                </svg>
-              </button>
-            </div>
-            <div className="absolute bottom-4 left-1/2 -translate-x-1/2 bg-black/60 backdrop-blur-sm text-white text-sm px-4 py-2 rounded-full">
-              Variant {zoomedIndex + 1} av {variants.length}
-            </div>
-          </div>
         </div>
-      )}
+      </div>
 
       <style jsx>{`
         @keyframes scaleIn {
@@ -178,7 +198,7 @@ export default function VariantsGrid({
           to { opacity: 1; }
         }
         .animate-fadeIn {
-          animation: fadeIn 0.2s ease-out;
+          animation: fadeIn 0.35s ease-out;
         }
       `}</style>
     </>
