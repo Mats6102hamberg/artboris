@@ -40,6 +40,7 @@ export default function ResultPage() {
     contrast: 50,
     brightness: 50,
     saturation: 50,
+    zoom: 100,
     textOverlay: '',
     textFont: 'sans-serif',
     textPosition: 'none',

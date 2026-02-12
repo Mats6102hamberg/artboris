@@ -13,6 +13,7 @@ interface ImageControls {
   contrast: number
   brightness: number
   saturation: number
+  zoom?: number  // 100–200
 }
 
 interface VariantsGridProps {
@@ -30,7 +31,8 @@ export default function VariantsGrid({
   isLoading = false,
   controls,
 }: VariantsGridProps) {
-  // CSS filter string from controls (50 = neutral)
+  // CSS filter + zoom from controls (50 = neutral for filters, 100 = normal zoom)
+  const zoomScale = controls?.zoom ? controls.zoom / 100 : 1
   const filterStyle = controls
     ? {
         filter: [
@@ -38,7 +40,8 @@ export default function VariantsGrid({
           `brightness(${0.5 + (controls.brightness / 100)})`,
           `saturate(${0.5 + (controls.saturation / 100)})`,
         ].join(' '),
-        transition: 'filter 0.3s ease',
+        transform: `scale(${zoomScale})`,
+        transition: 'filter 0.3s ease, transform 0.3s ease',
       }
     : {}
   const [zoomedIndex, setZoomedIndex] = useState<number | null>(null)

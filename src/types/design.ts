@@ -27,6 +27,7 @@ export interface DesignControls {
   contrast: number       // 0–100
   brightness: number     // 0–100
   saturation: number     // 0–100
+  zoom: number           // 100–200 (100 = normal, 200 = 2× inzoomad)
   textOverlay: string
   textFont: string
   textPosition: 'top' | 'center' | 'bottom' | 'none'

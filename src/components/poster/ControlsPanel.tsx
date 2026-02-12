@@ -91,6 +91,25 @@ export default function ControlsPanel({
         />
       </div>
 
+      {/* Zoom */}
+      <div>
+        <label className="block text-xs font-medium text-gray-600 mb-1">
+          Zoom: {controls.zoom ?? 100}%
+        </label>
+        <input
+          type="range"
+          min={100}
+          max={200}
+          value={controls.zoom ?? 100}
+          onChange={(e) => update({ zoom: parseInt(e.target.value) })}
+          className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-blue-600"
+        />
+        <div className="flex justify-between text-[10px] text-gray-400 mt-0.5">
+          <span>Normal</span>
+          <span>Närbild</span>
+        </div>
+      </div>
+
       {/* Color palette */}
       <div>
         <label className="block text-xs font-medium text-gray-600 mb-2">Färgpalett</label>
