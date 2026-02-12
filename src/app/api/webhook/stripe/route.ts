@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server'
 import Stripe from 'stripe'
 import { prisma } from '@/lib/prisma'
 import { generatePrintAsset, isPremiumSize } from '@/server/services/print/generatePrintAsset'
+import { sendOrderConfirmation } from '@/server/services/email/sendEmail'
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
   apiVersion: '2026-01-28.clover',
@@ -70,6 +71,11 @@ async function processCheckoutCompleted(orderId: string, session: Stripe.Checkou
   ])
 
   console.log(`[stripe webhook] Order ${orderId} → PAID`)
+
+  // ── Skicka orderbekräftelse (non-blocking) ──
+  sendOrderConfirmation(orderId).catch(err =>
+    console.error(`[stripe webhook] Email failed for ${orderId}:`, err)
+  )
 
   // ── Hämta OrderItems ──
   const items = await prisma.orderItem.findMany({

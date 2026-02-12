@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 import { generatePrintAsset } from '@/server/services/print/generatePrintAsset'
 import { renderFinalPrint } from '@/server/services/print/renderFinalPrint'
+import { sendShippedEmail, sendDeliveredEmail } from '@/server/services/email/sendEmail'
 
 export async function GET() {
   try {
@@ -153,6 +154,13 @@ export async function PATCH(request: NextRequest) {
         })
       }
 
+      // Skicka spårningsmail (non-blocking)
+      sendShippedEmail(fulfillment.orderItem.orderId, {
+        carrier: carrier ?? null,
+        trackingNumber: trackingNumber ?? null,
+        trackingUrl: trackingUrl ?? null,
+      }).catch(err => console.error('[admin] Shipped email failed:', err))
+
       return NextResponse.json({ success: true, fulfillment })
     }
 
@@ -178,6 +186,11 @@ export async function PATCH(request: NextRequest) {
           where: { id: fulfillment.orderItem.orderId },
           data: { status: 'DELIVERED' },
         })
+
+        // Skicka leveransbekräftelse (non-blocking)
+        sendDeliveredEmail(fulfillment.orderItem.orderId).catch(err =>
+          console.error('[admin] Delivered email failed:', err)
+        )
       }
 
       return NextResponse.json({ success: true, fulfillment })
