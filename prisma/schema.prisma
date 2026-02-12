@@ -74,6 +74,17 @@ model Design {
   roomType    String?  // e.g. "livingroom", "kidsroom"
   style       String
   colorMood   String?  // e.g. "warm", "cool", "dark"
+  prompt      String   @default("")
+
+  // Editor state (persistence for "säljläge")
+  selectedVariantId String?  // which variant the user picked
+  roomImageUrl      String?  // room photo URL
+  wallCorners       String?  // JSON array of {x,y}
+  positionX         Float    @default(0.5)
+  positionY         Float    @default(0.4)
+  scale             Float    @default(1.0)
+  frameId           String   @default("none")
+  sizeId            String   @default("50x70")
 
   isPublic    Boolean  @default(false)
   likesCount  Int      @default(0)
@@ -86,10 +97,25 @@ model Design {
   roomMeta    RoomMeta?
   orderItems  OrderItem[]
   assets      DesignAsset[]
+  variants    DesignVariant[]
 
   @@index([userId])
   @@index([style])
   @@index([isPublic, createdAt])
+}
+
+model DesignVariant {
+  id           String   @id @default(cuid())
+  designId     String
+  imageUrl     String   // Vercel Blob persistent URL
+  thumbnailUrl String   @default("")
+  seed         Int      @default(0)
+  sortOrder    Int      @default(0)
+  createdAt    DateTime @default(now())
+
+  design       Design   @relation(fields: [designId], references: [id], onDelete: Cascade)
+
+  @@index([designId])
 }
 
 model Like {

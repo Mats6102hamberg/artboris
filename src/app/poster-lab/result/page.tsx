@@ -84,11 +84,30 @@ export default function ResultPage() {
     }
   }
 
-  const handleContinueToEditor = () => {
+  const handleContinueToEditor = async () => {
     if (selectedIndex === null) return
     const selected = variants[selectedIndex]
     if (!selected) return
 
+    // If we have a real DB designId, save selection and go to persistent design page
+    if (designId && !designId.startsWith('design_')) {
+      try {
+        await fetch(`/api/designs/${designId}`, {
+          method: 'PATCH',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            selectedVariantId: selected.id,
+            imageUrl: selected.imageUrl,
+          }),
+        })
+      } catch (err) {
+        console.error('Save selection error:', err)
+      }
+      router.push(`/poster-lab/design/${designId}`)
+      return
+    }
+
+    // Fallback to old editor for non-persisted designs
     const params = new URLSearchParams({
       designId,
       variantId: selected.id,

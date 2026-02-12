@@ -24,10 +24,12 @@ export async function POST(request: NextRequest) {
     }
 
     const body = await request.json()
-    const { style, controls, userDescription } = body as {
+    const { style, controls, userDescription, roomImageUrl, wallCorners } = body as {
       style: StylePreset
       controls: DesignControls
       userDescription?: string
+      roomImageUrl?: string
+      wallCorners?: string
     }
 
     if (!style) {
@@ -58,6 +60,9 @@ export async function POST(request: NextRequest) {
       controls: defaultControls,
       userDescription,
       count: 4,
+      anonId,
+      roomImageUrl,
+      wallCorners,
     })
 
     if (!result.success) {
@@ -72,7 +77,7 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json({
       success: true,
-      designId: `design_${Date.now()}`,
+      designId: result.designId || `design_${Date.now()}`,
       variants: result.variants,
       prompt: result.prompt,
       style,

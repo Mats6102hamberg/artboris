@@ -77,7 +77,13 @@ export default function PosterLabPage() {
       const res = await fetch('/api/designs/generate', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ style: selectedStyle, userDescription, controls: null }),
+        body: JSON.stringify({
+          style: selectedStyle,
+          userDescription,
+          controls: null,
+          roomImageUrl: roomImageUrl || undefined,
+          wallCorners: wallCorners.length === 4 ? JSON.stringify(wallCorners) : undefined,
+        }),
       })
       const data = await res.json()
       if (data.success) {
