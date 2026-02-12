@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 import { generatePrintAsset } from '@/server/services/print/generatePrintAsset'
+import { renderFinalPrint } from '@/server/services/print/renderFinalPrint'
 
 export async function GET() {
   try {
@@ -23,28 +24,35 @@ export async function GET() {
       },
     })
 
-    // Hämta DesignAssets PRINT för alla designs i ordrarna (full metadata)
+    // Hämta DesignAssets PRINT + PRINT_FINAL för alla designs i ordrarna
     const designIds = [...new Set(orders.flatMap(o => o.items.map(i => i.designId)))]
+    const assetSelect = {
+      id: true,
+      url: true,
+      role: true,
+      sizeCode: true,
+      productType: true,
+      widthPx: true,
+      heightPx: true,
+      dpi: true,
+      fileSize: true,
+      mimeType: true,
+      sourceWidthPx: true,
+      sourceHeightPx: true,
+      upscaleFactor: true,
+      upscaleProvider: true,
+      createdAt: true,
+      designId: true,
+    }
+
     const printAssets = await prisma.designAsset.findMany({
       where: { designId: { in: designIds }, role: 'PRINT' },
-      select: {
-        id: true,
-        url: true,
-        role: true,
-        sizeCode: true,
-        productType: true,
-        widthPx: true,
-        heightPx: true,
-        dpi: true,
-        fileSize: true,
-        mimeType: true,
-        sourceWidthPx: true,
-        sourceHeightPx: true,
-        upscaleFactor: true,
-        upscaleProvider: true,
-        createdAt: true,
-        designId: true,
-      },
+      select: assetSelect,
+    })
+
+    const printFinalAssets = await prisma.designAsset.findMany({
+      where: { designId: { in: designIds }, role: 'PRINT_FINAL' },
+      select: assetSelect,
     })
 
     const assetMap = new Map<string, (typeof printAssets)[number]>()
@@ -53,11 +61,18 @@ export async function GET() {
       if (!assetMap.has(key)) assetMap.set(key, asset)
     }
 
+    const finalAssetMap = new Map<string, (typeof printFinalAssets)[number]>()
+    for (const asset of printFinalAssets) {
+      const key = `${asset.designId}:${asset.sizeCode}:${asset.productType}`
+      if (!finalAssetMap.has(key)) finalAssetMap.set(key, asset)
+    }
+
     const enriched = orders.map(order => ({
       ...order,
       items: order.items.map(item => ({
         ...item,
         printAsset: assetMap.get(`${item.designId}:${item.sizeCode}:${item.productType}`) ?? null,
+        printFinalAsset: finalAssetMap.get(`${item.designId}:${item.sizeCode}:${item.productType}`) ?? null,
       })),
     }))
 
@@ -83,7 +98,11 @@ export async function PATCH(request: NextRequest) {
         data: {
           status: 'IN_PRODUCTION',
         },
-        include: { orderItem: { select: { orderId: true } } },
+        include: {
+          orderItem: {
+            select: { orderId: true, designId: true, sizeCode: true, productType: true },
+          },
+        },
       })
 
       // Uppdatera Order-status också
@@ -91,6 +110,17 @@ export async function PATCH(request: NextRequest) {
         where: { id: fulfillment.orderItem.orderId },
         data: { status: 'IN_PRODUCTION' },
       })
+
+      // Auto-trigger PRINT_FINAL generation (non-blocking)
+      const oi = fulfillment.orderItem
+      renderFinalPrint({
+        designId: oi.designId,
+        sizeCode: oi.sizeCode,
+        productType: oi.productType,
+      }).then(r => {
+        if (r.success) console.log(`[admin] Auto PRINT_FINAL created: ${r.assetId}`)
+        else console.error(`[admin] Auto PRINT_FINAL failed: ${r.error}`)
+      }).catch(err => console.error('[admin] Auto PRINT_FINAL error:', err))
 
       return NextResponse.json({ success: true, fulfillment })
     }
@@ -199,6 +229,41 @@ export async function PATCH(request: NextRequest) {
         })
       } else {
         return NextResponse.json({ error: result.error || 'Print generation failed' }, { status: 500 })
+      }
+    }
+
+    if (action === 'GENERATE_PRINT_FINAL') {
+      const { orderItemId } = body
+
+      if (!orderItemId) {
+        return NextResponse.json({ error: 'orderItemId krävs för GENERATE_PRINT_FINAL.' }, { status: 400 })
+      }
+
+      const item = await prisma.orderItem.findUnique({
+        where: { id: orderItemId },
+      })
+
+      if (!item) {
+        return NextResponse.json({ error: 'OrderItem hittades inte.' }, { status: 404 })
+      }
+
+      console.log(`[admin] Triggering PRINT_FINAL for OrderItem ${orderItemId}`)
+
+      const result = await renderFinalPrint({
+        designId: item.designId,
+        sizeCode: item.sizeCode,
+        productType: item.productType,
+      })
+
+      if (result.success) {
+        return NextResponse.json({
+          success: true,
+          assetId: result.assetId,
+          url: result.url,
+          durationMs: result.durationMs,
+        })
+      } else {
+        return NextResponse.json({ error: result.error || 'PRINT_FINAL generation failed' }, { status: 500 })
       }
     }
 

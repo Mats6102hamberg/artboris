@@ -45,6 +45,7 @@ interface OrderItemData {
   design: { id: string; title: string; imageUrl: string }
   fulfillment: FulfillmentData | null
   printAsset: PrintAsset | null
+  printFinalAsset: PrintAsset | null
 }
 
 interface PaymentData {
@@ -115,6 +116,7 @@ export default function AdminOrdersPage() {
     trackingUrl: string
   } | null>(null)
   const [generateLoading, setGenerateLoading] = useState<string | null>(null)
+  const [generateFinalLoading, setGenerateFinalLoading] = useState<string | null>(null)
 
   const fetchOrders = useCallback(async () => {
     try {
@@ -149,6 +151,28 @@ export default function AdminOrdersPage() {
       alert('Kunde inte generera tryckfil.')
     } finally {
       setGenerateLoading(null)
+    }
+  }
+
+  const handleGeneratePrintFinal = async (orderItemId: string, fulfillmentId?: string) => {
+    setGenerateFinalLoading(orderItemId)
+    try {
+      const res = await fetch('/api/admin/orders', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'GENERATE_PRINT_FINAL', orderItemId, fulfillmentId }),
+      })
+      const data = await res.json()
+      if (data.success) {
+        await fetchOrders()
+      } else {
+        alert(`Fel: ${data.error || 'Okänt fel'}`)
+      }
+    } catch (err) {
+      console.error('Generate print final failed:', err)
+      alert('Kunde inte generera slutgiltig tryckfil.')
+    } finally {
+      setGenerateFinalLoading(null)
     }
   }
 
@@ -306,6 +330,49 @@ export default function AdminOrdersPage() {
                                     <><span className="animate-spin">⏳</span> Genererar tryckfil…</>
                                   ) : (
                                     <>🖨️ Generera tryckfil</>
+                                  )}
+                                </button>
+                              )}
+                            </div>
+
+                            {/* PRINT_FINAL status */}
+                            <div className="mt-2">
+                              <div className="flex items-center gap-2 mb-1">
+                                <span className="text-xs text-gray-400">Slutgiltig tryckfil:</span>
+                                {item.printFinalAsset ? (
+                                  <span className="text-xs px-1.5 py-0.5 bg-emerald-50 text-emerald-700 rounded font-medium">
+                                    ✓ Klar
+                                  </span>
+                                ) : (
+                                  <span className="text-xs px-1.5 py-0.5 bg-red-50 text-red-600 rounded">
+                                    ✗ Saknas
+                                  </span>
+                                )}
+                              </div>
+
+                              {item.printFinalAsset ? (
+                                <div className="grid grid-cols-3 sm:grid-cols-5 gap-1 text-xs bg-emerald-50/50 rounded p-1.5">
+                                  <div><span className="text-gray-400">Px:</span> <span className="font-mono">{item.printFinalAsset.widthPx}×{item.printFinalAsset.heightPx}</span></div>
+                                  <div><span className="text-gray-400">DPI:</span> <span className="font-medium">{item.printFinalAsset.dpi}</span></div>
+                                  <div><span className="text-gray-400">Storlek:</span> {item.printFinalAsset.fileSize ? `${(item.printFinalAsset.fileSize / 1024 / 1024).toFixed(1)} MB` : '—'}</div>
+                                  <div><span className="text-gray-400">Skapad:</span> {formatDate(item.printFinalAsset.createdAt)}</div>
+                                  <div>
+                                    <a href={item.printFinalAsset.url} target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline">
+                                      Ladda ner
+                                    </a>
+                                  </div>
+                                </div>
+                              ) : (
+                                <button
+                                  onClick={() => handleGeneratePrintFinal(item.id, item.fulfillment?.id)}
+                                  disabled={generateFinalLoading === item.id || !item.printAsset?.upscaleFactor}
+                                  className="mt-1 px-3 py-1.5 text-xs bg-emerald-600 text-white rounded hover:bg-emerald-700 disabled:opacity-50 transition-colors flex items-center gap-1"
+                                  title={!item.printAsset?.upscaleFactor ? 'Generera tryckfil (PRINT) först' : ''}
+                                >
+                                  {generateFinalLoading === item.id ? (
+                                    <><span className="animate-spin">⏳</span> Renderar slutgiltig…</>
+                                  ) : (
+                                    <>🎨 Rendera slutgiltig tryckfil</>
                                   )}
                                 </button>
                               )}

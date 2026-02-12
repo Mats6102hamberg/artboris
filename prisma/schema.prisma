@@ -190,6 +190,7 @@ enum PaymentProvider {
 enum AssetRole {
   PREVIEW
   PRINT
+  PRINT_FINAL
   THUMB
 }
 
