@@ -65,7 +65,7 @@ export default function GalleryPage() {
               <button
                 key={style}
                 onClick={() => setActiveStyle(style)}
-                className={`px-4 py-1.5 rounded-full text-sm font-medium transition-all ${
+                className={`px-4 py-2 rounded-full text-sm font-medium transition-all ${
                   activeStyle === style
                     ? 'bg-gray-900 text-white'
                     : 'bg-white text-gray-600 border border-gray-200 hover:border-gray-300'
@@ -111,8 +111,8 @@ export default function GalleryPage() {
                     alt={item.title}
                     className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                   />
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/30 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
-                  <div className="absolute bottom-3 left-3 right-3 flex items-end justify-between opacity-0 group-hover:opacity-100 transition-opacity">
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/30 via-transparent to-transparent sm:opacity-0 sm:group-hover:opacity-100 transition-opacity" />
+                  <div className="absolute bottom-3 left-3 right-3 flex items-end justify-between sm:opacity-0 sm:group-hover:opacity-100 transition-opacity">
                     <span className="text-white text-xs font-medium bg-black/40 backdrop-blur-sm px-2 py-1 rounded-md">
                       {t('gallery.viewDesign')}
                     </span>

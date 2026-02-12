@@ -19,6 +19,7 @@ export default function WallcraftLanding() {
   const { t } = useTranslation()
   const router = useRouter()
   const [heroVisible, setHeroVisible] = useState(false)
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
 
   useEffect(() => {
     setTimeout(() => setHeroVisible(true), 100)
@@ -44,8 +45,36 @@ export default function WallcraftLanding() {
             {t('nav.studio')}
           </a>
           <LanguageSwitcher />
+          {/* Mobile hamburger */}
+          <button
+            className="sm:hidden flex flex-col gap-1.5 p-2 -mr-2"
+            onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+            aria-label="Menu"
+          >
+            <span className={`block w-5 h-0.5 bg-gray-700 transition-transform ${mobileMenuOpen ? 'rotate-45 translate-y-2' : ''}`} />
+            <span className={`block w-5 h-0.5 bg-gray-700 transition-opacity ${mobileMenuOpen ? 'opacity-0' : ''}`} />
+            <span className={`block w-5 h-0.5 bg-gray-700 transition-transform ${mobileMenuOpen ? '-rotate-45 -translate-y-2' : ''}`} />
+          </button>
         </div>
       </nav>
+
+      {/* Mobile menu dropdown */}
+      {mobileMenuOpen && (
+        <div className="sm:hidden bg-white border-b border-gray-200/60 px-6 py-4 space-y-3 animate-in slide-in-from-top-2">
+          <a
+            href="/wallcraft/gallery"
+            className="block text-base font-medium text-gray-700 py-2"
+          >
+            {t('nav.gallery')}
+          </a>
+          <a
+            href="/wallcraft/studio"
+            className="block text-base font-medium text-white bg-gray-900 text-center py-3 rounded-lg"
+          >
+            {t('nav.studio')}
+          </a>
+        </div>
+      )}
 
       {/* ─── Hero ─── */}
       <section className="relative overflow-hidden">
@@ -178,7 +207,7 @@ export default function WallcraftLanding() {
                   />
                   <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
                   <button
-                    className="absolute bottom-4 left-1/2 -translate-x-1/2 bg-white text-gray-900 px-5 py-2 rounded-lg text-sm font-medium shadow-lg opacity-0 group-hover:opacity-100 translate-y-2 group-hover:translate-y-0 transition-all duration-300 whitespace-nowrap"
+                    className="absolute bottom-4 left-1/2 -translate-x-1/2 bg-white text-gray-900 px-5 py-2.5 rounded-lg text-sm font-medium shadow-lg sm:opacity-0 sm:group-hover:opacity-100 sm:translate-y-2 sm:group-hover:translate-y-0 transition-all duration-300 whitespace-nowrap"
                     onClick={() => router.push('/wallcraft/studio')}
                   >
                     {t('landing.featured.viewOnWall')} →

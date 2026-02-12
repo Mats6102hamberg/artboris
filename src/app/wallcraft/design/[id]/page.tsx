@@ -344,7 +344,7 @@ export default function WallcraftDesignPage() {
                 <>
                   <button
                     onClick={handlePrevVariant}
-                    className="absolute left-3 top-1/2 -translate-y-1/2 z-30 w-10 h-10 bg-white/80 backdrop-blur-sm rounded-full flex items-center justify-center shadow-md hover:bg-white hover:shadow-lg transition-all"
+                    className="absolute left-2 top-1/2 -translate-y-1/2 z-30 w-11 h-11 bg-white/80 backdrop-blur-sm rounded-full flex items-center justify-center shadow-md hover:bg-white hover:shadow-lg transition-all"
                   >
                     <svg className="w-5 h-5 text-gray-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
@@ -352,7 +352,7 @@ export default function WallcraftDesignPage() {
                   </button>
                   <button
                     onClick={handleNextVariant}
-                    className="absolute right-3 top-1/2 -translate-y-1/2 z-30 w-10 h-10 bg-white/80 backdrop-blur-sm rounded-full flex items-center justify-center shadow-md hover:bg-white hover:shadow-lg transition-all"
+                    className="absolute right-2 top-1/2 -translate-y-1/2 z-30 w-11 h-11 bg-white/80 backdrop-blur-sm rounded-full flex items-center justify-center shadow-md hover:bg-white hover:shadow-lg transition-all"
                   >
                     <svg className="w-5 h-5 text-gray-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
