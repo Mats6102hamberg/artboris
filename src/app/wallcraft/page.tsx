@@ -10,9 +10,9 @@ const FEATURED_DESIGNS = [
   { id: '1', title: 'Nordic Calm', image: '/assets/demo/botanical-1.svg', style: 'Scandinavian', price: 349 },
   { id: '2', title: 'Abstract Flow', image: '/assets/demo/abstract-1.svg', style: 'Abstract', price: 449 },
   { id: '3', title: 'Minimal Lines', image: '/assets/demo/minimal-1.svg', style: 'Minimal', price: 349 },
-  { id: '4', title: 'Ocean Drift', image: '/assets/demo/ocean-1.svg', style: 'Modern', price: 549 },
-  { id: '5', title: 'Forest Light', image: '/assets/demo/forest-1.svg', style: 'Photography', price: 449 },
-  { id: '6', title: 'Stone Texture', image: '/assets/demo/texture-1.svg', style: 'Abstract', price: 349 },
+  { id: '4', title: 'Dark Mood', image: '/assets/demo/dark-moody-1.svg', style: 'Modern', price: 549 },
+  { id: '5', title: 'Retro Vibes', image: '/assets/demo/retro-1.svg', style: 'Retro', price: 449 },
+  { id: '6', title: 'Art Deco', image: '/assets/demo/art-deco-1.svg', style: 'Art Deco', price: 349 },
 ]
 
 export default function WallcraftLanding() {
