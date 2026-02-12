@@ -9,11 +9,18 @@ interface Variant {
   isSelected: boolean
 }
 
+interface ImageControls {
+  contrast: number
+  brightness: number
+  saturation: number
+}
+
 interface VariantsGridProps {
   variants: Variant[]
   selectedIndex: number | null
   onSelect: (index: number) => void
   isLoading?: boolean
+  controls?: ImageControls
 }
 
 export default function VariantsGrid({
@@ -21,7 +28,19 @@ export default function VariantsGrid({
   selectedIndex,
   onSelect,
   isLoading = false,
+  controls,
 }: VariantsGridProps) {
+  // CSS filter string from controls (50 = neutral)
+  const filterStyle = controls
+    ? {
+        filter: [
+          `contrast(${0.5 + (controls.contrast / 100)})`,
+          `brightness(${0.5 + (controls.brightness / 100)})`,
+          `saturate(${0.5 + (controls.saturation / 100)})`,
+        ].join(' '),
+        transition: 'filter 0.3s ease',
+      }
+    : {}
   const [zoomedIndex, setZoomedIndex] = useState<number | null>(null)
 
   if (isLoading) {
@@ -71,7 +90,8 @@ export default function VariantsGrid({
             <img
               src={variant.thumbnailUrl || variant.imageUrl}
               alt={`Variant ${index + 1}`}
-              className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700 ease-out"
+              className="w-full h-full object-cover group-hover:scale-110 transition-all duration-700 ease-out"
+              style={filterStyle}
             />
 
             {/* Gradient overlay */}
@@ -114,6 +134,7 @@ export default function VariantsGrid({
               src={variants[zoomedIndex].imageUrl}
               alt={`Variant ${zoomedIndex + 1}`}
               className="w-full h-auto max-h-[85vh] object-contain rounded-2xl shadow-2xl"
+              style={filterStyle}
             />
             <div className="absolute -top-4 -right-4 flex gap-2">
               <button

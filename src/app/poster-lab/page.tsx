@@ -487,7 +487,7 @@ export default function PosterLabPage() {
                   onChange={(e) => setUserDescription(e.target.value)}
                   placeholder="T.ex. 'En lugn strandscen i pastellfärger' eller 'Abstrakt med guld och marinblått'..."
                   rows={3}
-                  className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none"
+                  className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none text-gray-900 placeholder:text-gray-400 bg-white"
                   maxLength={500}
                 />
               </div>

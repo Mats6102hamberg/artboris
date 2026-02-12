@@ -127,6 +127,7 @@ export default function ResultPage() {
               variants={variants}
               selectedIndex={selectedIndex}
               onSelect={setSelectedIndex}
+              controls={controls}
             />
           </div>
 
