@@ -1,7 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { listGallery, likeDesign } from '@/server/services/gallery/list'
-import { cookies } from 'next/headers'
-import { randomUUID } from 'crypto'
+import { getOrCreateAnonId } from '@/lib/anonId'
 
 const DEMO_GALLERY = [
   { id: 'g1', title: 'Nordisk Fjällvy', description: 'Lugna berg i pastelltoner', imageUrl: '/assets/demo/nordic-1.svg', mockupUrl: '/assets/demo/nordic-1.svg', style: 'nordic', likesCount: 47, createdAt: '2026-02-10T12:00:00Z' },
@@ -74,14 +73,7 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // Hämta eller skapa anonId från cookie
-    const cookieStore = await cookies()
-    let anonId = cookieStore.get('anonId')?.value
-    if (!anonId) {
-      anonId = randomUUID()
-      cookieStore.set('anonId', anonId, { maxAge: 60 * 60 * 24 * 365, httpOnly: true, sameSite: 'lax' })
-    }
-
+    const anonId = await getOrCreateAnonId()
     const result = await likeDesign(designId, anonId)
 
     return NextResponse.json({
