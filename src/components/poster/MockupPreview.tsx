@@ -133,7 +133,7 @@ export default function MockupPreview({
   const isInteractive = !!(onPositionChange || onScaleChange)
 
   return (
-    <div ref={containerRef} className="relative rounded-xl overflow-hidden shadow-lg select-none">
+    <div ref={containerRef} className="group/mockup relative rounded-xl overflow-hidden shadow-lg select-none">
       <img src={roomImageUrl} alt="Rum" className="w-full pointer-events-none" draggable={false} />
 
       {/* Shadow */}
@@ -202,7 +202,7 @@ export default function MockupPreview({
           ].map((handle, i) => (
             <div
               key={i}
-              className={`absolute ${handle.pos} ${handle.translate} w-4 h-4 bg-white border-2 border-blue-500 rounded-full shadow-md hover:bg-blue-50 hover:scale-125 transition-transform z-20`}
+              className={`absolute ${handle.pos} ${handle.translate} w-4 h-4 bg-white border-2 border-blue-500 rounded-full shadow-md hover:bg-blue-50 hover:scale-125 transition-all z-20 ${isDragging || isResizing ? 'opacity-100' : 'opacity-0 group-hover/mockup:opacity-100'}`}
               style={{
                 left: handle.pos.includes('left-0')
                   ? `${placement.left * 100}%`
