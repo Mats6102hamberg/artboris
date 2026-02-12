@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
 import CreditBadge from '@/components/poster/CreditBadge'
 import { StylePreset } from '@/types/design'
@@ -13,6 +13,8 @@ interface GalleryItem {
   imageUrl: string
   mockupUrl: string
   style: string
+  roomType?: string
+  colorMood?: string
   likesCount: number
   createdAt: string
 }
@@ -24,6 +26,7 @@ export default function GalleryPage() {
   const [filterStyle, setFilterStyle] = useState<string>('')
   const [sortBy, setSortBy] = useState<'recent' | 'popular'>('recent')
   const [credits] = useState(30)
+  const [likedIds, setLikedIds] = useState<Set<string>>(new Set())
 
   const styles = getAllStyles()
 
@@ -49,27 +52,75 @@ export default function GalleryPage() {
     }
   }
 
-  const handleLike = async (itemId: string) => {
+  const handleLike = useCallback(async (itemId: string) => {
+    // Optimistic update
+    const wasLiked = likedIds.has(itemId)
+    const delta = wasLiked ? -1 : 1
+
+    setLikedIds(prev => {
+      const next = new Set(prev)
+      if (wasLiked) next.delete(itemId)
+      else next.add(itemId)
+      return next
+    })
+    setItems(prev =>
+      prev.map(item =>
+        item.id === itemId
+          ? { ...item, likesCount: Math.max(0, item.likesCount + delta) }
+          : item
+      )
+    )
+
     try {
-      const res = await fetch('/api/gallery/list', {
+      const res = await fetch('/api/gallery/like', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ designId: itemId }),
       })
       const data = await res.json()
       if (data.success) {
+        // Synka med serverns faktiska värde
         setItems(prev =>
           prev.map(item =>
             item.id === itemId
-              ? { ...item, likesCount: item.likesCount + (data.liked ? 1 : -1) }
+              ? { ...item, likesCount: data.likesCount }
               : item
           )
         )
+        setLikedIds(prev => {
+          const next = new Set(prev)
+          if (data.liked) next.add(itemId)
+          else next.delete(itemId)
+          return next
+        })
       }
     } catch (err) {
+      // Rollback optimistic update
+      setLikedIds(prev => {
+        const next = new Set(prev)
+        if (wasLiked) next.add(itemId)
+        else next.delete(itemId)
+        return next
+      })
+      setItems(prev =>
+        prev.map(item =>
+          item.id === itemId
+            ? { ...item, likesCount: Math.max(0, item.likesCount - delta) }
+            : item
+        )
+      )
       console.error('Like error:', err)
     }
-  }
+  }, [likedIds])
+
+  const handleCreateSimilar = useCallback((item: GalleryItem) => {
+    const params = new URLSearchParams()
+    if (item.style) params.set('style', item.style)
+    if (item.roomType) params.set('roomType', item.roomType)
+    if (item.colorMood) params.set('colorMood', item.colorMood)
+    params.set('from', 'gallery')
+    router.push(`/poster-lab?${params.toString()}`)
+  }, [router])
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-50 to-purple-50">
@@ -149,38 +200,57 @@ export default function GalleryPage() {
           </div>
         ) : (
           <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-4">
-            {items.map(item => (
-              <div
-                key={item.id}
-                className="group relative bg-white rounded-xl sm:rounded-2xl overflow-hidden shadow-sm hover:shadow-xl transition-all duration-300 border border-gray-100 active:scale-[0.98]"
-              >
-                <div className="aspect-[2/3] overflow-hidden">
-                  <img
-                    src={item.mockupUrl || item.imageUrl}
-                    alt={item.title}
-                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-                  />
-                </div>
-                <div className="p-2 sm:p-3">
-                  <h3 className="font-medium text-gray-900 text-xs sm:text-sm truncate">{item.title}</h3>
-                  {item.description && (
-                    <p className="text-[10px] sm:text-xs text-gray-500 truncate mt-0.5 hidden sm:block">{item.description}</p>
-                  )}
-                  <div className="flex items-center justify-between mt-1.5 sm:mt-2">
-                    <span className="text-[10px] sm:text-xs text-gray-400 bg-gray-100 px-1.5 sm:px-2 py-0.5 rounded-full">{item.style}</span>
-                    <button
-                      onClick={(e) => { e.stopPropagation(); handleLike(item.id) }}
-                      className="flex items-center gap-1 text-xs text-gray-500 hover:text-red-500 active:text-red-500 transition-colors"
-                    >
-                      <svg className="w-3.5 h-3.5 sm:w-4 sm:h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
-                      </svg>
-                      {item.likesCount}
-                    </button>
+            {items.map(item => {
+              const isLiked = likedIds.has(item.id)
+              return (
+                <div
+                  key={item.id}
+                  className="group relative bg-white rounded-xl sm:rounded-2xl overflow-hidden shadow-sm hover:shadow-xl transition-all duration-300 border border-gray-100"
+                >
+                  <div className="aspect-[2/3] overflow-hidden relative">
+                    <img
+                      src={item.mockupUrl || item.imageUrl}
+                      alt={item.title}
+                      className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                    />
+                    {/* Hover overlay med "Skapa liknande" */}
+                    <div className="absolute inset-0 bg-black/0 group-hover:bg-black/40 transition-all duration-300 flex items-center justify-center opacity-0 group-hover:opacity-100">
+                      <button
+                        onClick={() => handleCreateSimilar(item)}
+                        className="px-3 py-1.5 sm:px-4 sm:py-2 bg-white/90 backdrop-blur-sm text-gray-900 rounded-lg text-xs sm:text-sm font-medium hover:bg-white transition-all transform translate-y-2 group-hover:translate-y-0 shadow-lg"
+                      >
+                        Skapa liknande ✨
+                      </button>
+                    </div>
+                  </div>
+                  <div className="p-2 sm:p-3">
+                    <h3 className="font-medium text-gray-900 text-xs sm:text-sm truncate">{item.title}</h3>
+                    {item.description && (
+                      <p className="text-[10px] sm:text-xs text-gray-500 truncate mt-0.5 hidden sm:block">{item.description}</p>
+                    )}
+                    <div className="flex items-center justify-between mt-1.5 sm:mt-2">
+                      <span className="text-[10px] sm:text-xs text-gray-400 bg-gray-100 px-1.5 sm:px-2 py-0.5 rounded-full">{item.style}</span>
+                      <button
+                        onClick={(e) => { e.stopPropagation(); handleLike(item.id) }}
+                        className={`flex items-center gap-1 text-xs transition-colors ${
+                          isLiked ? 'text-red-500' : 'text-gray-500 hover:text-red-500'
+                        }`}
+                      >
+                        <svg
+                          className={`w-3.5 h-3.5 sm:w-4 sm:h-4 transition-transform ${isLiked ? 'scale-110' : ''}`}
+                          fill={isLiked ? 'currentColor' : 'none'}
+                          stroke="currentColor"
+                          viewBox="0 0 24 24"
+                        >
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
+                        </svg>
+                        {item.likesCount}
+                      </button>
+                    </div>
                   </div>
                 </div>
-              </div>
-            ))}
+              )
+            })}
           </div>
         )}
       </main>

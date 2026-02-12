@@ -1,24 +1,30 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createOrder } from '@/server/services/orders/createOrder'
+import { getOrCreateAnonId } from '@/lib/anonId'
 
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json()
-    const { userId, designId, variantId, frameId, sizeId } = body
+    const { designId, productType, sizeCode, frameColor, paperType, quantity, unitPriceCents } = body
 
-    if (!userId || !designId || !variantId || !frameId || !sizeId) {
+    if (!designId || !productType || !sizeCode || unitPriceCents == null) {
       return NextResponse.json(
-        { error: 'Alla fält krävs: userId, designId, variantId, frameId, sizeId.' },
+        { error: 'Obligatoriska fält: designId, productType, sizeCode, unitPriceCents.' },
         { status: 400 }
       )
     }
 
+    const anonId = await getOrCreateAnonId()
+
     const result = await createOrder({
-      userId,
+      anonId,
       designId,
-      variantId,
-      frameId,
-      sizeId,
+      productType,
+      sizeCode,
+      frameColor,
+      paperType,
+      quantity,
+      unitPriceCents,
     })
 
     if (!result.success) {
@@ -31,6 +37,7 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({
       success: true,
       orderId: result.orderId,
+      orderItemId: result.orderItemId,
     })
   } catch (error) {
     console.error('[orders/create] Error:', error)

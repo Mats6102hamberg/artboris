@@ -30,27 +30,3 @@ export async function listGallery(options: GalleryListOptions = {}) {
   return { items, total, hasMore: offset + limit < total }
 }
 
-export async function likeDesign(designId: string, anonId: string) {
-  // Upsert: om like redan finns gör inget, annars skapa och öka räknaren
-  const existing = await prisma.like.findUnique({
-    where: { designId_anonId: { designId, anonId } },
-  })
-
-  if (existing) {
-    // Redan gillad — ta bort like (toggle)
-    await prisma.like.delete({ where: { id: existing.id } })
-    await prisma.design.update({
-      where: { id: designId },
-      data: { likesCount: { decrement: 1 } },
-    })
-    return { liked: false }
-  }
-
-  await prisma.like.create({ data: { designId, anonId } })
-  const updated = await prisma.design.update({
-    where: { id: designId },
-    data: { likesCount: { increment: 1 } },
-  })
-
-  return { liked: true, likesCount: updated.likesCount }
-}

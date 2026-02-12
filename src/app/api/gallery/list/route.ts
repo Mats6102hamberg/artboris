@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { listGallery, likeDesign } from '@/server/services/gallery/list'
-import { getOrCreateAnonId } from '@/lib/anonId'
+import { listGallery } from '@/server/services/gallery/list'
 
 const DEMO_GALLERY = [
   { id: 'g1', title: 'Nordisk Fjällvy', description: 'Lugna berg i pastelltoner', imageUrl: '/assets/demo/nordic-1.svg', mockupUrl: '/assets/demo/nordic-1.svg', style: 'nordic', likesCount: 47, createdAt: '2026-02-10T12:00:00Z' },
@@ -61,30 +60,3 @@ export async function GET(request: NextRequest) {
   }
 }
 
-export async function POST(request: NextRequest) {
-  try {
-    const body = await request.json()
-    const { designId } = body
-
-    if (!designId) {
-      return NextResponse.json(
-        { error: 'designId krävs.' },
-        { status: 400 }
-      )
-    }
-
-    const anonId = await getOrCreateAnonId()
-    const result = await likeDesign(designId, anonId)
-
-    return NextResponse.json({
-      success: true,
-      ...result,
-    })
-  } catch (error) {
-    console.error('[gallery/list POST] Error:', error)
-    return NextResponse.json(
-      { error: 'Kunde inte gilla.' },
-      { status: 500 }
-    )
-  }
-}

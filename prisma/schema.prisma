@@ -68,6 +68,8 @@ model Design {
   // Relations
   likes       Like[]
   roomMeta    RoomMeta?
+  orderItems  OrderItem[]
+  assets      DesignAsset[]
 
   @@index([userId])
   @@index([style])
@@ -105,19 +107,233 @@ model RoomMeta {
   @@index([designId])
 }
 
-model PosterOrder {
-  id             String   @id @default(cuid())
-  userId         String
-  designId       String
-  variantId      String
-  frameId        String
-  sizeId         String
-  finalRenderUrl String?
-  status         String   @default("pending") // pending | rendering | rendered | printing | shipped | delivered | cancelled
-  creditsSpent   Int      @default(0)
-  createdAt      DateTime @default(now())
-  updatedAt      DateTime @updatedAt
+// ─── Enums ──────────────────────────────────────────────────
 
-  @@index([userId])
+enum OrderStatus {
+  DRAFT
+  AWAITING_PAYMENT
+  PAID
+  IN_PRODUCTION
+  SHIPPED
+  DELIVERED
+  CANCELED
+  REFUNDED
+}
+
+enum FulfillmentStatus {
+  NOT_STARTED
+  QUEUED
+  SENT_TO_PARTNER
+  IN_PRODUCTION
+  SHIPPED
+  DELIVERED
+  CANCELED
+  FAILED
+}
+
+enum PaymentProvider {
+  STRIPE
+  MANUAL
+}
+
+enum AssetRole {
+  PREVIEW
+  PRINT
+  THUMB
+}
+
+enum PrintProductType {
+  POSTER
+  CANVAS
+  METAL
+  FRAMED_POSTER
+}
+
+enum FrameColor {
+  NONE
+  BLACK
+  WHITE
+  OAK
+  WALNUT
+}
+
+enum PaperType {
+  DEFAULT
+  MATTE
+  SEMI_GLOSS
+  FINE_ART
+}
+
+// ─── Order System ───────────────────────────────────────────
+
+model Order {
+  id            String      @id @default(cuid())
+
+  anonId        String?
+
+  status        OrderStatus @default(DRAFT)
+
+  currency      String      @default("SEK")
+  subtotalCents Int         @default(0)
+  shippingCents Int         @default(0)
+  taxCents      Int         @default(0)
+  totalCents    Int         @default(0)
+
+  payment       Payment?
+  shippingAddress ShippingAddress?
+  items         OrderItem[]
+
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  @@index([anonId])
   @@index([status])
+  @@index([createdAt])
+}
+
+model OrderItem {
+  id            String   @id @default(cuid())
+  orderId       String
+  designId      String
+
+  productType   PrintProductType
+  sizeCode      String
+  paperType     PaperType @default(DEFAULT)
+
+  frameColor    FrameColor @default(NONE)
+  frameWidthMm  Int?
+  matEnabled    Boolean   @default(false)
+
+  quantity      Int      @default(1)
+
+  unitPriceCents Int
+  lineTotalCents Int
+
+  fulfillment   Fulfillment?
+
+  order         Order    @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  design        Design   @relation(fields: [designId], references: [id], onDelete: Restrict)
+
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  @@index([orderId])
+  @@index([designId])
+}
+
+model Payment {
+  id            String         @id @default(cuid())
+  orderId       String         @unique
+  provider      PaymentProvider @default(STRIPE)
+
+  stripeCheckoutSessionId String?
+  stripePaymentIntentId   String?
+
+  amountCents   Int
+  currency      String      @default("SEK")
+
+  paidAt        DateTime?
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  order         Order @relation(fields: [orderId], references: [id], onDelete: Cascade)
+
+  @@index([stripeCheckoutSessionId])
+  @@index([stripePaymentIntentId])
+}
+
+model ShippingAddress {
+  id          String @id @default(cuid())
+  orderId     String @unique
+
+  fullName    String
+  email       String
+  phone       String?
+
+  address1    String
+  address2    String?
+  postalCode  String
+  city        String
+  region      String?
+  countryCode String @default("SE")
+
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  order       Order @relation(fields: [orderId], references: [id], onDelete: Cascade)
+
+  @@index([email])
+}
+
+model Fulfillment {
+  id            String            @id @default(cuid())
+  orderItemId   String            @unique
+
+  status        FulfillmentStatus @default(NOT_STARTED)
+
+  partnerId     String?
+  partnerOrderRef String?
+
+  carrier       String?
+  trackingNumber String?
+  trackingUrl   String?
+
+  internalNote  String?
+
+  sentToPartnerAt DateTime?
+  shippedAt     DateTime?
+  deliveredAt   DateTime?
+
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  orderItem     OrderItem @relation(fields: [orderItemId], references: [id], onDelete: Cascade)
+  partner       PrintPartner? @relation(fields: [partnerId], references: [id], onDelete: SetNull)
+
+  @@index([status])
+  @@index([partnerOrderRef])
+}
+
+model PrintPartner {
+  id          String @id @default(cuid())
+  name        String
+  countryCode String?
+  isActive    Boolean @default(true)
+
+  apiBaseUrl  String?
+  apiKeyHint  String?
+
+  contactEmail String?
+  contactPhone String?
+
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  fulfillments Fulfillment[]
+}
+
+// ─── Print Assets ───────────────────────────────────────────
+
+model DesignAsset {
+  id         String    @id @default(cuid())
+  designId   String
+  role       AssetRole
+
+  url        String
+  widthPx    Int?
+  heightPx   Int?
+  dpi        Int?
+  fileSize   Int?
+  mimeType   String?
+
+  sizeCode   String?
+  productType PrintProductType?
+
+  createdAt  DateTime  @default(now())
+
+  design     Design    @relation(fields: [designId], references: [id], onDelete: Cascade)
+
+  @@index([designId])
+  @@index([role])
+  @@unique([designId, role, sizeCode, productType])
 }
