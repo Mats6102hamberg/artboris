@@ -149,12 +149,12 @@ export default function EditorPage() {
               <div className="space-y-2 text-sm">
                 <div className="flex justify-between">
                   <span className="text-gray-600">Poster ({pricing.sizeLabel})</span>
-                  <span className="font-medium">{formatSEK(pricing.basePriceSEK)}</span>
+                  <span className="font-medium text-gray-900">{formatSEK(pricing.basePriceSEK)}</span>
                 </div>
                 {pricing.framePriceSEK > 0 && (
                   <div className="flex justify-between">
                     <span className="text-gray-600">Ram</span>
-                    <span className="font-medium">+{formatSEK(pricing.framePriceSEK)}</span>
+                    <span className="font-medium text-gray-900">+{formatSEK(pricing.framePriceSEK)}</span>
                   </div>
                 )}
                 <hr className="my-2" />
