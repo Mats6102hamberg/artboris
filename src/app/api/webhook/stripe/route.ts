@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server'
 import Stripe from 'stripe'
 import { prisma } from '@/lib/prisma'
-import { generatePrintAsset } from '@/server/services/print/generatePrintAsset'
+import { generatePrintAsset, isPremiumSize } from '@/server/services/print/generatePrintAsset'
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
   apiVersion: '2026-01-28.clover',
@@ -102,37 +102,68 @@ async function processCheckoutCompleted(orderId: string, session: Stripe.Checkou
     }
 
     // ── Upscale pipeline (fail-safe: fångar fel per item) ──
-    try {
-      console.log(`${itemLog} Starting print asset generation...`)
+    if (isPremiumSize(item.sizeCode)) {
+      // Premium (70×100): 8× tar ~60-120s — för långsamt för webhook.
+      // Skapa placeholder, admin genererar tryckfil manuellt.
+      console.log(`${itemLog} ⚠️  Premium size (${item.sizeCode}) — skipping upscale in webhook. Use admin to generate.`)
 
-      const result = await generatePrintAsset({
-        designId: item.designId,
-        imageUrl: item.design.imageUrl,
-        sizeCode: item.sizeCode,
-        productType: item.productType,
-        upscaleFactor: 4,
-        targetDpi: 150,
-      })
-
-      if (result.success) {
-        console.log(`${itemLog} Print asset ready: ${result.assetId}`)
-      } else {
-        throw new Error(result.error || 'generatePrintAsset returned success=false')
-      }
-    } catch (err) {
-      // ── Fail-safe: markera fulfillment FAILED, logga, fortsätt ──
-      console.error(`${itemLog} UPSCALE FAILED:`, err)
-
-      await prisma.fulfillment.update({
-        where: { id: fulfillment.id },
-        data: {
-          status: 'FAILED',
-          internalNote: `Upscale failed: ${err instanceof Error ? err.message : String(err)}`,
+      const existingAsset = await prisma.designAsset.findUnique({
+        where: {
+          designId_role_sizeCode_productType: {
+            designId: item.designId,
+            role: 'PRINT',
+            sizeCode: item.sizeCode,
+            productType: item.productType,
+          },
         },
       })
 
-      console.error(`${itemLog} Fulfillment marked FAILED — continuing with next item`)
-      // Avbryt INTE webhooken — fortsätt med nästa item
+      if (!existingAsset) {
+        await prisma.designAsset.create({
+          data: {
+            designId: item.designId,
+            role: 'PRINT',
+            sizeCode: item.sizeCode,
+            productType: item.productType,
+            url: item.design.imageUrl,
+            mimeType: 'image/png',
+          },
+        })
+        console.log(`${itemLog} Placeholder PRINT asset created (awaiting admin upscale)`)
+      }
+    } else {
+      // Standard sizes (4×): safe for webhook (~20-30s)
+      try {
+        console.log(`${itemLog} Starting print asset generation...`)
+
+        const result = await generatePrintAsset({
+          designId: item.designId,
+          imageUrl: item.design.imageUrl,
+          sizeCode: item.sizeCode,
+          productType: item.productType,
+          targetDpi: 150,
+        })
+
+        if (result.success) {
+          console.log(`${itemLog} Print asset ready: ${result.assetId} (${result.durationMs}ms)`)
+        } else {
+          throw new Error(result.error || 'generatePrintAsset returned success=false')
+        }
+      } catch (err) {
+        // ── Fail-safe: markera fulfillment FAILED, logga, fortsätt ──
+        console.error(`${itemLog} UPSCALE FAILED:`, err)
+
+        await prisma.fulfillment.update({
+          where: { id: fulfillment.id },
+          data: {
+            status: 'FAILED',
+            internalNote: `Upscale failed: ${err instanceof Error ? err.message : String(err)}`,
+          },
+        })
+
+        console.error(`${itemLog} Fulfillment marked FAILED — continuing with next item`)
+        // Avbryt INTE webhooken — fortsätt med nästa item
+      }
     }
   }
 

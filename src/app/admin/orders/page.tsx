@@ -8,7 +8,16 @@ interface PrintAsset {
   role: string
   sizeCode: string | null
   productType: string | null
+  widthPx: number | null
+  heightPx: number | null
   dpi: number | null
+  fileSize: number | null
+  mimeType: string | null
+  sourceWidthPx: number | null
+  sourceHeightPx: number | null
+  upscaleFactor: number | null
+  upscaleProvider: string | null
+  createdAt: string
 }
 
 interface FulfillmentData {
@@ -105,6 +114,7 @@ export default function AdminOrdersPage() {
     trackingNumber: string
     trackingUrl: string
   } | null>(null)
+  const [generateLoading, setGenerateLoading] = useState<string | null>(null)
 
   const fetchOrders = useCallback(async () => {
     try {
@@ -119,6 +129,28 @@ export default function AdminOrdersPage() {
   }, [])
 
   useEffect(() => { fetchOrders() }, [fetchOrders])
+
+  const handleGeneratePrint = async (orderItemId: string, fulfillmentId?: string) => {
+    setGenerateLoading(orderItemId)
+    try {
+      const res = await fetch('/api/admin/orders', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'GENERATE_PRINT', orderItemId, fulfillmentId }),
+      })
+      const data = await res.json()
+      if (data.success) {
+        await fetchOrders()
+      } else {
+        alert(`Fel: ${data.error || 'Okänt fel'}`)
+      }
+    } catch (err) {
+      console.error('Generate print failed:', err)
+      alert('Kunde inte generera tryckfil.')
+    } finally {
+      setGenerateLoading(null)
+    }
+  }
 
   const handleAction = async (action: string, fulfillmentId: string, extra?: Record<string, string>) => {
     setActionLoading(fulfillmentId)
@@ -236,16 +268,46 @@ export default function AdminOrdersPage() {
                             </div>
 
                             {/* Print asset status */}
-                            <div className="mt-2 flex items-center gap-2">
-                              <span className="text-xs text-gray-400">Tryckfil:</span>
-                              {item.printAsset ? (
-                                <span className="text-xs px-1.5 py-0.5 bg-green-50 text-green-700 rounded">
-                                  ✓ {item.printAsset.dpi ? `${item.printAsset.dpi} DPI` : 'Placeholder'}
-                                </span>
+                            <div className="mt-2">
+                              <div className="flex items-center gap-2 mb-1">
+                                <span className="text-xs text-gray-400">Tryckfil:</span>
+                                {item.printAsset && item.printAsset.upscaleFactor ? (
+                                  <span className="text-xs px-1.5 py-0.5 bg-green-50 text-green-700 rounded">
+                                    ✓ Klar
+                                  </span>
+                                ) : item.printAsset ? (
+                                  <span className="text-xs px-1.5 py-0.5 bg-amber-50 text-amber-700 rounded">
+                                    ⏳ Placeholder
+                                  </span>
+                                ) : (
+                                  <span className="text-xs px-1.5 py-0.5 bg-red-50 text-red-600 rounded">
+                                    ✗ Saknas
+                                  </span>
+                                )}
+                              </div>
+
+                              {/* Detaljerad print-info */}
+                              {item.printAsset && item.printAsset.upscaleFactor ? (
+                                <div className="grid grid-cols-3 sm:grid-cols-6 gap-1 text-xs bg-green-50/50 rounded p-1.5">
+                                  <div><span className="text-gray-400">Factor:</span> <span className="font-medium">{item.printAsset.upscaleFactor}×</span></div>
+                                  <div><span className="text-gray-400">Px:</span> <span className="font-mono">{item.printAsset.widthPx}×{item.printAsset.heightPx}</span></div>
+                                  <div><span className="text-gray-400">DPI:</span> <span className="font-medium">{item.printAsset.dpi}</span></div>
+                                  <div><span className="text-gray-400">Storlek:</span> {item.printAsset.fileSize ? `${(item.printAsset.fileSize / 1024 / 1024).toFixed(1)} MB` : '—'}</div>
+                                  <div><span className="text-gray-400">Källa:</span> <span className="font-mono">{item.printAsset.sourceWidthPx}×{item.printAsset.sourceHeightPx}</span></div>
+                                  <div><span className="text-gray-400">Skapad:</span> {formatDate(item.printAsset.createdAt)}</div>
+                                </div>
                               ) : (
-                                <span className="text-xs px-1.5 py-0.5 bg-red-50 text-red-600 rounded">
-                                  ✗ Saknas
-                                </span>
+                                <button
+                                  onClick={() => handleGeneratePrint(item.id, item.fulfillment?.id)}
+                                  disabled={generateLoading === item.id}
+                                  className="mt-1 px-3 py-1.5 text-xs bg-orange-500 text-white rounded hover:bg-orange-600 disabled:opacity-50 transition-colors flex items-center gap-1"
+                                >
+                                  {generateLoading === item.id ? (
+                                    <><span className="animate-spin">⏳</span> Genererar tryckfil…</>
+                                  ) : (
+                                    <>🖨️ Generera tryckfil</>
+                                  )}
+                                </button>
                               )}
                             </div>
 

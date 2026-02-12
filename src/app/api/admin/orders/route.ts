@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
+import { generatePrintAsset } from '@/server/services/print/generatePrintAsset'
 
 export async function GET() {
   try {
@@ -22,24 +23,41 @@ export async function GET() {
       },
     })
 
-    // Hämta DesignAssets PRINT för alla designs i ordrarna
+    // Hämta DesignAssets PRINT för alla designs i ordrarna (full metadata)
     const designIds = [...new Set(orders.flatMap(o => o.items.map(i => i.designId)))]
     const printAssets = await prisma.designAsset.findMany({
       where: { designId: { in: designIds }, role: 'PRINT' },
+      select: {
+        id: true,
+        url: true,
+        role: true,
+        sizeCode: true,
+        productType: true,
+        widthPx: true,
+        heightPx: true,
+        dpi: true,
+        fileSize: true,
+        mimeType: true,
+        sourceWidthPx: true,
+        sourceHeightPx: true,
+        upscaleFactor: true,
+        upscaleProvider: true,
+        createdAt: true,
+        designId: true,
+      },
     })
 
-    const assetMap = new Map<string, typeof printAssets>()
+    const assetMap = new Map<string, (typeof printAssets)[number]>()
     for (const asset of printAssets) {
       const key = `${asset.designId}:${asset.sizeCode}:${asset.productType}`
-      if (!assetMap.has(key)) assetMap.set(key, [])
-      assetMap.get(key)!.push(asset)
+      if (!assetMap.has(key)) assetMap.set(key, asset)
     }
 
     const enriched = orders.map(order => ({
       ...order,
       items: order.items.map(item => ({
         ...item,
-        printAsset: assetMap.get(`${item.designId}:${item.sizeCode}:${item.productType}`)?.[0] ?? null,
+        printAsset: assetMap.get(`${item.designId}:${item.sizeCode}:${item.productType}`) ?? null,
       })),
     }))
 
@@ -133,6 +151,55 @@ export async function PATCH(request: NextRequest) {
       }
 
       return NextResponse.json({ success: true, fulfillment })
+    }
+
+    if (action === 'GENERATE_PRINT') {
+      // Admin-triggered print asset generation (for premium sizes or failed items)
+      const { orderItemId } = body
+
+      if (!orderItemId) {
+        return NextResponse.json({ error: 'orderItemId krävs för GENERATE_PRINT.' }, { status: 400 })
+      }
+
+      const item = await prisma.orderItem.findUnique({
+        where: { id: orderItemId },
+        include: { design: { select: { imageUrl: true } } },
+      })
+
+      if (!item) {
+        return NextResponse.json({ error: 'OrderItem hittades inte.' }, { status: 404 })
+      }
+
+      console.log(`[admin] Triggering print asset generation for OrderItem ${orderItemId}`)
+
+      const result = await generatePrintAsset({
+        designId: item.designId,
+        imageUrl: item.design.imageUrl,
+        sizeCode: item.sizeCode,
+        productType: item.productType,
+        targetDpi: 150,
+      })
+
+      if (result.success) {
+        // Om fulfillment var FAILED, sätt tillbaka till QUEUED
+        if (fulfillmentId) {
+          const f = await prisma.fulfillment.findUnique({ where: { id: fulfillmentId } })
+          if (f && f.status === 'FAILED') {
+            await prisma.fulfillment.update({
+              where: { id: fulfillmentId },
+              data: { status: 'QUEUED', internalNote: null },
+            })
+          }
+        }
+
+        return NextResponse.json({
+          success: true,
+          assetId: result.assetId,
+          durationMs: result.durationMs,
+        })
+      } else {
+        return NextResponse.json({ error: result.error || 'Print generation failed' }, { status: 500 })
+      }
     }
 
     return NextResponse.json({ error: `Okänd action: ${action}` }, { status: 400 })

@@ -10,7 +10,17 @@ const SIZE_UPSCALE_FACTOR: Record<string, number> = {
   '30x40': 4,  // 4096×7168 → ~240 DPI ✅
   'A3': 4,     // 4096×7168 → ~240 DPI ✅
   '50x70': 4,  // 4096×7168 → ~145 DPI ✅ (poster-ok)
-  '70x100': 8, // 8192×14336 → ~290 DPI ✅ (premium)
+  '70x100': 8, // 8192×14336 → ~290 DPI ✅ (premium, 2-pass)
+}
+
+// Premium sizes require 8× (two Replicate passes) — too slow for webhook
+const PREMIUM_SIZES = new Set(['70x100'])
+
+/**
+ * Check if a sizeCode is premium (requires 8× upscale, too slow for webhook).
+ */
+export function isPremiumSize(sizeCode: string): boolean {
+  return PREMIUM_SIZES.has(sizeCode)
 }
 
 export interface GeneratePrintAssetInput {
@@ -25,6 +35,7 @@ export interface GeneratePrintAssetInput {
 export interface GeneratePrintAssetResult {
   success: boolean
   assetId?: string
+  durationMs?: number
   error?: string
 }
 
@@ -32,6 +43,9 @@ export interface GeneratePrintAssetResult {
  * Orchestrator: upscale → Vercel Blob → create DesignAsset.
  * Idempotent: checks if PRINT asset already exists before doing work.
  * Auto-selects 4× or 8× based on sizeCode (70×100 gets 8×).
+ *
+ * ⚠️  Premium sizes (70×100) use 8× (two Replicate passes, ~60-120s).
+ *     These should NOT be called from webhook — use admin trigger instead.
  */
 export async function generatePrintAsset(
   input: GeneratePrintAssetInput,
@@ -39,6 +53,7 @@ export async function generatePrintAsset(
   const { designId, imageUrl, sizeCode, productType } = input
   const upscaleFactor = input.upscaleFactor ?? SIZE_UPSCALE_FACTOR[sizeCode] ?? 4
   const targetDpi = input.targetDpi ?? 150
+  const startTime = Date.now()
 
   const logPrefix = `[generatePrintAsset] design=${designId} size=${sizeCode}`
 
@@ -56,10 +71,14 @@ export async function generatePrintAsset(
 
   if (existing && existing.upscaleFactor) {
     console.log(`${logPrefix} PRINT asset already exists (${existing.id}), skipping`)
-    return { success: true, assetId: existing.id }
+    return { success: true, assetId: existing.id, durationMs: Date.now() - startTime }
   }
 
   console.log(`${logPrefix} Starting upscale pipeline (${upscaleFactor}×, target ${targetDpi} DPI)`)
+
+  if (upscaleFactor >= 8) {
+    console.warn(`${logPrefix} ⚠️  8× upscale (premium) — estimated 60-120s. Not safe for webhook timeout.`)
+  }
 
   // ── Upscale via Replicate ──
   console.log(`${logPrefix} Upscale start`)
@@ -139,6 +158,14 @@ export async function generatePrintAsset(
         },
       })
 
-  console.log(`${logPrefix} Asset created: ${asset.id}`)
-  return { success: true, assetId: asset.id }
+  const durationMs = Date.now() - startTime
+  const durationSec = (durationMs / 1000).toFixed(1)
+
+  console.log(`${logPrefix} Asset created: ${asset.id} (${durationSec}s total)`)
+
+  if (durationMs > 25000) {
+    console.warn(`${logPrefix} ⚠️  Took ${durationSec}s — exceeds Vercel webhook timeout (30s). Consider admin-triggered generation for this size.`)
+  }
+
+  return { success: true, assetId: asset.id, durationMs }
 }
