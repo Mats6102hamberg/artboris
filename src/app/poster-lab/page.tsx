@@ -10,21 +10,6 @@ import { StylePreset } from '@/types/design'
 
 const DEMO_ROOM_IMAGE = '/assets/demo/room-sample.svg'
 
-const SHOWCASE_ITEMS = [
-  { style: 'Nordic', image: '/assets/demo/nordic-1.svg', color: 'from-blue-400 to-cyan-300' },
-  { style: 'Abstract', image: '/assets/demo/abstract-1.svg', color: 'from-purple-500 to-pink-400' },
-  { style: 'Art Deco', image: '/assets/demo/art-deco-1.svg', color: 'from-yellow-500 to-amber-400' },
-  { style: 'Minimal', image: '/assets/demo/minimal-1.svg', color: 'from-gray-400 to-gray-300' },
-  { style: 'Graffiti', image: '/assets/demo/graffiti-1.svg', color: 'from-red-500 to-cyan-400' },
-  { style: 'Botanical', image: '/assets/demo/botanical-1.svg', color: 'from-green-400 to-emerald-300' },
-  { style: 'Surreal', image: '/assets/demo/surreal-1.svg', color: 'from-violet-400 to-rose-300' },
-  { style: 'Retro', image: '/assets/demo/retro-1.svg', color: 'from-orange-400 to-yellow-300' },
-  { style: 'Pastell', image: '/assets/demo/pastel-1.svg', color: 'from-pink-300 to-blue-200' },
-  { style: 'Dark & Moody', image: '/assets/demo/dark-moody-1.svg', color: 'from-gray-700 to-purple-900' },
-  { style: 'Mid-Century', image: '/assets/demo/mid-century-1.svg', color: 'from-orange-400 to-teal-400' },
-  { style: 'Nordic II', image: '/assets/demo/nordic-2.svg', color: 'from-emerald-400 to-gray-300' },
-]
-
 export default function PosterLabPage() {
   const router = useRouter()
   const [mode, setMode] = useState<'landing' | 'create'>('landing')
@@ -35,13 +20,10 @@ export default function PosterLabPage() {
   const [selectedStyle, setSelectedStyle] = useState<StylePreset | null>(null)
   const [userDescription, setUserDescription] = useState('')
   const [isGenerating, setIsGenerating] = useState(false)
-  // Credits hanteras nu via CreditBadge + /api/usage
   const [heroVisible, setHeroVisible] = useState(false)
-  const [statsVisible, setStatsVisible] = useState(false)
 
   useEffect(() => {
     setTimeout(() => setHeroVisible(true), 100)
-    setTimeout(() => setStatsVisible(true), 600)
   }, [])
 
   const startCreate = (useDemo = false) => {
@@ -110,251 +92,257 @@ export default function PosterLabPage() {
   // ─── LANDING PAGE ───────────────────────────────────────
   if (mode === 'landing') {
     return (
-      <div className="min-h-screen bg-[#0a0a1a] text-white overflow-hidden">
-        {/* Animated background */}
-        <div className="fixed inset-0 overflow-hidden pointer-events-none">
-          <div className="absolute -top-40 -right-40 w-96 h-96 bg-purple-600/20 rounded-full blur-3xl animate-pulse" />
-          <div className="absolute top-1/3 -left-40 w-80 h-80 bg-blue-600/15 rounded-full blur-3xl animate-pulse" style={{ animationDelay: '1s' }} />
-          <div className="absolute bottom-20 right-1/4 w-72 h-72 bg-pink-600/10 rounded-full blur-3xl animate-pulse" style={{ animationDelay: '2s' }} />
-        </div>
-
+      <div className="min-h-screen bg-white text-gray-900">
         {/* Nav */}
-        <nav className="relative z-10 max-w-7xl mx-auto px-6 py-5 flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <a href="/" className="text-white/40 hover:text-white/70 text-sm transition-colors">&larr; Art Scanner</a>
-            <div className="w-px h-5 bg-white/20" />
-            <span className="text-xl font-bold bg-gradient-to-r from-purple-400 to-blue-400 bg-clip-text text-transparent">
-              Poster Lab
-            </span>
-          </div>
-          <div className="flex items-center gap-5">
-            <a href="/poster-lab/gallery" className="text-white/60 hover:text-white text-sm transition-colors">Galleri</a>
+        <nav className="max-w-7xl mx-auto px-6 py-5 flex items-center justify-between border-b border-gray-100">
+          <span className="text-xl font-semibold tracking-widest uppercase text-gray-900">
+            Artboris
+          </span>
+          <div className="flex items-center gap-6">
+            <a href="/poster-lab/gallery" className="text-sm text-gray-500 hover:text-gray-900 transition-colors">Kollektion</a>
             <CreditBadge />
           </div>
         </nav>
 
         {/* Hero */}
-        <section className="relative z-10 max-w-6xl mx-auto px-6 pt-16 pb-20">
-          <div className={`transition-all duration-1000 ${heroVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'}`}>
-            <div className="text-center max-w-3xl mx-auto">
-              <div className="inline-flex items-center gap-2 px-4 py-1.5 bg-white/10 rounded-full text-sm text-purple-300 mb-6 backdrop-blur-sm border border-white/10">
-                <span className="w-2 h-2 bg-green-400 rounded-full animate-pulse" />
-                AI-driven konstgenerering
+        <section className="relative overflow-hidden">
+          <div className="max-w-7xl mx-auto px-6 pt-16 pb-20 md:pt-24 md:pb-28">
+            <div className={`grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-16 items-center transition-all duration-1000 ${heroVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'}`}>
+              {/* Left: Copy */}
+              <div className="max-w-lg">
+                <p className="text-sm font-medium text-gray-400 tracking-wide uppercase mb-4">
+                  Personlig konst, tryckt i Stockholm
+                </p>
+                <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold leading-[1.1] tracking-tight text-gray-900">
+                  Se din n&auml;sta tavla p&aring; din v&auml;gg
+                  <span className="text-gray-300">.</span>
+                </h1>
+                <p className="text-lg text-gray-500 mt-6 leading-relaxed">
+                  V&auml;lj bland v&aring;ra motiv eller skapa ett helt eget. Se hur det ser ut hemma hos dig innan du best&auml;ller &mdash; enkelt, tryggt och utan risk.
+                </p>
+                <div className="flex flex-col sm:flex-row items-start gap-4 mt-10">
+                  <button
+                    onClick={() => startCreate(false)}
+                    className="group px-8 py-4 bg-gray-900 text-white rounded-xl font-medium text-base hover:bg-gray-800 transition-all duration-200 shadow-lg shadow-gray-900/10"
+                  >
+                    <span className="flex items-center gap-2">
+                      Se den p&aring; min v&auml;gg
+                      <svg className="w-4 h-4 group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" />
+                      </svg>
+                    </span>
+                  </button>
+                  <button
+                    onClick={() => {
+                      const el = document.getElementById('featured-posters')
+                      el?.scrollIntoView({ behavior: 'smooth' })
+                    }}
+                    className="px-8 py-4 text-gray-600 font-medium hover:text-gray-900 transition-colors"
+                  >
+                    Utforska kollektionen
+                  </button>
+                </div>
               </div>
-              <h1 className="text-5xl md:text-7xl font-black leading-tight tracking-tight">
-                Skapa unik konst
-                <br />
-                <span className="bg-gradient-to-r from-purple-400 via-pink-400 to-blue-400 bg-clip-text text-transparent">
-                  för din vägg
-                </span>
-              </h1>
-              <p className="text-lg md:text-xl text-white/60 mt-6 max-w-xl mx-auto leading-relaxed">
-                Ladda upp ditt rum, välj stil, och låt AI skapa 4 unika konstverk.
-                Se dem direkt på din vägg innan du beställer.
-              </p>
-              <div className="flex flex-col sm:flex-row items-center justify-center gap-4 mt-10">
-                <button
-                  onClick={() => startCreate(false)}
-                  className="group px-8 py-4 bg-gradient-to-r from-purple-600 to-blue-600 rounded-2xl font-semibold text-lg shadow-2xl shadow-purple-600/30 hover:shadow-purple-600/50 hover:scale-105 transition-all duration-300"
-                >
-                  <span className="flex items-center gap-2">
-                    Skapa din poster
-                    <svg className="w-5 h-5 group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" />
-                    </svg>
-                  </span>
-                </button>
-                <button
-                  onClick={() => startCreate(true)}
-                  className="px-8 py-4 bg-white/10 backdrop-blur-sm border border-white/20 rounded-2xl font-medium text-white/80 hover:bg-white/20 hover:text-white transition-all duration-300"
-                >
-                  Prova med demo-rum
-                </button>
-              </div>
-            </div>
-          </div>
 
-          {/* Floating showcase */}
-          <div className={`mt-16 transition-all duration-1000 delay-300 ${heroVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-12'}`}>
-            <div className="relative">
-              {/* Room mockup with poster */}
-              <div className="relative max-w-2xl mx-auto">
-                <div className="relative bg-gradient-to-b from-white/5 to-white/0 rounded-3xl p-1 border border-white/10">
-                  <div className="relative rounded-2xl overflow-hidden bg-[#1a1a2e]">
-                    <img src={DEMO_ROOM_IMAGE} alt="Demo rum" className="w-full opacity-60" />
-                    {/* Floating poster on wall */}
-                    <div className="absolute top-[18%] left-[35%] w-[30%] animate-float">
-                      <div className="bg-white p-1.5 rounded shadow-2xl shadow-black/50 transform rotate-0">
-                        <img src="/assets/demo/nordic-1.svg" alt="Poster" className="w-full rounded-sm" />
+              {/* Right: Hero image — room with poster */}
+              <div className="relative">
+                <div className="relative rounded-2xl overflow-hidden shadow-2xl shadow-gray-200/60">
+                  {/* Scandinavian room photo placeholder */}
+                  <div className="aspect-[4/3] bg-[#f5f0eb] relative">
+                    <img
+                      src="https://images.unsplash.com/photo-1586023492125-27b2c045efd7?w=800&q=80&auto=format"
+                      alt="Skandinaviskt vardagsrum med tavla"
+                      className="w-full h-full object-cover"
+                    />
+                    {/* Poster overlay on wall */}
+                    <div className="absolute top-[12%] left-[32%] w-[22%]">
+                      <div className="bg-white p-1 rounded shadow-xl">
+                        <div className="aspect-[2/3] bg-gray-100 rounded-sm overflow-hidden">
+                          <img src="/assets/demo/botanical-1.svg" alt="Poster" className="w-full h-full object-cover" />
+                        </div>
                       </div>
                     </div>
                   </div>
                 </div>
-                {/* Glow effect */}
-                <div className="absolute -inset-4 bg-gradient-to-r from-purple-600/20 via-transparent to-blue-600/20 rounded-3xl blur-2xl -z-10" />
+                {/* Subtle accent */}
+                <div className="absolute -bottom-4 -right-4 w-32 h-32 bg-amber-50 rounded-full -z-10" />
+                <div className="absolute -top-4 -left-4 w-24 h-24 bg-gray-50 rounded-full -z-10" />
               </div>
             </div>
           </div>
         </section>
 
-        {/* How it works */}
-        <section className="relative z-10 max-w-5xl mx-auto px-6 py-20">
-          <h2 className="text-3xl md:text-4xl font-bold text-center mb-16">
-            Tre steg till din
-            <span className="bg-gradient-to-r from-purple-400 to-blue-400 bg-clip-text text-transparent"> drömkonst</span>
-          </h2>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            {[
-              {
-                num: '01',
-                title: 'Ladda upp ditt rum',
-                desc: 'Ta ett foto av väggen där postern ska hänga och markera ytan.',
-                icon: (
-                  <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" />
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M15 13a3 3 0 11-6 0 3 3 0 016 0z" />
-                  </svg>
-                ),
-                gradient: 'from-purple-500/20 to-purple-600/5',
-                border: 'border-purple-500/30',
-              },
-              {
-                num: '02',
-                title: 'Välj stil & generera',
-                desc: '12 stilar att välja bland. AI skapar 4 unika varianter åt dig.',
-                icon: (
-                  <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" />
-                  </svg>
-                ),
-                gradient: 'from-blue-500/20 to-blue-600/5',
-                border: 'border-blue-500/30',
-              },
-              {
-                num: '03',
-                title: 'Se & beställ',
-                desc: 'Se postern på din vägg i realtid. Välj ram, storlek och beställ tryck.',
-                icon: (
-                  <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                  </svg>
-                ),
-                gradient: 'from-emerald-500/20 to-emerald-600/5',
-                border: 'border-emerald-500/30',
-              },
-            ].map((item, i) => (
-              <div
-                key={item.num}
-                className={`group relative bg-gradient-to-b ${item.gradient} rounded-2xl p-6 border ${item.border} hover:scale-105 transition-all duration-500`}
-                style={{ animationDelay: `${i * 200}ms` }}
-              >
-                <div className="text-5xl font-black text-white/5 absolute top-4 right-5">{item.num}</div>
-                <div className="w-14 h-14 rounded-xl bg-white/10 flex items-center justify-center text-white/80 mb-4">
-                  {item.icon}
-                </div>
-                <h3 className="text-lg font-semibold mb-2">{item.title}</h3>
-                <p className="text-white/50 text-sm leading-relaxed">{item.desc}</p>
-              </div>
-            ))}
-          </div>
-        </section>
+        {/* Featured Posters */}
+        <section id="featured-posters" className="bg-gray-50 py-20 md:py-28">
+          <div className="max-w-7xl mx-auto px-6">
+            <div className="text-center mb-14">
+              <h2 className="text-3xl md:text-4xl font-bold text-gray-900">Utvalda posters</h2>
+              <p className="text-gray-500 mt-3 max-w-md mx-auto">
+                Handplockade motiv i premium fine art-kvalitet. Alla kan visas p&aring; din v&auml;gg innan du k&ouml;per.
+              </p>
+            </div>
 
-        {/* Style showcase */}
-        <section className="relative z-10 py-20 overflow-hidden">
-          <h2 className="text-3xl md:text-4xl font-bold text-center mb-4">
-            12 unika stilar
-          </h2>
-          <p className="text-white/50 text-center mb-12 max-w-md mx-auto">
-            Från nordisk minimalism till retro synthwave — hitta din stil
-          </p>
-
-          {/* Scrolling gallery */}
-          <div className="relative">
-            <div className="flex gap-5 animate-scroll px-6">
-              {[...SHOWCASE_ITEMS, ...SHOWCASE_ITEMS].map((item, i) => (
-                <div
-                  key={`${item.style}-${i}`}
-                  className="flex-shrink-0 w-56 group cursor-pointer"
-                  onClick={() => startCreate(true)}
-                >
-                  <div className="relative rounded-2xl overflow-hidden border border-white/10 hover:border-white/30 transition-all duration-300 hover:scale-105">
-                    <div className={`absolute inset-0 bg-gradient-to-b ${item.color} opacity-10 group-hover:opacity-20 transition-opacity`} />
-                    <img src={item.image} alt={item.style} className="w-full aspect-[2/3] object-cover" />
-                    <div className="absolute bottom-0 inset-x-0 bg-gradient-to-t from-black/80 to-transparent p-4">
-                      <span className="text-sm font-medium">{item.style}</span>
+            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6 md:gap-8">
+              {[
+                { title: 'Nordisk Skog', image: '/assets/demo/nordic-1.svg', price: 349, sizes: '30x40 / 50x70' },
+                { title: 'Abstrakt Harmoni', image: '/assets/demo/abstract-1.svg', price: 349, sizes: '30x40 / 50x70' },
+                { title: 'Botanisk Dr&ouml;m', image: '/assets/demo/botanical-1.svg', price: 299, sizes: '30x40 / 50x70' },
+                { title: 'Art Deco Guld', image: '/assets/demo/art-deco-1.svg', price: 399, sizes: '30x40 / 50x70' },
+                { title: 'Minimalistisk Linje', image: '/assets/demo/minimal-1.svg', price: 299, sizes: '30x40 / 50x70' },
+                { title: 'Pastelldr&ouml;m', image: '/assets/demo/pastel-1.svg', price: 349, sizes: '30x40 / 50x70' },
+                { title: 'Retro Solnedg&aring;ng', image: '/assets/demo/retro-1.svg', price: 349, sizes: '30x40 / 50x70' },
+                { title: 'M&ouml;rk Elegans', image: '/assets/demo/dark-moody-1.svg', price: 399, sizes: '30x40 / 50x70' },
+              ].map((poster, i) => (
+                <div key={i} className="group cursor-pointer" onClick={() => startCreate(true)}>
+                  <div className="relative rounded-xl overflow-hidden bg-white shadow-sm group-hover:shadow-lg transition-shadow duration-300">
+                    <div className="aspect-[2/3] bg-gray-100">
+                      <img src={poster.image} alt={poster.title} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
+                    </div>
+                  </div>
+                  <div className="mt-3">
+                    <h3 className="text-sm font-medium text-gray-900">{poster.title}</h3>
+                    <p className="text-xs text-gray-400 mt-0.5">{poster.sizes}</p>
+                    <div className="flex items-center justify-between mt-2">
+                      <span className="text-sm font-semibold text-gray-900">fr&aring;n {poster.price} kr</span>
+                      <span className="text-xs text-gray-400 group-hover:text-gray-600 transition-colors">
+                        Visa p&aring; min v&auml;gg &rarr;
+                      </span>
                     </div>
                   </div>
                 </div>
               ))}
             </div>
-            {/* Fade edges */}
-            <div className="absolute inset-y-0 left-0 w-20 bg-gradient-to-r from-[#0a0a1a] to-transparent pointer-events-none" />
-            <div className="absolute inset-y-0 right-0 w-20 bg-gradient-to-l from-[#0a0a1a] to-transparent pointer-events-none" />
+
+            <div className="text-center mt-12">
+              <button
+                onClick={() => startCreate(false)}
+                className="px-8 py-3.5 bg-gray-900 text-white rounded-xl font-medium hover:bg-gray-800 transition-colors shadow-lg shadow-gray-900/10"
+              >
+                Skapa ett eget motiv
+              </button>
+            </div>
           </div>
         </section>
 
-        {/* Stats */}
-        <section className={`relative z-10 max-w-4xl mx-auto px-6 py-16 transition-all duration-1000 ${statsVisible ? 'opacity-100' : 'opacity-0'}`}>
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
-            {[
-              { value: '18', label: 'Konststilar' },
-              { value: '4', label: 'AI-varianter per generering' },
-              { value: '8', label: 'Storlekar' },
-              { value: '6', label: 'Ramalternativ' },
-            ].map(stat => (
-              <div key={stat.label} className="text-center">
-                <div className="text-4xl md:text-5xl font-black bg-gradient-to-r from-purple-400 to-blue-400 bg-clip-text text-transparent">
-                  {stat.value}
+        {/* How it works — rewritten for experience, not tech */}
+        <section className="py-20 md:py-28">
+          <div className="max-w-5xl mx-auto px-6">
+            <div className="text-center mb-16">
+              <h2 className="text-3xl md:text-4xl font-bold text-gray-900">S&aring; enkelt fungerar det</h2>
+              <p className="text-gray-500 mt-3">Fr&aring;n id&eacute; till f&auml;rdig tavla p&aring; v&auml;ggen</p>
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-10 md:gap-12">
+              {[
+                {
+                  num: '1',
+                  title: 'Fotografera din v\u00e4gg',
+                  desc: 'Ta en bild av rummet d\u00e4r tavlan ska h\u00e4nga. Det tar bara n\u00e5gra sekunder.',
+                  icon: (
+                    <svg className="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" />
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M15 13a3 3 0 11-6 0 3 3 0 016 0z" />
+                    </svg>
+                  ),
+                },
+                {
+                  num: '2',
+                  title: 'V\u00e4lj eller skapa motiv',
+                  desc: 'Bläddra bland v\u00e5ra motiv eller beskriv din drömbild. Du f\u00e5r flera f\u00f6rslag att v\u00e4lja bland.',
+                  icon: (
+                    <svg className="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                    </svg>
+                  ),
+                },
+                {
+                  num: '3',
+                  title: 'Se den hemma & best\u00e4ll',
+                  desc: 'Se exakt hur tavlan ser ut p\u00e5 din v\u00e4gg. N\u00f6jd? Best\u00e4ll med ett klick.',
+                  icon: (
+                    <svg className="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M5 13l4 4L19 7" />
+                    </svg>
+                  ),
+                },
+              ].map((item) => (
+                <div key={item.num} className="text-center">
+                  <div className="w-14 h-14 rounded-2xl bg-gray-50 border border-gray-100 flex items-center justify-center text-gray-400 mx-auto mb-5">
+                    {item.icon}
+                  </div>
+                  <div className="text-xs font-semibold text-gray-300 uppercase tracking-widest mb-2">Steg {item.num}</div>
+                  <h3 className="text-lg font-semibold text-gray-900 mb-2">{item.title}</h3>
+                  <p className="text-sm text-gray-500 leading-relaxed">{item.desc}</p>
                 </div>
-                <div className="text-white/40 text-sm mt-1">{stat.label}</div>
-              </div>
-            ))}
+              ))}
+            </div>
+          </div>
+        </section>
+
+        {/* Trust section */}
+        <section className="bg-gray-50 py-16">
+          <div className="max-w-4xl mx-auto px-6">
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-8 md:gap-12">
+              {[
+                { icon: '\u2713', text: 'Trycks i Stockholm' },
+                { icon: '\u2713', text: 'Fine art-kvalitet' },
+                { icon: '\u2713', text: 'Snabb leverans' },
+                { icon: '\u2713', text: 'Enkel & s\u00e4ker betalning' },
+              ].map((item, i) => (
+                <div key={i} className="flex items-center gap-3">
+                  <div className="w-8 h-8 rounded-full bg-green-50 border border-green-100 flex items-center justify-center flex-shrink-0">
+                    <span className="text-green-600 text-sm font-bold">{item.icon}</span>
+                  </div>
+                  <span className="text-sm font-medium text-gray-700">{item.text}</span>
+                </div>
+              ))}
+            </div>
           </div>
         </section>
 
         {/* Final CTA */}
-        <section className="relative z-10 max-w-3xl mx-auto px-6 py-20 text-center">
-          <h2 className="text-3xl md:text-4xl font-bold mb-4">
-            Redo att skapa?
-          </h2>
-          <p className="text-white/50 mb-8">Det tar mindre än en minut att få ditt första förslag</p>
-          <button
-            onClick={() => startCreate(true)}
-            className="group px-10 py-5 bg-gradient-to-r from-purple-600 via-pink-600 to-blue-600 rounded-2xl font-semibold text-xl shadow-2xl shadow-purple-600/30 hover:shadow-purple-600/50 hover:scale-105 transition-all duration-300 animate-glow"
-          >
-            <span className="flex items-center gap-3">
-              Starta Poster Lab
-              <svg className="w-6 h-6 group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" />
-              </svg>
-            </span>
-          </button>
+        <section className="py-20 md:py-28">
+          <div className="max-w-2xl mx-auto px-6 text-center">
+            <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">
+              Hitta din n&auml;sta tavla
+            </h2>
+            <p className="text-gray-500 mb-10 text-lg">
+              Se hur den ser ut hemma hos dig &mdash; helt gratis, utan f&ouml;rpliktelser.
+            </p>
+            <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
+              <button
+                onClick={() => startCreate(false)}
+                className="group px-10 py-4 bg-gray-900 text-white rounded-xl font-medium text-lg hover:bg-gray-800 transition-all shadow-lg shadow-gray-900/10"
+              >
+                <span className="flex items-center gap-2">
+                  Kom ig&aring;ng
+                  <svg className="w-5 h-5 group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" />
+                  </svg>
+                </span>
+              </button>
+              <button
+                onClick={() => startCreate(true)}
+                className="px-8 py-4 border border-gray-200 text-gray-600 rounded-xl font-medium hover:border-gray-300 hover:text-gray-900 transition-all"
+              >
+                Prova med demo-rum
+              </button>
+            </div>
+          </div>
         </section>
 
-        {/* CSS animations */}
-        <style jsx>{`
-          @keyframes float {
-            0%, 100% { transform: translateY(0px); }
-            50% { transform: translateY(-10px); }
-          }
-          .animate-float {
-            animation: float 4s ease-in-out infinite;
-          }
-          @keyframes scroll {
-            0% { transform: translateX(0); }
-            100% { transform: translateX(-50%); }
-          }
-          .animate-scroll {
-            animation: scroll 30s linear infinite;
-          }
-          @keyframes glow {
-            0%, 100% { box-shadow: 0 0 20px rgba(147, 51, 234, 0.3); }
-            50% { box-shadow: 0 0 40px rgba(147, 51, 234, 0.5), 0 0 60px rgba(59, 130, 246, 0.2); }
-          }
-          .animate-glow {
-            animation: glow 3s ease-in-out infinite;
-          }
-        `}</style>
+        {/* Footer */}
+        <footer className="border-t border-gray-100 py-8">
+          <div className="max-w-7xl mx-auto px-6 flex flex-col sm:flex-row items-center justify-between gap-4">
+            <span className="text-xs text-gray-400">&copy; {new Date().getFullYear()} Artboris. Alla r&auml;ttigheter f&ouml;rbeh&aring;llna.</span>
+            <div className="flex items-center gap-6 text-xs text-gray-400">
+              <span>Tryckt i Stockholm</span>
+              <span>&middot;</span>
+              <span>Fine art-papper</span>
+              <span>&middot;</span>
+              <span>S&auml;ker betalning via Stripe</span>
+            </div>
+          </div>
+        </footer>
       </div>
     )
   }
