@@ -2,9 +2,27 @@ import { NextRequest, NextResponse } from 'next/server'
 import { generatePreview } from '@/server/services/ai/generatePreview'
 import { StylePreset, DesignControls } from '@/types/design'
 import { getStyleDefinition } from '@/lib/prompts/styles'
+import { getOrCreateAnonId } from '@/lib/anonId'
+import { getUsage, incrementGeneration } from '@/server/services/usage/dailyUsage'
 
 export async function POST(request: NextRequest) {
   try {
+    const anonId = await getOrCreateAnonId()
+
+    // Check daily quota
+    const usage = await getUsage(anonId)
+    if (!usage.canGenerate) {
+      return NextResponse.json(
+        {
+          error: `Du har använt alla ${usage.generationsLimit} gratis genereringar idag. Kom tillbaka imorgon!`,
+          quotaExceeded: true,
+          remaining: 0,
+          limit: usage.generationsLimit,
+        },
+        { status: 429 }
+      )
+    }
+
     const body = await request.json()
     const { style, controls, userDescription } = body as {
       style: StylePreset
@@ -49,6 +67,9 @@ export async function POST(request: NextRequest) {
       )
     }
 
+    // Increment usage after successful generation
+    const { remaining } = await incrementGeneration(anonId)
+
     return NextResponse.json({
       success: true,
       designId: `design_${Date.now()}`,
@@ -56,6 +77,7 @@ export async function POST(request: NextRequest) {
       prompt: result.prompt,
       style,
       controls: defaultControls,
+      generationsRemaining: remaining,
     })
   } catch (error) {
     console.error('[designs/generate] Error:', error)

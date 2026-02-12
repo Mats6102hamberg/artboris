@@ -35,7 +35,7 @@ export default function PosterLabPage() {
   const [selectedStyle, setSelectedStyle] = useState<StylePreset | null>(null)
   const [userDescription, setUserDescription] = useState('')
   const [isGenerating, setIsGenerating] = useState(false)
-  const [credits] = useState(30)
+  // Credits hanteras nu via CreditBadge + /api/usage
   const [heroVisible, setHeroVisible] = useState(false)
   const [statsVisible, setStatsVisible] = useState(false)
 
@@ -123,7 +123,7 @@ export default function PosterLabPage() {
           </div>
           <div className="flex items-center gap-5">
             <a href="/poster-lab/gallery" className="text-white/60 hover:text-white text-sm transition-colors">Galleri</a>
-            <CreditBadge balance={credits} />
+            <CreditBadge />
           </div>
         </nav>
 
@@ -367,7 +367,7 @@ export default function PosterLabPage() {
           </div>
           <div className="flex items-center gap-4">
             <a href="/poster-lab/gallery" className="text-sm text-gray-600 hover:text-gray-900">Galleri</a>
-            <CreditBadge balance={credits} />
+            <CreditBadge />
           </div>
         </div>
       </header>
@@ -506,7 +506,7 @@ export default function PosterLabPage() {
                       Genererar 4 förslag...
                     </span>
                   ) : (
-                    'Generera 4 förslag (2 credits)'
+                    'Generera 4 förslag'
                   )}
                 </button>
               </div>

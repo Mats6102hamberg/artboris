@@ -212,7 +212,7 @@ export default function CheckoutPage() {
             </button>
             <h1 className="text-xl font-bold text-gray-900">Kassa</h1>
           </div>
-          <CreditBadge balance={credits} />
+          <CreditBadge />
         </div>
       </header>
 

@@ -33,7 +33,7 @@ export default function EditorPage() {
   const [positionY, setPositionY] = useState(0.4)
   const [scale, setScale] = useState(1.0)
   const [wantPublish, setWantPublish] = useState(false)
-  const [credits] = useState(28)
+
 
   const pricing = calculatePrintPrice(sizeId, frameId)
 
@@ -65,7 +65,7 @@ export default function EditorPage() {
             </button>
             <h1 className="text-lg sm:text-xl font-bold text-gray-900">Redigera & Placera</h1>
           </div>
-          <CreditBadge balance={credits} />
+          <CreditBadge />
         </div>
       </header>
 

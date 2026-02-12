@@ -25,7 +25,7 @@ export default function GalleryPage() {
   const [loading, setLoading] = useState(true)
   const [filterStyle, setFilterStyle] = useState<string>('')
   const [sortBy, setSortBy] = useState<'recent' | 'popular'>('recent')
-  const [credits] = useState(30)
+  // Credits hanteras via CreditBadge + /api/usage
   const [likedIds, setLikedIds] = useState<Set<string>>(new Set())
 
   const styles = getAllStyles()
@@ -137,7 +137,7 @@ export default function GalleryPage() {
             >
               Skapa egen
             </button>
-            <CreditBadge balance={credits} />
+            <CreditBadge />
           </div>
         </div>
       </header>

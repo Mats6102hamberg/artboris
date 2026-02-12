@@ -30,7 +30,7 @@ export default function ResultPage() {
   const [variants, setVariants] = useState<Variant[]>([])
   const [selectedIndex, setSelectedIndex] = useState<number | null>(null)
   const [isRefining, setIsRefining] = useState(false)
-  const [credits] = useState(28)
+
 
   const styleDef = STYLE_DEFINITIONS[style]
 
@@ -112,7 +112,7 @@ export default function ResultPage() {
             </button>
             <h1 className="text-xl font-bold text-gray-900">Välj favorit</h1>
           </div>
-          <CreditBadge balance={credits} />
+          <CreditBadge />
         </div>
       </header>
 
