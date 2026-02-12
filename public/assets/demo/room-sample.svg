@@ -1,0 +1,39 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="800" viewBox="0 0 1200 800">
+  <!-- Floor -->
+  <polygon points="0,500 1200,500 1200,800 0,800" fill="#c4a882"/>
+  <polygon points="0,500 400,400 800,400 1200,500" fill="#d4b892"/>
+  <!-- Back wall -->
+  <rect x="200" y="100" width="800" height="400" fill="#e8e0d4"/>
+  <!-- Left wall -->
+  <polygon points="0,50 200,100 200,500 0,600" fill="#ddd5c9"/>
+  <!-- Right wall -->
+  <polygon points="1200,50 1000,100 1000,500 1200,600" fill="#d5cdc1"/>
+  <!-- Baseboard -->
+  <rect x="200" y="480" width="800" height="20" fill="#b8a88c" rx="2"/>
+  <!-- Sofa -->
+  <rect x="350" y="420" width="500" height="80" rx="15" fill="#6b7b8d"/>
+  <rect x="360" y="380" width="480" height="50" rx="12" fill="#7b8b9d"/>
+  <rect x="350" y="410" width="60" height="90" rx="10" fill="#5b6b7d"/>
+  <rect x="790" y="410" width="60" height="90" rx="10" fill="#5b6b7d"/>
+  <!-- Cushions -->
+  <rect x="400" y="395" width="70" height="40" rx="8" fill="#8fa4b8"/>
+  <rect x="520" y="390" width="65" height="45" rx="8" fill="#a0b4c4"/>
+  <rect x="640" y="395" width="70" height="40" rx="8" fill="#8fa4b8"/>
+  <!-- Side table -->
+  <rect x="900" y="440" width="80" height="60" rx="5" fill="#8b7355"/>
+  <rect x="910" y="430" width="60" height="15" rx="3" fill="#9b8365"/>
+  <!-- Plant -->
+  <circle cx="940" cy="410" r="25" fill="#5a8a5a"/>
+  <circle cx="925" cy="400" r="18" fill="#4a7a4a"/>
+  <circle cx="955" cy="395" r="20" fill="#6a9a6a"/>
+  <rect x="935" y="425" width="10" height="15" rx="2" fill="#c4a070"/>
+  <!-- Lamp -->
+  <rect x="260" y="350" width="8" height="150" fill="#333"/>
+  <ellipse cx="264" cy="345" rx="35" ry="20" fill="#f5e6c8"/>
+  <circle cx="264" cy="345" r="8" fill="#fff8e0" opacity="0.6"/>
+  <!-- Rug -->
+  <ellipse cx="600" cy="650" rx="280" ry="80" fill="#b8a090" opacity="0.5"/>
+  <ellipse cx="600" cy="650" rx="250" ry="65" fill="#c8b0a0" opacity="0.4"/>
+  <!-- Window light effect -->
+  <rect x="300" y="150" width="150" height="200" fill="#fff" opacity="0.05" rx="3"/>
+</svg>

@@ -1,0 +1,19 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="800" height="1100" viewBox="0 0 800 1100">
+  <rect width="800" height="1100" fill="#f4f0e8"/>
+  <!-- Stem -->
+  <path d="M400,900 Q390,700 410,500 Q420,350 400,200" stroke="#4a6b4a" stroke-width="3" fill="none"/>
+  <!-- Leaves -->
+  <ellipse cx="340" cy="400" rx="80" ry="30" fill="#6a9a5a" opacity="0.7" transform="rotate(-30 340 400)"/>
+  <ellipse cx="460" cy="350" rx="70" ry="25" fill="#5a8a4a" opacity="0.7" transform="rotate(25 460 350)"/>
+  <ellipse cx="350" cy="550" rx="90" ry="28" fill="#7aaa6a" opacity="0.6" transform="rotate(-20 350 550)"/>
+  <ellipse cx="450" cy="500" rx="75" ry="25" fill="#6a9a5a" opacity="0.6" transform="rotate(30 450 500)"/>
+  <ellipse cx="370" cy="680" rx="85" ry="30" fill="#5a8a4a" opacity="0.5" transform="rotate(-15 370 680)"/>
+  <ellipse cx="430" cy="650" rx="70" ry="22" fill="#7aaa6a" opacity="0.5" transform="rotate(20 430 650)"/>
+  <!-- Flower -->
+  <circle cx="400" cy="200" r="40" fill="#e8a0a0" opacity="0.6"/>
+  <circle cx="400" cy="200" r="25" fill="#e8b8b8" opacity="0.7"/>
+  <circle cx="400" cy="200" r="12" fill="#d4a060"/>
+  <!-- Small buds -->
+  <circle cx="340" cy="300" r="8" fill="#e8b0b0" opacity="0.5"/>
+  <circle cx="460" cy="280" r="6" fill="#e8b0b0" opacity="0.4"/>
+</svg>

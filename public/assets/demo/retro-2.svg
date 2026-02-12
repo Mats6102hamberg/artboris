@@ -1,0 +1,23 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="800" height="1100" viewBox="0 0 800 1100">
+  <rect width="800" height="1100" fill="#2a1a3a"/>
+  <!-- Neon grid -->
+  <line x1="0" y1="600" x2="800" y2="600" stroke="#ff6090" stroke-width="2" opacity="0.6"/>
+  <line x1="0" y1="700" x2="800" y2="700" stroke="#ff6090" stroke-width="1.5" opacity="0.4"/>
+  <line x1="0" y1="800" x2="800" y2="800" stroke="#ff6090" stroke-width="1" opacity="0.3"/>
+  <line x1="0" y1="900" x2="800" y2="900" stroke="#ff6090" stroke-width="1" opacity="0.2"/>
+  <line x1="100" y1="600" x2="0" y2="1100" stroke="#40c0ff" stroke-width="1" opacity="0.3"/>
+  <line x1="250" y1="600" x2="150" y2="1100" stroke="#40c0ff" stroke-width="1" opacity="0.3"/>
+  <line x1="400" y1="600" x2="400" y2="1100" stroke="#40c0ff" stroke-width="1.5" opacity="0.4"/>
+  <line x1="550" y1="600" x2="650" y2="1100" stroke="#40c0ff" stroke-width="1" opacity="0.3"/>
+  <line x1="700" y1="600" x2="800" y2="1100" stroke="#40c0ff" stroke-width="1" opacity="0.3"/>
+  <!-- Neon triangle -->
+  <polygon points="400,150 200,500 600,500" fill="none" stroke="#ff6090" stroke-width="3" opacity="0.8"/>
+  <polygon points="400,200 250,470 550,470" fill="none" stroke="#40c0ff" stroke-width="2" opacity="0.5"/>
+  <!-- Stars -->
+  <circle cx="100" cy="100" r="2" fill="#fff" opacity="0.6"/>
+  <circle cx="300" cy="80" r="1.5" fill="#fff" opacity="0.5"/>
+  <circle cx="500" cy="120" r="2" fill="#fff" opacity="0.7"/>
+  <circle cx="700" cy="60" r="1.5" fill="#fff" opacity="0.4"/>
+  <circle cx="650" cy="200" r="2" fill="#fff" opacity="0.5"/>
+  <circle cx="150" cy="250" r="1" fill="#fff" opacity="0.6"/>
+</svg>

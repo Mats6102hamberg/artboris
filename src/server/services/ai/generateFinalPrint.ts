@@ -2,6 +2,7 @@ import OpenAI from 'openai'
 import { DesignControls } from '@/types/design'
 import { buildFinalRenderPrompt } from '@/lib/prompts/templates'
 import { getSizeById, getPixelDimensions } from '@/lib/image/resize'
+import { isDemoMode } from '@/lib/demo/demoImages'
 
 const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY || '',
@@ -38,6 +39,16 @@ export async function generateFinalPrint(input: FinalPrintInput): Promise<FinalP
 
   const { width: widthPx, height: heightPx } = getPixelDimensions(size)
   const prompt = buildFinalRenderPrompt(originalPrompt, controls, widthPx, heightPx)
+
+  // Demo mode — return a placeholder final render
+  if (isDemoMode()) {
+    return {
+      success: true,
+      imageUrl: '/assets/demo/nordic-1.svg',
+      widthPx,
+      heightPx,
+    }
+  }
 
   try {
     // DALL-E 3 max is 1024x1792; for true print resolution

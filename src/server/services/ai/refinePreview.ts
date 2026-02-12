@@ -2,6 +2,7 @@ import OpenAI from 'openai'
 import { DesignControls, DesignVariant } from '@/types/design'
 import { buildRefinePrompt } from '@/lib/prompts/templates'
 import { checkPromptSafety } from '@/lib/prompts/safety'
+import { isDemoMode } from '@/lib/demo/demoImages'
 
 const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY || '',
@@ -24,6 +25,25 @@ export async function refinePreview(input: RefinePreviewInput): Promise<RefinePr
   const { originalPrompt, feedback, controls } = input
 
   const prompt = buildRefinePrompt(originalPrompt, feedback, controls)
+
+  // Demo mode — return a placeholder refined variant
+  if (isDemoMode()) {
+    const demoStyles = ['nordic', 'abstract', 'minimal', 'botanical', 'retro']
+    const randomStyle = demoStyles[Math.floor(Math.random() * demoStyles.length)]
+    const variant = Math.random() > 0.5 ? '1' : '2'
+    return {
+      success: true,
+      variant: {
+        id: `var_${Date.now()}_refined`,
+        imageUrl: `/assets/demo/${randomStyle}-${variant}.svg`,
+        thumbnailUrl: `/assets/demo/${randomStyle}-${variant}.svg`,
+        seed: Math.floor(Math.random() * 999999),
+        isSelected: false,
+        createdAt: new Date().toISOString(),
+      },
+      prompt,
+    }
+  }
 
   const safetyCheck = checkPromptSafety(prompt)
   if (!safetyCheck.safe) {

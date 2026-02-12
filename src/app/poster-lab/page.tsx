@@ -8,6 +8,8 @@ import StylePicker from '@/components/poster/StylePicker'
 import CreditBadge from '@/components/poster/CreditBadge'
 import { StylePreset, DesignControls } from '@/types/design'
 
+const DEMO_ROOM_IMAGE = '/assets/demo/room-sample.svg'
+
 export default function PosterLabPage() {
   const router = useRouter()
   const [step, setStep] = useState<'upload' | 'mark-wall' | 'pick-style'>('upload')
@@ -134,6 +136,24 @@ export default function PosterLabPage() {
               <p className="text-gray-600 mt-2">Börja med att ladda upp ett foto av rummet där postern ska hänga</p>
             </div>
             <RoomUpload onUpload={handleRoomUpload} />
+
+            <div className="text-center">
+              <div className="relative flex items-center justify-center my-4">
+                <div className="border-t border-gray-300 w-full" />
+                <span className="bg-gradient-to-br from-gray-50 to-blue-50 px-4 text-sm text-gray-400 absolute">eller</span>
+              </div>
+              <button
+                onClick={() => {
+                  setRoomImageUrl(DEMO_ROOM_IMAGE)
+                  setRoomId('demo-room')
+                  setStep('mark-wall')
+                }}
+                className="px-6 py-3 border-2 border-dashed border-blue-300 text-blue-600 rounded-xl hover:bg-blue-50 hover:border-blue-400 transition-all font-medium"
+              >
+                Testa med demo-rum
+              </button>
+              <p className="text-xs text-gray-400 mt-2">Inget eget foto? Prova med vårt exempelrum</p>
+            </div>
           </div>
         )}
 

@@ -2,6 +2,7 @@ import OpenAI from 'openai'
 import { StylePreset, DesignControls, DesignVariant } from '@/types/design'
 import { buildGeneratePrompt } from '@/lib/prompts/templates'
 import { checkPromptSafety } from '@/lib/prompts/safety'
+import { isDemoMode, getDemoVariants } from '@/lib/demo/demoImages'
 
 const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY || '',
@@ -25,6 +26,23 @@ export async function generatePreview(input: GeneratePreviewInput): Promise<Gene
   const { style, controls, userDescription, count = 4 } = input
 
   const prompt = buildGeneratePrompt(style, controls, userDescription)
+
+  // Demo mode — return placeholder images when no API key is set
+  if (isDemoMode()) {
+    const demoVariants = getDemoVariants(style)
+    return {
+      success: true,
+      variants: demoVariants.map((v, i) => ({
+        id: v.id,
+        imageUrl: v.imageUrl,
+        thumbnailUrl: v.thumbnailUrl,
+        seed: v.seed,
+        isSelected: false,
+        createdAt: new Date().toISOString(),
+      })),
+      prompt,
+    }
+  }
 
   const safetyCheck = checkPromptSafety(prompt)
   if (!safetyCheck.safe) {

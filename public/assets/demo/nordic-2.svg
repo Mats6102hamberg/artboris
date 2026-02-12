@@ -1,0 +1,22 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="800" height="1100" viewBox="0 0 800 1100">
+  <rect width="800" height="1100" fill="#e8e0d4"/>
+  <!-- Forest -->
+  <polygon points="100,800 130,400 160,800" fill="#4a6b5a"/>
+  <polygon points="200,800 240,350 280,800" fill="#3a5b4a"/>
+  <polygon points="320,800 350,300 380,800" fill="#5a7b6a"/>
+  <polygon points="440,800 480,380 520,800" fill="#3a5b4a"/>
+  <polygon points="550,800 580,320 610,800" fill="#4a6b5a"/>
+  <polygon points="650,800 690,400 730,800" fill="#5a7b6a"/>
+  <!-- Fog layers -->
+  <rect x="0" y="600" width="800" height="80" fill="#e8e0d4" opacity="0.5"/>
+  <rect x="0" y="700" width="800" height="60" fill="#e8e0d4" opacity="0.3"/>
+  <!-- Ground -->
+  <rect x="0" y="800" width="800" height="300" fill="#c8baa8"/>
+  <!-- Deer silhouette -->
+  <ellipse cx="500" cy="770" rx="40" ry="25" fill="#3a3a3a"/>
+  <rect x="490" y="770" width="5" height="30" fill="#3a3a3a"/>
+  <rect x="520" y="770" width="5" height="30" fill="#3a3a3a"/>
+  <circle cx="540" cy="755" r="10" fill="#3a3a3a"/>
+  <line x1="540" y1="745" x2="535" y2="725" stroke="#3a3a3a" stroke-width="2"/>
+  <line x1="540" y1="745" x2="548" y2="728" stroke="#3a3a3a" stroke-width="2"/>
+</svg>
