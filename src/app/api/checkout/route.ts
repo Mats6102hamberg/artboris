@@ -3,9 +3,11 @@ import Stripe from 'stripe'
 import { prisma } from '@/lib/prisma'
 import { getOrCreateAnonId } from '@/lib/anonId'
 
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
-  apiVersion: '2026-01-28.clover',
-})
+function getStripe() {
+  return new Stripe(process.env.STRIPE_SECRET_KEY!, {
+    apiVersion: '2026-01-28.clover',
+  })
+}
 
 export async function POST(req: Request) {
   try {
@@ -65,6 +67,7 @@ export async function POST(req: Request) {
 
     const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'
 
+    const stripe = getStripe()
     const session = await stripe.checkout.sessions.create({
       mode: 'payment',
       currency: 'sek',

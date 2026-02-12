@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { Suspense, useState, useEffect } from 'react'
 import { useSearchParams, useRouter } from 'next/navigation'
 import VariantsGrid from '@/components/poster/VariantsGrid'
 import ControlsPanel from '@/components/poster/ControlsPanel'
@@ -16,7 +16,7 @@ interface Variant {
   seed: number
 }
 
-export default function ResultPage() {
+function ResultContent() {
   const router = useRouter()
   const searchParams = useSearchParams()
 
@@ -184,5 +184,13 @@ export default function ResultPage() {
         </button>
       </div>
     </div>
+  )
+}
+
+export default function ResultPage() {
+  return (
+    <Suspense>
+      <ResultContent />
+    </Suspense>
   )
 }

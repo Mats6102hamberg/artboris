@@ -1,9 +1,10 @@
 'use client'
 
+import { Suspense } from 'react'
 import { useSearchParams } from 'next/navigation'
 import Link from 'next/link'
 
-export default function OrderCancelPage() {
+function CancelContent() {
   const searchParams = useSearchParams()
   const orderId = searchParams.get('orderId')
 
@@ -41,5 +42,13 @@ export default function OrderCancelPage() {
         </div>
       </div>
     </div>
+  )
+}
+
+export default function OrderCancelPage() {
+  return (
+    <Suspense>
+      <CancelContent />
+    </Suspense>
   )
 }

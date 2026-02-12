@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { Suspense, useState } from 'react'
 import { useSearchParams, useRouter } from 'next/navigation'
 import MockupPreview from '@/components/poster/MockupPreview'
 import FramePicker from '@/components/poster/FramePicker'
@@ -9,7 +9,7 @@ import CreditBadge from '@/components/poster/CreditBadge'
 import PublishToggle from '@/components/poster/PublishToggle'
 import { calculatePrintPrice, formatSEK } from '@/lib/pricing/prints'
 
-export default function EditorPage() {
+function EditorContent() {
   const router = useRouter()
   const searchParams = useSearchParams()
 
@@ -197,5 +197,13 @@ export default function EditorPage() {
         </button>
       </div>
     </div>
+  )
+}
+
+export default function EditorPage() {
+  return (
+    <Suspense>
+      <EditorContent />
+    </Suspense>
   )
 }

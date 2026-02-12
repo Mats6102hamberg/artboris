@@ -4,9 +4,13 @@ import OrderConfirmation from '@/emails/OrderConfirmation'
 import ShippedNotification from '@/emails/ShippedNotification'
 import DeliveredNotification from '@/emails/DeliveredNotification'
 
-const resend = new Resend(process.env.RESEND_API_KEY)
+function getResend() {
+  return new Resend(process.env.RESEND_API_KEY)
+}
 
-const FROM_EMAIL = process.env.EMAIL_FROM || 'Artboris <order@artboris.se>'
+function getFromEmail() {
+  return process.env.EMAIL_FROM || 'Artboris <order@artboris.se>'
+}
 
 // ── Order Confirmation (PAID) ──
 
@@ -32,8 +36,8 @@ export async function sendOrderConfirmation(orderId: string) {
   const customerName = order.shippingAddress.fullName
 
   try {
-    const { data, error } = await resend.emails.send({
-      from: FROM_EMAIL,
+    const { data, error } = await getResend().emails.send({
+      from: getFromEmail(),
       to,
       subject: `Orderbekräftelse — Artboris #${orderId.slice(0, 8)}`,
       react: OrderConfirmation({
@@ -96,8 +100,8 @@ export async function sendShippedEmail(
   const customerName = order.shippingAddress.fullName
 
   try {
-    const { data, error } = await resend.emails.send({
-      from: FROM_EMAIL,
+    const { data, error } = await getResend().emails.send({
+      from: getFromEmail(),
       to,
       subject: `Din order har skickats — Artboris #${orderId.slice(0, 8)}`,
       react: ShippedNotification({
@@ -143,8 +147,8 @@ export async function sendDeliveredEmail(orderId: string) {
   const customerName = order.shippingAddress.fullName
 
   try {
-    const { data, error } = await resend.emails.send({
-      from: FROM_EMAIL,
+    const { data, error } = await getResend().emails.send({
+      from: getFromEmail(),
       to,
       subject: `Din order har levererats — Artboris #${orderId.slice(0, 8)}`,
       react: DeliveredNotification({

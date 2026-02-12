@@ -4,11 +4,11 @@ import { prisma } from '@/lib/prisma'
 import { generatePrintAsset, isPremiumSize } from '@/server/services/print/generatePrintAsset'
 import { sendOrderConfirmation } from '@/server/services/email/sendEmail'
 
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
-  apiVersion: '2026-01-28.clover',
-})
-
-const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET!
+function getStripe() {
+  return new Stripe(process.env.STRIPE_SECRET_KEY!, {
+    apiVersion: '2026-01-28.clover',
+  })
+}
 
 export async function POST(req: Request) {
   const body = await req.text()
@@ -17,6 +17,8 @@ export async function POST(req: Request) {
   let event: Stripe.Event
 
   try {
+    const stripe = getStripe()
+    const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET!
     event = stripe.webhooks.constructEvent(body, sig, webhookSecret)
   } catch (err) {
     console.error('[stripe webhook] Signature verification failed:', err)
