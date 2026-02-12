@@ -4,6 +4,7 @@ import { useMemo, useRef, useCallback, useState } from 'react'
 import { calculatePosterPlacement } from '@/lib/image/transform'
 import { getFrameById } from '@/lib/pricing/prints'
 import { getSizeById } from '@/lib/image/resize'
+import { cropToCSS, type CropMode } from '@/lib/image/crop'
 
 interface MockupPreviewProps {
   roomImageUrl: string
@@ -16,6 +17,9 @@ interface MockupPreviewProps {
   scale: number
   onPositionChange?: (x: number, y: number) => void
   onScaleChange?: (scale: number) => void
+  cropMode?: CropMode
+  cropOffsetX?: number
+  cropOffsetY?: number
 }
 
 export default function MockupPreview({
@@ -29,6 +33,9 @@ export default function MockupPreview({
   scale,
   onPositionChange,
   onScaleChange,
+  cropMode = 'COVER',
+  cropOffsetX = 0,
+  cropOffsetY = 0,
 }: MockupPreviewProps) {
   const containerRef = useRef<HTMLDivElement>(null)
   const [isDragging, setIsDragging] = useState(false)
@@ -173,7 +180,8 @@ export default function MockupPreview({
         <img
           src={designImageUrl}
           alt="Poster"
-          className="w-full h-full object-cover"
+          className="w-full h-full"
+          style={cropToCSS(cropMode, cropOffsetX, cropOffsetY)}
           draggable={false}
         />
 

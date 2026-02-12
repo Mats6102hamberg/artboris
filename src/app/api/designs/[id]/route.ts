@@ -56,6 +56,9 @@ export async function PATCH(
     if (body.selectedVariantId !== undefined) allowedFields.selectedVariantId = body.selectedVariantId
     if (body.imageUrl !== undefined) allowedFields.imageUrl = body.imageUrl
     if (body.title !== undefined) allowedFields.title = body.title
+    if (body.cropMode !== undefined) allowedFields.cropMode = body.cropMode
+    if (body.cropOffsetX !== undefined) allowedFields.cropOffsetX = body.cropOffsetX
+    if (body.cropOffsetY !== undefined) allowedFields.cropOffsetY = body.cropOffsetY
 
     const design = await prisma.design.update({
       where: { id },

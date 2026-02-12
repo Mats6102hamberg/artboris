@@ -1,6 +1,7 @@
 import { prisma } from '@/lib/prisma'
 import { put } from '@vercel/blob'
 import { upscaleImage, getTargetDimensions, meetsTargetDpi } from '../ai/upscale'
+import { calculateCropRect, type CropMode } from '@/lib/image/crop'
 import type { PrintProductType } from '@prisma/client'
 
 // Auto-select upscale factor based on sizeCode for optimal DPI

@@ -85,6 +85,9 @@ model Design {
   scale             Float    @default(1.0)
   frameId           String   @default("none")
   sizeId            String   @default("50x70")
+  cropMode          CropMode @default(COVER)
+  cropOffsetX       Float    @default(0)  // -1 to 1, 0 = centered
+  cropOffsetY       Float    @default(0)  // -1 to 1, 0 = centered
 
   isPublic    Boolean  @default(false)
   likesCount  Int      @default(0)
@@ -150,6 +153,12 @@ model RoomMeta {
 }
 
 // ─── Enums ──────────────────────────────────────────────────
+
+enum CropMode {
+  COVER
+  CONTAIN
+  FILL
+}
 
 enum OrderStatus {
   DRAFT
