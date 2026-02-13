@@ -105,8 +105,8 @@ export default function MockupPreview({
         const rect = containerRef.current.getBoundingClientRect()
         const dx = (cx - dragStart.current.x) / rect.width
         const dy = (cy - dragStart.current.y) / rect.height
-        const newX = Math.max(0, Math.min(1, dragStart.current.posX + dx))
-        const newY = Math.max(0, Math.min(1, dragStart.current.posY + dy))
+        const newX = Math.max(-0.3, Math.min(1.3, dragStart.current.posX + dx))
+        const newY = Math.max(-0.3, Math.min(1.3, dragStart.current.posY + dy))
         onPositionChange(newX, newY)
       })
     }
@@ -202,11 +202,6 @@ export default function MockupPreview({
 
   const isInteractive = !!(onPositionChange || onScaleChange)
   const showReference = isInteractive && Math.abs(scale - 1.0) > 0.02 && referencePlacement
-
-  // Calculate previewed cm size based on scale
-  const previewWidthCm = posterWidthCm ? Math.round(posterWidthCm * scale) : null
-  const previewHeightCm = posterHeightCm ? Math.round(posterHeightCm * scale) : null
-  const isScaled = Math.abs(scale - 1.0) > 0.02
 
   // --- Dynamic shadow & light based on poster position ---
   const dynamicShadow = useMemo(() => {
@@ -434,33 +429,6 @@ export default function MockupPreview({
         </>
       )}
 
-      {/* Floating size tag */}
-      {isInteractive && posterWidthCm && posterHeightCm && (
-        <div
-          className="absolute pointer-events-none z-20 flex justify-center"
-          style={{
-            left: `${placement.left * 100}%`,
-            top: `calc(${(placement.top + placement.height) * 100}% + 8px)`,
-            width: `${placement.width * 100}%`,
-          }}
-        >
-          <div className={`inline-flex items-center gap-1.5 bg-black/60 backdrop-blur-md text-white text-[11px] font-medium px-3 py-1.5 rounded-full transition-all duration-200 ${
-            isScaled ? 'opacity-100' : 'opacity-70'
-          }`}>
-            {isScaled ? (
-              <>
-                <span className="opacity-60 line-through">{posterWidthCm}×{posterHeightCm}</span>
-                <svg className="w-3 h-3 opacity-50" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" />
-                </svg>
-                <span className="text-white font-semibold">{previewWidthCm}×{previewHeightCm} cm</span>
-              </>
-            ) : (
-              <span>{posterWidthCm}×{posterHeightCm} cm</span>
-            )}
-          </div>
-        </div>
-      )}
     </div>
   )
 }
