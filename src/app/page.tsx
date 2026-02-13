@@ -154,10 +154,10 @@ export default function Home() {
             </div>
             <div className="flex space-x-2">
               <a
-                href="/poster-lab"
+                href="/wallcraft"
                 className="bg-gradient-to-r from-green-600 to-teal-600 text-white px-4 py-2 rounded-md hover:from-green-700 hover:to-teal-700 transition-all"
               >
-                Poster Lab
+                Wallcraft
               </a>
               <button
                 onClick={() => setShowBorisChat(!showBorisChat)}
