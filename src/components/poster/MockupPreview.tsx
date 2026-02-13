@@ -292,6 +292,26 @@ export default function MockupPreview({
               mixBlendMode: 'soft-light',
             }}
           />
+          {/* Room reflection in glass — blurred, mirrored room photo */}
+          <div
+            className="absolute inset-0 pointer-events-none overflow-hidden"
+            style={{
+              opacity: 0.045,
+              mixBlendMode: 'screen',
+            }}
+          >
+            <img
+              src={roomImageUrl}
+              alt=""
+              className="w-[140%] h-[140%] object-cover"
+              draggable={false}
+              style={{
+                filter: 'blur(20px) brightness(1.4)',
+                transform: `scaleX(-1) translate(${(positionX - 0.5) * -20}%, ${(positionY - 0.5) * -15}%)`,
+                transformOrigin: 'center center',
+              }}
+            />
+          </div>
         </div>
       </div>
 
