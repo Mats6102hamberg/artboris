@@ -13,6 +13,7 @@ export default function PrintYourOwn({ onImageReady }: PrintYourOwnProps) {
   const [analysis, setAnalysis] = useState<DpiResult[] | null>(null)
   const [imageSize, setImageSize] = useState<{ w: number; h: number } | null>(null)
   const [isUploading, setIsUploading] = useState(false)
+  const [selectedFile, setSelectedFile] = useState<File | null>(null)
   const fileInputRef = useRef<HTMLInputElement>(null)
 
   const processFile = useCallback((file: File) => {
@@ -22,6 +23,7 @@ export default function PrintYourOwn({ onImageReady }: PrintYourOwnProps) {
       return
     }
 
+    setSelectedFile(file)
     const url = URL.createObjectURL(file)
     setPreview(url)
 
@@ -49,19 +51,18 @@ export default function PrintYourOwn({ onImageReady }: PrintYourOwnProps) {
   }, [processFile])
 
   const handleUploadAndContinue = async () => {
-    if (!preview || !fileInputRef.current?.files?.[0]) return
+    if (!preview || !selectedFile || !imageSize) return
     setIsUploading(true)
 
     try {
-      const file = fileInputRef.current.files[0]
       const formData = new FormData()
-      formData.append('file', file)
+      formData.append('file', selectedFile)
 
-      const res = await fetch('/api/rooms/upload', { method: 'POST', body: formData })
+      const res = await fetch('/api/uploads/artwork', { method: 'POST', body: formData })
       const data = await res.json()
 
-      if (data.success && imageSize) {
-        onImageReady(data.room.imageUrl, imageSize.w, imageSize.h)
+      if (data.success) {
+        onImageReady(data.imageUrl, imageSize.w, imageSize.h)
       }
     } catch (err) {
       console.error('Upload error:', err)
@@ -132,7 +133,7 @@ export default function PrintYourOwn({ onImageReady }: PrintYourOwnProps) {
               className="w-full max-h-[300px] object-contain"
             />
             <button
-              onClick={() => { setPreview(null); setAnalysis(null); setImageSize(null) }}
+              onClick={() => { setPreview(null); setAnalysis(null); setImageSize(null); setSelectedFile(null) }}
               className="absolute top-3 right-3 w-8 h-8 bg-black/50 backdrop-blur-sm rounded-full flex items-center justify-center text-white hover:bg-black/70 transition-colors"
             >
               <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
