@@ -24,34 +24,35 @@ export class BorisArtAI {
   }
 
   private async callOpenAI(prompt: string, systemPrompt: string): Promise<string> {
+    const apiKey = process.env.OPENAI_API_KEY
+    if (!apiKey || apiKey === 'sk-mock-key') {
+      console.error('[BorisArt] OPENAI_API_KEY is missing or invalid')
+      return "Jag är inte ansluten just nu — min AI-nyckel saknas. Kontakta administratören för att aktivera mig."
+    }
+
     try {
       const completion = await this.openai.chat.completions.create({
-        model: "gpt-4",
+        model: "gpt-4o-mini",
         messages: [
           { role: "system", content: systemPrompt },
           { role: "user", content: prompt }
         ],
-        max_tokens: 500,
+        max_tokens: 800,
         temperature: 0.8,
       })
 
       return completion.choices[0]?.message?.content || "Tyvärr kunde jag inte generera ett svar just nu."
-    } catch (error) {
-      console.error('OpenAI API error:', error)
+    } catch (error: any) {
+      console.error('[BorisArt] OpenAI API error:', error?.message || error)
       
-      // Fallback till mock om API misslyckas
-      return this.getMockResponse(prompt)
+      if (error?.status === 401) {
+        return "Min API-nyckel verkar vara ogiltig. Kontakta administratören."
+      }
+      if (error?.status === 429) {
+        return "Jag har fått för många förfrågningar just nu. Vänta en stund och försök igen."
+      }
+      return "Tyvärr kunde jag inte svara just nu. Försök igen om en stund."
     }
-  }
-
-  private getMockResponse(prompt: string): string {
-    const mockResponses = [
-      "Detta är ett fascinerande konstverk som bär på en rik historia och djup mening. Konstnären har med skicklighet fångat en ögonblick som talar till betraktaren på många nivåer.",
-      "Jag ser en spännande utveckling i detta verk där traditionella tekniker möter moderna uttryck. Detta skapar en dialog mellan dåtid och nutid.",
-      "Konstverket visar en imponerande teknisk skicklighet kombinerat med en stark konstnärlig vision. Detta är ett verk som kommer att tala till betraktaren under lång tid."
-    ]
-    
-    return mockResponses[Math.floor(Math.random() * mockResponses.length)]
   }
 
   async generateArtStory(artwork: {
