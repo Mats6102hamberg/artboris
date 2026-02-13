@@ -1,6 +1,7 @@
 # Handover — Artboris
 
 **GitHub:** https://github.com/Mats6102hamberg/artboris
+**Vercel:** https://artboris.vercel.app/
 **Local path:** `/Users/matshamberg/CascadeProjects/Artboris`
 **Last updated:** 2026-02-13
 

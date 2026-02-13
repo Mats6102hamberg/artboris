@@ -3,7 +3,7 @@
 > Create unique art for your walls — with interactive creative tools, AI generation, room preview, and print ordering.
 
 **GitHub:** https://github.com/Mats6102hamberg/artboris
-**Live:** Deployed on Vercel
+**Live:** https://artboris.vercel.app/
 
 ---
 
