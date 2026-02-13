@@ -102,12 +102,12 @@ const MOVE_COMMENTS: string[] = [
 
 // --- Image enhancement feedback (upload phase) ---
 const ENHANCEMENT_COMMENTS: string[] = [
-  'Ge mig en sekund... jag rätar upp bilden och optimerar kontrasterna så att den verkligen poppar på din vägg.',
-  'Perfekt. Jag har justerat perspektivet och färgbalansen åt dig – nu är den redo för gallerikvalitet.',
-  'Jag har gått igenom bilden: skärpa, geometri och färgrymd är nu optimerade för tryck. Du är i trygga händer.',
-  'Bilden är analyserad och förbättrad. Brus borta, kontraster justerade — redo att bli konst på riktigt.',
-  'Klar! Jag har finslipat upplösningen och korrigerat ljuset så att den håller galleriklass hos Crimson.',
-  'Din bild har fått en genomgång: perspektivkorrigering, skärpeoptimering och färgkalibrering. Nu är den redo.',
+  'Ge mig en sekund – jag gör bilden redo för tryck så att den blir skarp och balanserad på väggen.',
+  'Klart. Nu är den anpassad för ditt format och kommer se lika bra ut i verkligheten som här.',
+  'Jag har förberett bilden för produktion så att detaljer och kontrast kommer fram fint i trycket.',
+  'Nu är allt optimerat för din valda storlek – det här kommer bli riktigt snyggt.',
+  'Perfekt. Din tavla är nu i rätt kvalitet för att tryckas och ramas in.',
+  'Så där – nu är bilden redo att bli en färdig tavla.',
 ]
 
 // --- Scale feedback ---
