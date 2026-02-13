@@ -41,6 +41,9 @@ export default function WallcraftLanding() {
           <a href="/wallcraft/gallery" className="text-sm font-medium text-gray-600 hover:text-gray-900 transition-colors hidden sm:block">
             {t('nav.gallery')}
           </a>
+          <a href="/wallcraft/mandala" className="text-sm font-medium text-gray-600 hover:text-gray-900 transition-colors hidden sm:block">
+            Mandala Maker
+          </a>
           <a href="/wallcraft/studio" className="text-sm font-medium text-gray-600 hover:text-gray-900 border border-gray-200 px-4 py-2 rounded-lg hover:border-gray-300 transition-all hidden sm:block">
             {t('nav.studio')}
           </a>
@@ -66,6 +69,12 @@ export default function WallcraftLanding() {
             className="block text-base font-medium text-gray-700 py-2"
           >
             {t('nav.gallery')}
+          </a>
+          <a
+            href="/wallcraft/mandala"
+            className="block text-base font-medium text-gray-700 py-2"
+          >
+            Mandala Maker
           </a>
           <a
             href="/wallcraft/studio"
@@ -186,6 +195,68 @@ export default function WallcraftLanding() {
                 </p>
               </div>
             ))}
+          </div>
+        </div>
+      </section>
+
+      {/* ─── Creative Tools ─── */}
+      <section className="py-20 bg-gray-50">
+        <div className="max-w-5xl mx-auto px-6">
+          <h2 className="text-3xl sm:text-4xl font-light text-gray-900 text-center">Creative Tools</h2>
+          <p className="mt-3 text-gray-500 text-center">Design your own art with our interactive tools</p>
+          <div className="mt-12 grid sm:grid-cols-2 gap-6">
+            {/* Mandala Maker card */}
+            <div
+              onClick={() => router.push('/wallcraft/mandala')}
+              className="group cursor-pointer bg-white rounded-2xl overflow-hidden border border-gray-200/60 hover:shadow-xl transition-all duration-300"
+            >
+              <div className="aspect-[16/9] bg-gradient-to-br from-purple-100 via-pink-50 to-amber-50 flex items-center justify-center relative overflow-hidden">
+                <div className="absolute inset-0 opacity-20">
+                  {Array.from({ length: 12 }).map((_, i) => (
+                    <div
+                      key={i}
+                      className="absolute top-1/2 left-1/2 w-px bg-gray-400"
+                      style={{
+                        height: '45%',
+                        transformOrigin: '0 0',
+                        transform: `rotate(${i * 30}deg)`,
+                      }}
+                    />
+                  ))}
+                </div>
+                <div className="text-6xl group-hover:scale-110 transition-transform duration-500">🔮</div>
+              </div>
+              <div className="p-5">
+                <h3 className="text-lg font-semibold text-gray-900">Mandala Maker</h3>
+                <p className="text-sm text-gray-500 mt-1">Draw symmetric mandala patterns with radial symmetry. Choose colors, brush sizes, and export as wall art.</p>
+                <span className="inline-flex items-center gap-1 mt-3 text-sm font-medium text-gray-900 group-hover:gap-2 transition-all">
+                  Start creating
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" />
+                  </svg>
+                </span>
+              </div>
+            </div>
+
+            {/* AI Studio card */}
+            <div
+              onClick={() => router.push('/wallcraft/studio')}
+              className="group cursor-pointer bg-white rounded-2xl overflow-hidden border border-gray-200/60 hover:shadow-xl transition-all duration-300"
+            >
+              <div className="aspect-[16/9] bg-gradient-to-br from-blue-100 via-cyan-50 to-emerald-50 flex items-center justify-center">
+                <div className="text-6xl group-hover:scale-110 transition-transform duration-500">✨</div>
+              </div>
+              <div className="p-5">
+                <h3 className="text-lg font-semibold text-gray-900">AI Art Studio</h3>
+                <p className="text-sm text-gray-500 mt-1">Upload a photo of your room, pick a style, and let AI generate unique art that fits your space perfectly.</p>
+                <span className="inline-flex items-center gap-1 mt-3 text-sm font-medium text-gray-900 group-hover:gap-2 transition-all">
+                  {t('landing.hero.cta')}
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" />
+                  </svg>
+                </span>
+              </div>
+            </div>
           </div>
         </div>
       </section>
