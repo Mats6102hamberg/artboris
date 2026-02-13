@@ -127,6 +127,7 @@ function pick<T>(arr: T[]): T {
 }
 
 function getSizeCategory(sizeId: string): 'small' | 'medium' | 'large' {
+  if (!sizeId) return 'medium'
   if (['a5', 'a4', '30x40'].includes(sizeId)) return 'small'
   if (['a3', '40x50', '50x70'].includes(sizeId)) return 'medium'
   return 'large'
