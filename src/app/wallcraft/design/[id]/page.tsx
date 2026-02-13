@@ -72,14 +72,19 @@ export default function WallcraftDesignPage() {
   const prevScale = useRef(scale)
   const moveDebounce = useRef<NodeJS.Timeout | null>(null)
 
-  // Boris: show placement comment on first load
+  // Boris: show enhancement comment first, then placement
   useEffect(() => {
     if (!design || hasShownPlacement.current) return
     hasShownPlacement.current = true
-    const timer = setTimeout(() => {
+    // First: enhancement message
+    const t1 = setTimeout(() => {
+      setBorisMessage(getBorisComment({ type: 'enhancement' }))
+    }, 800)
+    // Then: placement message
+    const t2 = setTimeout(() => {
       setBorisMessage(getBorisComment({ type: 'placement' }))
-    }, 1200)
-    return () => clearTimeout(timer)
+    }, 10000)
+    return () => { clearTimeout(t1); clearTimeout(t2) }
   }, [design])
 
   // Boris: react to frame changes
@@ -444,6 +449,24 @@ export default function WallcraftDesignPage() {
 
             {/* Boris curator voice */}
             <BorisVoice message={borisMessage} className="mt-4" />
+
+            {/* Quality Badge */}
+            <div className="mt-3 group relative inline-flex items-center gap-2 bg-white/80 backdrop-blur-sm border border-gray-200/60 rounded-xl px-3.5 py-2 cursor-default">
+              <div className="w-5 h-5 rounded-full bg-emerald-100 flex items-center justify-center flex-shrink-0">
+                <svg className="w-3 h-3 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 13l4 4L19 7" />
+                </svg>
+              </div>
+              <span className="text-xs text-gray-500">
+                Bilden är AI-optimerad för <span className="font-medium text-gray-700">{pricing.sizeLabel}</span> hos Crimson
+              </span>
+              {/* Tooltip */}
+              <div className="absolute bottom-full left-0 mb-2 w-72 bg-gray-900 text-white text-xs rounded-xl px-4 py-3 shadow-xl opacity-0 pointer-events-none group-hover:opacity-100 transition-opacity duration-200 z-40">
+                <p className="font-medium mb-1">Boris bildoptimering</p>
+                <p className="text-gray-300 leading-relaxed">Bilden har automatiskt rätats upp, avbrusats och skärpeoptimerats. Färgrymd och kontrast är kalibrerade för Crimsons tryckprofil — redo för inramning.</p>
+                <div className="absolute -bottom-1 left-6 w-2 h-2 bg-gray-900 transform rotate-45" />
+              </div>
+            </div>
 
             {design.variants.length > 1 && (
               <div className="mt-4">

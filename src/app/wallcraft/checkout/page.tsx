@@ -343,6 +343,18 @@ export default function CheckoutPage() {
                 </div>
               </div>
 
+              {/* Boris enhancement assurance */}
+              <div className="mt-4 flex items-start gap-2.5 bg-emerald-50/60 border border-emerald-100 rounded-xl px-3.5 py-3">
+                <div className="w-5 h-5 rounded-full bg-emerald-100 flex items-center justify-center flex-shrink-0 mt-0.5">
+                  <svg className="w-3 h-3 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 13l4 4L19 7" />
+                  </svg>
+                </div>
+                <p className="text-[11px] text-emerald-800 leading-relaxed">
+                  Vår Boris-motor har gått igenom din bild och säkerställt att upplösning och geometri är perfekt för inramning.
+                </p>
+              </div>
+
               {/* Place order button */}
               <button
                 onClick={handlePlaceOrder}

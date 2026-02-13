@@ -100,6 +100,16 @@ const MOVE_COMMENTS: string[] = [
   'Lite högre, lite lägre — du hittar rätt. Lita på din instinkt.',
 ]
 
+// --- Image enhancement feedback (upload phase) ---
+const ENHANCEMENT_COMMENTS: string[] = [
+  'Ge mig en sekund... jag rätar upp bilden och optimerar kontrasterna så att den verkligen poppar på din vägg.',
+  'Perfekt. Jag har justerat perspektivet och färgbalansen åt dig – nu är den redo för gallerikvalitet.',
+  'Jag har gått igenom bilden: skärpa, geometri och färgrymd är nu optimerade för tryck. Du är i trygga händer.',
+  'Bilden är analyserad och förbättrad. Brus borta, kontraster justerade — redo att bli konst på riktigt.',
+  'Klar! Jag har finslipat upplösningen och korrigerat ljuset så att den håller galleriklass hos Crimson.',
+  'Din bild har fått en genomgång: perspektivkorrigering, skärpeoptimering och färgkalibrering. Nu är den redo.',
+]
+
 // --- Scale feedback ---
 const SCALE_COMMENTS = {
   up: [
@@ -124,6 +134,7 @@ function getSizeCategory(sizeId: string): 'small' | 'medium' | 'large' {
 
 export type BorisEvent =
   | { type: 'placement' }
+  | { type: 'enhancement' }
   | { type: 'frame_change'; frameId: string }
   | { type: 'size_change'; sizeId: string }
   | { type: 'move' }
@@ -134,6 +145,9 @@ export function getBorisComment(event: BorisEvent): string {
   switch (event.type) {
     case 'placement':
       return pick(PLACEMENT_COMMENTS)
+
+    case 'enhancement':
+      return pick(ENHANCEMENT_COMMENTS)
 
     case 'frame_change': {
       const comments = FRAME_COMMENTS[event.frameId] || FRAME_COMMENTS['none']
