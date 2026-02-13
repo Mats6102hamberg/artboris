@@ -10,8 +10,9 @@ import CreditBadge from '@/components/poster/CreditBadge'
 import PublishToggle from '@/components/poster/PublishToggle'
 import VariantsGrid from '@/components/poster/VariantsGrid'
 import Button from '@/components/ui/Button'
-import { calculatePrintPrice, formatSEK } from '@/lib/pricing/prints'
+import { calculatePrintPrice, formatSEK, getFrameById as getFrame, FRAME_OPTIONS } from '@/lib/pricing/prints'
 import { getSizeById } from '@/lib/image/resize'
+import { useCart } from '@/lib/cart/CartContext'
 
 interface DesignVariantData {
   id: string
@@ -227,23 +228,30 @@ export default function WallcraftDesignPage() {
     isSelected: false,
   }))
 
+  const { addItem, setIsOpen } = useCart()
+
   const handleCheckout = () => {
     if (!design || !selectedVariant) return
-    const params = new URLSearchParams({
+    const sz = getSizeById(sizeId)
+    const fr = FRAME_OPTIONS.find(f => f.id === frameId)
+    addItem({
       designId: design.id,
       variantId: selectedVariant.id,
-      designImageUrl: selectedVariant.imageUrl,
-      roomImageUrl: design.roomImageUrl || '',
-      frameId,
-      sizeId,
+      imageUrl: selectedVariant.imageUrl,
+      roomImageUrl: design.roomImageUrl || null,
       style: design.style,
       prompt: design.prompt,
-      seed: String(selectedVariant.seed || 0),
-      publish: wantPublish ? '1' : '0',
-      totalSEK: String(pricing.totalPriceSEK),
-      creditsNeeded: String(pricing.creditsNeeded),
+      sizeId,
+      sizeLabel: sz?.label || sizeId,
+      widthCm: sz ? Math.round(sz.widthCm * scale) : 50,
+      heightCm: sz ? Math.round(sz.heightCm * scale) : 70,
+      frameId,
+      frameLabel: fr?.label || 'Ingen ram',
+      frameColor: fr?.color || 'transparent',
+      basePriceSEK: pricing.basePriceSEK,
+      framePriceSEK: pricing.framePriceSEK,
+      totalPriceSEK: pricing.totalPriceSEK,
     })
-    router.push(`/wallcraft/checkout?${params.toString()}`)
   }
 
   if (loading) {
