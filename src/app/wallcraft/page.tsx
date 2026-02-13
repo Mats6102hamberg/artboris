@@ -51,6 +51,8 @@ export default function WallcraftLanding() {
               <a href="/wallcraft/pattern" className="block px-4 py-2.5 text-sm text-gray-600 hover:bg-gray-50 hover:text-gray-900">Pattern Studio</a>
               <a href="/wallcraft/abstract" className="block px-4 py-2.5 text-sm text-gray-600 hover:bg-gray-50 hover:text-gray-900">Abstract Painter</a>
               <a href="/wallcraft/colorfield" className="block px-4 py-2.5 text-sm text-gray-600 hover:bg-gray-50 hover:text-gray-900">Color Field Studio</a>
+              <hr className="my-1 border-gray-100" />
+              <a href="/wallcraft/print-your-own" className="block px-4 py-2.5 text-sm text-gray-600 hover:bg-gray-50 hover:text-gray-900">Print Your Own</a>
             </div>
           </div>
           <a href="/wallcraft/studio" className="text-sm font-medium text-gray-600 hover:text-gray-900 border border-gray-200 px-4 py-2 rounded-lg hover:border-gray-300 transition-all hidden sm:block">
@@ -79,6 +81,7 @@ export default function WallcraftLanding() {
           <a href="/wallcraft/pattern" className="block text-base font-medium text-gray-700 py-2">Pattern Studio</a>
           <a href="/wallcraft/abstract" className="block text-base font-medium text-gray-700 py-2">Abstract Painter</a>
           <a href="/wallcraft/colorfield" className="block text-base font-medium text-gray-700 py-2">Color Field Studio</a>
+          <a href="/wallcraft/print-your-own" className="block text-base font-medium text-gray-700 py-2">Print Your Own</a>
           <a href="/wallcraft/studio" className="block text-base font-medium text-white bg-gray-900 text-center py-3 rounded-lg mt-2">{t('nav.studio')}</a>
         </div>
       )}

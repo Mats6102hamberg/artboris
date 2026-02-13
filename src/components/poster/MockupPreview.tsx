@@ -1,6 +1,6 @@
 'use client'
 
-import { useMemo, useRef, useCallback, useState } from 'react'
+import { useMemo, useRef, useCallback, useState, useEffect } from 'react'
 import { calculatePosterPlacement } from '@/lib/image/transform'
 import { getFrameById } from '@/lib/pricing/prints'
 import { getSizeById } from '@/lib/image/resize'
@@ -17,6 +17,7 @@ interface MockupPreviewProps {
   scale: number
   onPositionChange?: (x: number, y: number) => void
   onScaleChange?: (scale: number) => void
+  realisticMode?: boolean
   cropMode?: CropMode
   cropOffsetX?: number
   cropOffsetY?: number
@@ -33,6 +34,7 @@ export default function MockupPreview({
   scale,
   onPositionChange,
   onScaleChange,
+  realisticMode: realisticModeProp,
   cropMode = 'COVER',
   cropOffsetX = 0,
   cropOffsetY = 0,
@@ -41,6 +43,20 @@ export default function MockupPreview({
   const [isDragging, setIsDragging] = useState(false)
   const dragStart = useRef<{ x: number; y: number; posX: number; posY: number } | null>(null)
   const pinchStart = useRef<{ dist: number; scale: number } | null>(null)
+  const rafRef = useRef<number | null>(null)
+
+  // Low-power detection: auto-disable realistic mode on weak devices
+  const [isLowPower, setIsLowPower] = useState(false)
+  useEffect(() => {
+    if (typeof window === 'undefined') return
+    const dpr = window.devicePixelRatio || 1
+    const cores = navigator.hardwareConcurrency || 2
+    // Low-power heuristic: low DPR + few cores
+    if (dpr <= 1 && cores <= 2) setIsLowPower(true)
+  }, [])
+
+  // Realistic mode: prop overrides auto-detection, default ON for desktop
+  const realisticMode = realisticModeProp ?? !isLowPower
 
   const frame = getFrameById(frameId)
   const size = getSizeById(sizeId)
@@ -66,10 +82,9 @@ export default function MockupPreview({
 
   const frameWidthPx = frame && frame.id !== 'none' ? frame.width * 0.4 : 0
 
-  // --- Drag to move (touch + mouse) ---
+  // --- Drag to move (touch + mouse) with rAF throttle ---
   const handleDragStart = useCallback((e: React.MouseEvent | React.TouchEvent) => {
     if (!onPositionChange || !containerRef.current) return
-    // If two-finger touch, let pinch handle it
     if ('touches' in e && e.touches.length >= 2) return
     e.preventDefault()
     const clientX = 'touches' in e ? e.touches[0].clientX : e.clientX
@@ -79,21 +94,27 @@ export default function MockupPreview({
 
     const handleMove = (ev: MouseEvent | TouchEvent) => {
       if (!dragStart.current || !containerRef.current) return
-      // If pinch started, stop drag
       if ('touches' in ev && ev.touches.length >= 2) return
-      const cx = 'touches' in ev ? ev.touches[0].clientX : ev.clientX
-      const cy = 'touches' in ev ? ev.touches[0].clientY : ev.clientY
-      const rect = containerRef.current.getBoundingClientRect()
-      const dx = (cx - dragStart.current.x) / rect.width
-      const dy = (cy - dragStart.current.y) / rect.height
-      const newX = Math.max(0, Math.min(1, dragStart.current.posX + dx))
-      const newY = Math.max(0, Math.min(1, dragStart.current.posY + dy))
-      onPositionChange(newX, newY)
+      // rAF throttle: skip if a frame is already pending
+      if (rafRef.current) return
+      rafRef.current = requestAnimationFrame(() => {
+        rafRef.current = null
+        if (!dragStart.current || !containerRef.current) return
+        const cx = 'touches' in ev ? ev.touches[0].clientX : ev.clientX
+        const cy = 'touches' in ev ? ev.touches[0].clientY : ev.clientY
+        const rect = containerRef.current.getBoundingClientRect()
+        const dx = (cx - dragStart.current.x) / rect.width
+        const dy = (cy - dragStart.current.y) / rect.height
+        const newX = Math.max(0, Math.min(1, dragStart.current.posX + dx))
+        const newY = Math.max(0, Math.min(1, dragStart.current.posY + dy))
+        onPositionChange(newX, newY)
+      })
     }
 
     const handleUp = () => {
       dragStart.current = null
       setIsDragging(false)
+      if (rafRef.current) { cancelAnimationFrame(rafRef.current); rafRef.current = null }
       window.removeEventListener('mousemove', handleMove)
       window.removeEventListener('mouseup', handleUp)
       window.removeEventListener('touchmove', handleMove)
@@ -150,40 +171,33 @@ export default function MockupPreview({
 
   // --- Dynamic shadow & light based on poster position ---
   const dynamicShadow = useMemo(() => {
-    // positionX 0..1: 0=left wall edge, 1=right wall edge
-    // Light source assumed from the opposite side of where the poster is
-    // Poster on left side → light from left → shadow goes right (positive offsetX)
-    // Poster on right side → light from right → shadow goes left (negative offsetX)
-    const lightX = 1 - positionX          // 0..1, where 1 = light from left
-    const shadowOffsetX = (lightX - 0.5) * -16  // -8..+8 px range
+    // Light direction: continuous angle based on positionX
+    // positionX=0 (left edge) → light from upper-left, shadow to lower-right
+    // positionX=1 (right edge) → light from upper-right, shadow to lower-left
+    const lightX = 1 - positionX
+    const shadowOffsetX = (lightX - 0.5) * -14
+    const shadowOffsetY = 3 + (1 - positionY) * 6
 
-    // positionY: higher poster → more shadow below
-    const shadowOffsetY = 4 + (1 - positionY) * 8  // 4..12 px
-
-    // Scale affects shadow depth — bigger poster = more depth = bigger shadow
+    // Scale affects shadow depth
     const depthFactor = Math.max(0.6, Math.min(2.0, scale))
-    const blur = Math.round(14 * depthFactor)
-    const spread = Math.round(2 * depthFactor)
-    const opacity = Math.min(0.55, 0.25 + 0.1 * depthFactor)
+    const blur = Math.round(12 * depthFactor)
+    const spread = Math.round(1.5 * depthFactor)
+    const opacity = Math.min(0.45, 0.20 + 0.08 * depthFactor)
 
-    // Light reflection angle — gradient from the light side
-    // lightX > 0.5 means light from left, so highlight on left edge
-    const lightAngle = lightX > 0.5 ? 270 : 90 // degrees
-    const highlightOpacity = 0.06 + Math.abs(lightX - 0.5) * 0.12 // 0.06..0.12
+    // Continuous light angle (not just 90/270) for smooth highlight movement
+    const lightAngle = 270 * lightX + 90 * (1 - lightX) // 90..270 degrees
+    const highlightOpacity = 0.04 + Math.abs(lightX - 0.5) * 0.08 // 0.04..0.08
 
-    // Glass glare — diagonal streak that moves with position
-    // Maps positionX 0..1 to glare traveling across the glass surface
-    const glareX = positionX * 100           // 0..100% horizontal offset
-    const glareY = positionY * 80 + 10       // 10..90% vertical offset
-    const glareAngle = 135 + (positionX - 0.5) * 20  // 125..145 deg, slight tilt
-    const glareIntensity = 0.08 + Math.abs(positionX - 0.5) * 0.08 // 0.08..0.12
+    // Glass glare — diagonal streak
+    const glareX = positionX * 100
+    const glareAngle = 135 + (positionX - 0.5) * 20
+    const glareIntensity = 0.06 + Math.abs(positionX - 0.5) * 0.06 // 0.06..0.09
 
     return {
       boxShadow: `${shadowOffsetX.toFixed(1)}px ${shadowOffsetY.toFixed(1)}px ${blur}px ${spread}px rgba(0,0,0,${opacity.toFixed(2)})`,
       lightAngle,
       highlightOpacity,
       glareX,
-      glareY,
       glareAngle,
       glareIntensity,
     }
@@ -274,44 +288,48 @@ export default function MockupPreview({
           <div
             className="absolute inset-0 pointer-events-none"
             style={{
-              background: `linear-gradient(${dynamicShadow.lightAngle}deg, rgba(255,255,255,${dynamicShadow.highlightOpacity}) 0%, transparent 40%, rgba(0,0,0,0.03) 100%)`,
+              background: `linear-gradient(${dynamicShadow.lightAngle}deg, rgba(255,255,255,${dynamicShadow.highlightOpacity}) 0%, transparent 35%, rgba(0,0,0,0.02) 100%)`,
             }}
           />
-          {/* Glass glare — diagonal streak that slides across when moving */}
-          <div
-            className="absolute inset-0 pointer-events-none transition-all duration-200"
-            style={{
-              background: `linear-gradient(
-                ${dynamicShadow.glareAngle}deg,
-                transparent ${dynamicShadow.glareX - 12}%,
-                rgba(255,255,255,${(dynamicShadow.glareIntensity * 0.3).toFixed(3)}) ${dynamicShadow.glareX - 6}%,
-                rgba(255,255,255,${dynamicShadow.glareIntensity.toFixed(3)}) ${dynamicShadow.glareX}%,
-                rgba(255,255,255,${(dynamicShadow.glareIntensity * 0.3).toFixed(3)}) ${dynamicShadow.glareX + 6}%,
-                transparent ${dynamicShadow.glareX + 12}%
-              )`,
-              mixBlendMode: 'soft-light',
-            }}
-          />
-          {/* Room reflection in glass — blurred, mirrored room photo */}
-          <div
-            className="absolute inset-0 pointer-events-none overflow-hidden"
-            style={{
-              opacity: 0.045,
-              mixBlendMode: 'screen',
-            }}
-          >
-            <img
-              src={roomImageUrl}
-              alt=""
-              className="w-[140%] h-[140%] object-cover"
-              draggable={false}
+          {/* Glass glare — only in realistic mode */}
+          {realisticMode && (
+            <div
+              className="absolute inset-0 pointer-events-none"
               style={{
-                filter: 'blur(20px) brightness(1.4)',
-                transform: `scaleX(-1) translate(${(positionX - 0.5) * -20}%, ${(positionY - 0.5) * -15}%)`,
-                transformOrigin: 'center center',
+                background: `linear-gradient(
+                  ${dynamicShadow.glareAngle}deg,
+                  transparent ${dynamicShadow.glareX - 12}%,
+                  rgba(255,255,255,${(dynamicShadow.glareIntensity * 0.25).toFixed(3)}) ${dynamicShadow.glareX - 5}%,
+                  rgba(255,255,255,${(dynamicShadow.glareIntensity * 0.8).toFixed(3)}) ${dynamicShadow.glareX}%,
+                  rgba(255,255,255,${(dynamicShadow.glareIntensity * 0.25).toFixed(3)}) ${dynamicShadow.glareX + 5}%,
+                  transparent ${dynamicShadow.glareX + 12}%
+                )`,
+                mixBlendMode: 'soft-light',
               }}
             />
-          </div>
+          )}
+          {/* Room reflection in glass — only in realistic mode */}
+          {realisticMode && (
+            <div
+              className="absolute inset-0 pointer-events-none overflow-hidden"
+              style={{
+                opacity: 0.035,
+                mixBlendMode: 'screen',
+              }}
+            >
+              <img
+                src={roomImageUrl}
+                alt=""
+                className="w-[140%] h-[140%] object-cover"
+                draggable={false}
+                style={{
+                  filter: 'blur(24px) brightness(1.3)',
+                  transform: `scaleX(-1) translate(${(positionX - 0.5) * -20}%, ${(positionY - 0.5) * -15}%)`,
+                  transformOrigin: 'center center',
+                }}
+              />
+            </div>
+          )}
         </div>
       </div>
 

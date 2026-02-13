@@ -56,6 +56,7 @@ export default function WallcraftDesignPage() {
   const [credits, setCredits] = useState<number | null>(null)
   const [showCreditsModal, setShowCreditsModal] = useState(false)
   const [shuffleCooldown, setShuffleCooldown] = useState(false)
+  const [realisticMode, setRealisticMode] = useState<boolean | undefined>(undefined)
   const lastShuffleTime = useRef(0)
 
   // Fetch credit balance
@@ -311,6 +312,7 @@ export default function WallcraftDesignPage() {
                   scale={scale}
                   onPositionChange={(x, y) => { setPositionX(x); setPositionY(y) }}
                   onScaleChange={setScale}
+                  realisticMode={realisticMode}
                 />
               ) : selectedVariant ? (
                 <div className="aspect-[2/3] rounded-2xl overflow-hidden shadow-lg">
@@ -410,6 +412,26 @@ export default function WallcraftDesignPage() {
 
             <div className="bg-white rounded-2xl p-5 border border-gray-200/60">
               <PublishToggle isPublished={wantPublish} onToggle={setWantPublish} />
+            </div>
+
+            {/* Realistic Mode Toggle */}
+            <div className="bg-white rounded-2xl p-5 border border-gray-200/60">
+              <div className="flex items-center justify-between">
+                <div>
+                  <h3 className="text-sm font-medium text-gray-900">Smart Light Preview</h3>
+                  <p className="text-xs text-gray-500 mt-0.5">Glass reflections &amp; room lighting</p>
+                </div>
+                <button
+                  onClick={() => setRealisticMode(prev => prev === undefined ? false : prev === false ? true : false)}
+                  className={`relative w-11 h-6 rounded-full transition-colors duration-200 ${
+                    realisticMode === false ? 'bg-gray-300' : 'bg-gray-900'
+                  }`}
+                >
+                  <div className={`absolute top-0.5 left-0.5 w-5 h-5 bg-white rounded-full shadow-sm transition-transform duration-200 ${
+                    realisticMode === false ? 'translate-x-0' : 'translate-x-5'
+                  }`} />
+                </button>
+              </div>
             </div>
 
             <Button
