@@ -171,10 +171,21 @@ export default function MockupPreview({
     const lightAngle = lightX > 0.5 ? 270 : 90 // degrees
     const highlightOpacity = 0.06 + Math.abs(lightX - 0.5) * 0.12 // 0.06..0.12
 
+    // Glass glare — diagonal streak that moves with position
+    // Maps positionX 0..1 to glare traveling across the glass surface
+    const glareX = positionX * 100           // 0..100% horizontal offset
+    const glareY = positionY * 80 + 10       // 10..90% vertical offset
+    const glareAngle = 135 + (positionX - 0.5) * 20  // 125..145 deg, slight tilt
+    const glareIntensity = 0.08 + Math.abs(positionX - 0.5) * 0.08 // 0.08..0.12
+
     return {
       boxShadow: `${shadowOffsetX.toFixed(1)}px ${shadowOffsetY.toFixed(1)}px ${blur}px ${spread}px rgba(0,0,0,${opacity.toFixed(2)})`,
       lightAngle,
       highlightOpacity,
+      glareX,
+      glareY,
+      glareAngle,
+      glareIntensity,
     }
   }, [positionX, positionY, scale])
 
@@ -264,6 +275,21 @@ export default function MockupPreview({
             className="absolute inset-0 pointer-events-none"
             style={{
               background: `linear-gradient(${dynamicShadow.lightAngle}deg, rgba(255,255,255,${dynamicShadow.highlightOpacity}) 0%, transparent 40%, rgba(0,0,0,0.03) 100%)`,
+            }}
+          />
+          {/* Glass glare — diagonal streak that slides across when moving */}
+          <div
+            className="absolute inset-0 pointer-events-none transition-all duration-200"
+            style={{
+              background: `linear-gradient(
+                ${dynamicShadow.glareAngle}deg,
+                transparent ${dynamicShadow.glareX - 12}%,
+                rgba(255,255,255,${(dynamicShadow.glareIntensity * 0.3).toFixed(3)}) ${dynamicShadow.glareX - 6}%,
+                rgba(255,255,255,${dynamicShadow.glareIntensity.toFixed(3)}) ${dynamicShadow.glareX}%,
+                rgba(255,255,255,${(dynamicShadow.glareIntensity * 0.3).toFixed(3)}) ${dynamicShadow.glareX + 6}%,
+                transparent ${dynamicShadow.glareX + 12}%
+              )`,
+              mixBlendMode: 'soft-light',
             }}
           />
         </div>
