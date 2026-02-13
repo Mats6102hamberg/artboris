@@ -72,11 +72,11 @@ export default function WallcraftDesignPage() {
   const prevScale = useRef(scale)
   const moveDebounce = useRef<NodeJS.Timeout | null>(null)
 
-  // Boris: show enhancement comment first, then placement
+  // Boris: show enhancement immediately, then placement
   useEffect(() => {
-    if (!design || hasShownPlacement.current) return
+    if (hasShownPlacement.current) return
     hasShownPlacement.current = true
-    // First: enhancement message
+    // First: enhancement message (show immediately)
     const t1 = setTimeout(() => {
       setBorisMessage(getBorisComment({ type: 'enhancement' }))
     }, 800)
@@ -85,7 +85,7 @@ export default function WallcraftDesignPage() {
       setBorisMessage(getBorisComment({ type: 'placement' }))
     }, 10000)
     return () => { clearTimeout(t1); clearTimeout(t2) }
-  }, [design])
+  }, [])
 
   // Boris: react to frame changes
   useEffect(() => {
