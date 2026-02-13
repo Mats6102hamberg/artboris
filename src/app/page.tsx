@@ -296,7 +296,7 @@ export default function Home() {
                       step="5000"
                       value={filters.minProfit}
                       onChange={(e) => setFilters({...filters, minProfit: parseInt(e.target.value) || 0})}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500"
                     />
                     <p className="text-xs text-gray-500 mt-1">Filtrera bort objekt med för liten vinst</p>
                   </div>
@@ -312,14 +312,14 @@ export default function Home() {
                         placeholder="Min"
                         value={filters.minPrice}
                         onChange={(e) => setFilters({...filters, minPrice: parseInt(e.target.value) || 0})}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        className="w-full px-3 py-2 border border-gray-300 rounded-md text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500"
                       />
                       <input
                         type="number"
                         placeholder="Max"
                         value={filters.maxPrice}
                         onChange={(e) => setFilters({...filters, maxPrice: parseInt(e.target.value) || 500000})}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        className="w-full px-3 py-2 border border-gray-300 rounded-md text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500"
                       />
                     </div>
                   </div>
@@ -335,14 +335,14 @@ export default function Home() {
                         placeholder="Min"
                         value={filters.minProfitMargin}
                         onChange={(e) => setFilters({...filters, minProfitMargin: parseInt(e.target.value) || 0})}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        className="w-full px-3 py-2 border border-gray-300 rounded-md text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500"
                       />
                       <input
                         type="number"
                         placeholder="Max"
                         value={filters.maxProfitMargin}
                         onChange={(e) => setFilters({...filters, maxProfitMargin: parseInt(e.target.value) || 500})}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        className="w-full px-3 py-2 border border-gray-300 rounded-md text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500"
                       />
                     </div>
                   </div>
@@ -355,7 +355,7 @@ export default function Home() {
                     <select
                       value={filters.riskLevel}
                       onChange={(e) => setFilters({...filters, riskLevel: e.target.value as any})}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500"
                     >
                       <option value="all">Alla</option>
                       <option value="low">Låg risk</option>
@@ -372,7 +372,7 @@ export default function Home() {
                     <select
                       value={filters.recommendation}
                       onChange={(e) => setFilters({...filters, recommendation: e.target.value as any})}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500"
                     >
                       <option value="all">Alla</option>
                       <option value="buy">KÖP</option>
@@ -389,7 +389,7 @@ export default function Home() {
                     <select
                       value={sortBy}
                       onChange={(e) => setSortBy(e.target.value)}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500"
                     >
                       <option value="profit">Vinst (kr) - högst först</option>
                       <option value="profitMargin">Vinstmarginal (%) - högst först</option>
