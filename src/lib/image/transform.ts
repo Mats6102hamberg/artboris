@@ -115,14 +115,24 @@ function solveLinearSystem(A: number[][], b: number[]): number[] | null {
 }
 
 /**
+ * Assumed wall width in cm for realistic poster sizing.
+ * A typical Scandinavian living room wall is ~300 cm wide.
+ */
+const ASSUMED_WALL_WIDTH_CM = 300
+
+/**
  * Calculate poster position and size within wall area.
+ * Uses real cm dimensions for realistic proportions.
+ * scale=1.0 shows the true selected size on the wall.
  */
 export function calculatePosterPlacement(
   wallCorners: WallCorner[],
   positionX: number,
   positionY: number,
   scale: number,
-  posterAspectRatio: number
+  posterAspectRatio: number,
+  posterWidthCm?: number,
+  posterHeightCm?: number,
 ): { left: number; top: number; width: number; height: number } {
   if (wallCorners.length !== 4) {
     return { left: 0.25, top: 0.25, width: 0.5, height: 0.5 }
@@ -132,8 +142,18 @@ export function calculatePosterPlacement(
   const wallWidth = Math.abs(tr.x - tl.x)
   const wallHeight = Math.abs(bl.y - tl.y)
 
-  const baseWidth = wallWidth * 0.35 * scale
-  const baseHeight = baseWidth / posterAspectRatio
+  let baseWidth: number
+  let baseHeight: number
+
+  if (posterWidthCm && posterHeightCm) {
+    // Realistic sizing: poster cm relative to assumed wall width
+    baseWidth = (posterWidthCm / ASSUMED_WALL_WIDTH_CM) * wallWidth * scale
+    baseHeight = (posterHeightCm / ASSUMED_WALL_WIDTH_CM) * wallWidth * scale
+  } else {
+    // Fallback: use aspect ratio with a default proportion
+    baseWidth = wallWidth * 0.35 * scale
+    baseHeight = baseWidth / posterAspectRatio
+  }
 
   const maxWidth = wallWidth * 1.2
   const maxHeight = wallHeight * 1.2

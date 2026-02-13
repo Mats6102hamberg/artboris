@@ -46,12 +46,23 @@ export default function MockupPreview({
   const size = getSizeById(sizeId)
   const posterAspect = size ? size.widthCm / size.heightCm : 2 / 3
 
+  const posterWidthCm = size?.widthCm
+  const posterHeightCm = size?.heightCm
+
   const placement = useMemo(() => {
     if (wallCorners.length !== 4) {
       return { left: 0.25, top: 0.15, width: 0.2, height: 0.35 }
     }
-    return calculatePosterPlacement(wallCorners, positionX, positionY, scale, posterAspect)
-  }, [wallCorners, positionX, positionY, scale, posterAspect])
+    return calculatePosterPlacement(wallCorners, positionX, positionY, scale, posterAspect, posterWidthCm, posterHeightCm)
+  }, [wallCorners, positionX, positionY, scale, posterAspect, posterWidthCm, posterHeightCm])
+
+  // Reference placement at scale=1.0 (the actual selected size)
+  const referencePlacement = useMemo(() => {
+    if (wallCorners.length !== 4) return null
+    return calculatePosterPlacement(wallCorners, positionX, positionY, 1.0, posterAspect, posterWidthCm, posterHeightCm)
+  }, [wallCorners, positionX, positionY, posterAspect, posterWidthCm, posterHeightCm])
+
+  const sizeLabel = size ? `${size.widthCm}×${size.heightCm} cm` : ''
 
   const frameWidthPx = frame && frame.id !== 'none' ? frame.width * 0.4 : 0
 
@@ -130,6 +141,7 @@ export default function MockupPreview({
   }, [scale, onScaleChange])
 
   const isInteractive = !!(onPositionChange || onScaleChange)
+  const showReference = isInteractive && Math.abs(scale - 1.0) > 0.02 && referencePlacement
 
   return (
     <div ref={containerRef} className="group/mockup relative rounded-xl overflow-hidden shadow-lg select-none">
@@ -161,6 +173,28 @@ export default function MockupPreview({
             zIndex: 9,
           }}
         />
+      )}
+
+      {/* Reference outline — shows the selected size at scale=1.0 */}
+      {showReference && referencePlacement && (
+        <div
+          className="absolute pointer-events-none"
+          style={{
+            left: `${referencePlacement.left * 100}%`,
+            top: `${referencePlacement.top * 100}%`,
+            width: `${referencePlacement.width * 100}%`,
+            height: `${referencePlacement.height * 100}%`,
+            border: '1.5px dashed rgba(255,255,255,0.7)',
+            borderRadius: '2px',
+            zIndex: 11,
+          }}
+        >
+          <span
+            className="absolute -top-5 left-1/2 -translate-x-1/2 text-[10px] font-medium text-white bg-black/50 backdrop-blur-sm px-2 py-0.5 rounded-full whitespace-nowrap"
+          >
+            {sizeLabel}
+          </span>
+        </div>
       )}
 
       {/* Poster — draggable with generous touch area */}
