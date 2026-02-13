@@ -69,6 +69,8 @@ const SIZE_COMMENTS: Record<string, string[]> = {
   ],
 }
 
+const DEFAULT_LINE = 'Den här storleken ger konsten rätt förutsättningar.'
+
 // --- Style/mood feedback ---
 const STYLE_COMMENTS: Record<string, string[]> = {
   minimal: [
@@ -168,7 +170,9 @@ export function getBorisComment(event: BorisEvent): string {
 
     case 'size_change': {
       const cat = getSizeCategory(event.sizeId)
-      return pick(SIZE_COMMENTS[cat])
+      const list = SIZE_COMMENTS[cat] ?? SIZE_COMMENTS.medium ?? []
+      if (list.length === 0) return DEFAULT_LINE
+      return pick(list)
     }
 
     case 'move':
