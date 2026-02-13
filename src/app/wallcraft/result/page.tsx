@@ -35,7 +35,7 @@ function ResultContent() {
         <h1 className="text-2xl font-light text-gray-900">{t('studio.editor.variants')}</h1>
         <p className="mt-2 text-gray-500">Design ID: {designId}</p>
         <p className="mt-8 text-sm text-gray-400">Result page — redirects to /wallcraft/design/[id]</p>
-        <Button className="mt-6" onClick={() => router.push(`/poster-lab/design/${designId}`)}>
+        <Button className="mt-6" onClick={() => router.push(`/wallcraft/design/${designId}`)}>
           {t('studio.editor.frame')} →
         </Button>
       </div>

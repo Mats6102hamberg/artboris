@@ -55,16 +55,16 @@ function SuccessContent() {
 
         <div className="flex flex-col gap-3">
           <Link
-            href="/poster-lab/gallery"
+            href="/wallcraft/gallery"
             className="px-6 py-3 bg-blue-600 text-white rounded-xl hover:bg-blue-700 font-medium transition-colors"
           >
             Utforska galleriet
           </Link>
           <Link
-            href="/poster-lab"
+            href="/wallcraft"
             className="px-6 py-3 bg-gray-100 text-gray-700 rounded-xl hover:bg-gray-200 font-medium transition-colors"
           >
-            Skapa en till poster
+            Skapa mer konst
           </Link>
         </div>
       </div>
