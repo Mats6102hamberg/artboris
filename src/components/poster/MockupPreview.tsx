@@ -82,32 +82,58 @@ export default function MockupPreview({
 
   const frameWidthPx = frame && frame.id !== 'none' ? frame.width * 0.4 : 0
 
-  // --- Drag to move (touch + mouse) with rAF throttle ---
+  // --- Drag to move with momentum/inertia ---
+  const velocityRef = useRef({ vx: 0, vy: 0 })
+  const lastMoveRef = useRef({ x: 0, y: 0, t: 0 })
+  const momentumRef = useRef<number | null>(null)
+  const latestPos = useRef({ x: positionX, y: positionY })
+  latestPos.current = { x: positionX, y: positionY }
+
+  const stopMomentum = useCallback(() => {
+    if (momentumRef.current) { cancelAnimationFrame(momentumRef.current); momentumRef.current = null }
+  }, [])
+
   const handleDragStart = useCallback((e: React.MouseEvent | React.TouchEvent) => {
     if (!onPositionChange || !containerRef.current) return
     if ('touches' in e && e.touches.length >= 2) return
     e.preventDefault()
+    stopMomentum()
     const clientX = 'touches' in e ? e.touches[0].clientX : e.clientX
     const clientY = 'touches' in e ? e.touches[0].clientY : e.clientY
     dragStart.current = { x: clientX, y: clientY, posX: positionX, posY: positionY }
+    lastMoveRef.current = { x: clientX, y: clientY, t: performance.now() }
+    velocityRef.current = { vx: 0, vy: 0 }
     setIsDragging(true)
 
     const handleMove = (ev: MouseEvent | TouchEvent) => {
       if (!dragStart.current || !containerRef.current) return
       if ('touches' in ev && ev.touches.length >= 2) return
-      // rAF throttle: skip if a frame is already pending
       if (rafRef.current) return
       rafRef.current = requestAnimationFrame(() => {
         rafRef.current = null
         if (!dragStart.current || !containerRef.current) return
-        const cx = 'touches' in ev ? ev.touches[0].clientX : ev.clientX
-        const cy = 'touches' in ev ? ev.touches[0].clientY : ev.clientY
+        const cx = 'touches' in ev ? (ev as TouchEvent).touches[0].clientX : (ev as MouseEvent).clientX
+        const cy = 'touches' in ev ? (ev as TouchEvent).touches[0].clientY : (ev as MouseEvent).clientY
         const rect = containerRef.current.getBoundingClientRect()
         const dx = (cx - dragStart.current.x) / rect.width
         const dy = (cy - dragStart.current.y) / rect.height
-        const newX = Math.max(-0.3, Math.min(1.3, dragStart.current.posX + dx))
-        const newY = Math.max(-0.3, Math.min(1.3, dragStart.current.posY + dy))
+        const newX = Math.max(-0.5, Math.min(1.5, dragStart.current.posX + dx))
+        const newY = Math.max(-0.5, Math.min(1.5, dragStart.current.posY + dy))
         onPositionChange(newX, newY)
+
+        // Track velocity for momentum
+        const now = performance.now()
+        const dt = now - lastMoveRef.current.t
+        if (dt > 0) {
+          const mvx = (cx - lastMoveRef.current.x) / rect.width / (dt / 1000)
+          const mvy = (cy - lastMoveRef.current.y) / rect.height / (dt / 1000)
+          // Smooth velocity with exponential moving average
+          velocityRef.current = {
+            vx: velocityRef.current.vx * 0.6 + mvx * 0.4,
+            vy: velocityRef.current.vy * 0.6 + mvy * 0.4,
+          }
+        }
+        lastMoveRef.current = { x: cx, y: cy, t: now }
       })
     }
 
@@ -119,13 +145,32 @@ export default function MockupPreview({
       window.removeEventListener('mouseup', handleUp)
       window.removeEventListener('touchmove', handleMove)
       window.removeEventListener('touchend', handleUp)
+
+      // Apply momentum
+      const { vx, vy } = velocityRef.current
+      const speed = Math.hypot(vx, vy)
+      if (speed > 0.15 && onPositionChange) {
+        let cvx = vx * 0.3 // dampen initial velocity
+        let cvy = vy * 0.3
+        const friction = 0.92
+        const tick = () => {
+          cvx *= friction
+          cvy *= friction
+          if (Math.hypot(cvx, cvy) < 0.002) { momentumRef.current = null; return }
+          const nx = Math.max(-0.5, Math.min(1.5, latestPos.current.x + cvx * 0.016))
+          const ny = Math.max(-0.5, Math.min(1.5, latestPos.current.y + cvy * 0.016))
+          onPositionChange(nx, ny)
+          momentumRef.current = requestAnimationFrame(tick)
+        }
+        momentumRef.current = requestAnimationFrame(tick)
+      }
     }
 
     window.addEventListener('mousemove', handleMove)
     window.addEventListener('mouseup', handleUp)
     window.addEventListener('touchmove', handleMove, { passive: false })
     window.addEventListener('touchend', handleUp)
-  }, [positionX, positionY, onPositionChange])
+  }, [positionX, positionY, onPositionChange, stopMomentum])
 
   // --- Resize handles (corner drag to scale) ---
   const resizeStart = useRef<{ y: number; scale: number } | null>(null)

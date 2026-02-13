@@ -11,6 +11,7 @@ import PublishToggle from '@/components/poster/PublishToggle'
 import VariantsGrid from '@/components/poster/VariantsGrid'
 import Button from '@/components/ui/Button'
 import { calculatePrintPrice, formatSEK } from '@/lib/pricing/prints'
+import { getSizeById } from '@/lib/image/resize'
 
 interface DesignVariantData {
   id: string
@@ -387,6 +388,24 @@ export default function WallcraftDesignPage() {
 
             <div className="bg-white rounded-2xl p-5 border border-gray-200/60">
               <SizePicker selectedSizeId={sizeId} onSelect={setSizeId} />
+              {(() => {
+                const sz = getSizeById(sizeId)
+                if (!sz) return null
+                const displayW = Math.round(sz.widthCm * scale)
+                const displayH = Math.round(sz.heightCm * scale)
+                const isScaled = Math.abs(scale - 1.0) > 0.02
+                return (
+                  <div className="mt-3 pt-3 border-t border-gray-100 text-sm text-gray-600">
+                    <div className="flex justify-between items-center">
+                      <span>Visad storlek</span>
+                      <span className="font-semibold text-gray-900">{displayW} × {displayH} cm</span>
+                    </div>
+                    {isScaled && (
+                      <p className="text-xs text-gray-400 mt-1">Originalstorlek: {sz.widthCm} × {sz.heightCm} cm</p>
+                    )}
+                  </div>
+                )
+              })()}
             </div>
 
             <div className="bg-white rounded-2xl p-5 border border-gray-200/60">

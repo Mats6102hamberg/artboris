@@ -159,29 +159,38 @@ export default function PrintYourOwnPage() {
               </p>
             </div>
             <WallMarker imageUrl={roomImageUrl} corners={wallCorners} onCornersChange={setWallCorners} />
-            <div className="flex justify-between">
+            <div className="flex justify-between items-center">
               <Button variant="ghost" onClick={() => setStep('upload-room')}>
                 ← Back
               </Button>
-              <Button
-                onClick={handleCreateDesign}
-                disabled={wallCorners.length < 4 || isCreating}
-                size="lg"
-              >
-                {isCreating ? (
-                  <>
-                    <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                    Creating...
-                  </>
-                ) : (
-                  <>
-                    See it on your wall
-                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" />
-                    </svg>
-                  </>
-                )}
-              </Button>
+              <div className="flex items-center gap-3">
+                <button
+                  onClick={handleCreateDesign}
+                  disabled={isCreating}
+                  className="text-sm text-gray-500 hover:text-gray-900 underline underline-offset-4 transition-colors disabled:opacity-50"
+                >
+                  Skip — place freely
+                </button>
+                <Button
+                  onClick={handleCreateDesign}
+                  disabled={wallCorners.length < 4 || isCreating}
+                  size="lg"
+                >
+                  {isCreating ? (
+                    <>
+                      <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                      Creating...
+                    </>
+                  ) : (
+                    <>
+                      See it on your wall
+                      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" />
+                      </svg>
+                    </>
+                  )}
+                </Button>
+              </div>
             </div>
           </div>
         )}
