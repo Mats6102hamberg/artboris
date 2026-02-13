@@ -119,9 +119,10 @@ export function isDemoMode(): boolean {
 
 export function getDemoVariants(style: StylePreset) {
   const images = DEMO_IMAGES[style] || DEMO_IMAGES.minimal
+  const ts = Date.now()
 
   return images.map((url, i) => ({
-    id: `demo-variant-${style}-${i + 1}`,
+    id: `demo-var-${ts}-${style}-${i}`,
     imageUrl: url,
     thumbnailUrl: url,
     isSelected: false,

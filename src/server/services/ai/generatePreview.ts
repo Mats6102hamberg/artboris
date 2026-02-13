@@ -33,98 +33,96 @@ export async function generatePreview(input: GeneratePreviewInput): Promise<Gene
 
   const prompt = buildGeneratePrompt(style, controls, userDescription)
 
-  // Demo mode — return placeholder images when no API key is set
+  let variants: Omit<DesignVariant, 'designId'>[] = []
+
+  // Demo mode — use placeholder images when no API key is set
   if (isDemoMode()) {
     const demoVariants = getDemoVariants(style)
-    return {
-      success: true,
-      variants: demoVariants.map((v, i) => ({
-        id: v.id,
-        imageUrl: v.imageUrl,
-        thumbnailUrl: v.thumbnailUrl,
-        seed: v.seed,
-        isSelected: false,
-        createdAt: new Date().toISOString(),
-      })),
-      prompt,
-    }
-  }
-
-  const safetyCheck = checkPromptSafety(prompt)
-  if (!safetyCheck.safe) {
-    return {
-      success: false,
-      variants: [],
-      prompt,
-      error: safetyCheck.reason,
-    }
-  }
-
-  try {
-    // Generate variants in parallel
-    const promises = Array.from({ length: count }, (_, i) =>
-      generateSingleVariant(prompt, i)
-    )
-
-    const results = await Promise.allSettled(promises)
-    const variants: Omit<DesignVariant, 'designId'>[] = []
-
-    for (const result of results) {
-      if (result.status === 'fulfilled' && result.value) {
-        variants.push(result.value)
-      }
-    }
-
-    if (variants.length === 0) {
+    variants = demoVariants.map((v) => ({
+      id: v.id,
+      imageUrl: v.imageUrl,
+      thumbnailUrl: v.thumbnailUrl,
+      seed: v.seed,
+      isSelected: false,
+      createdAt: new Date().toISOString(),
+    }))
+  } else {
+    const safetyCheck = checkPromptSafety(prompt)
+    if (!safetyCheck.safe) {
       return {
         success: false,
         variants: [],
         prompt,
-        error: 'Kunde inte generera några varianter. Försök igen.',
+        error: safetyCheck.reason,
       }
     }
 
-    // Persist to DB if we have variants and an anonId
-    let designId: string | undefined
-    if (variants.length > 0 && input.anonId) {
-      try {
-        const design = await prisma.design.create({
-          data: {
-            userId: input.anonId,
-            title: `${style} design`,
-            imageUrl: variants[0].imageUrl,
-            style,
-            prompt,
-            roomImageUrl: input.roomImageUrl || null,
-            wallCorners: input.wallCorners || null,
-            variants: {
-              create: variants.map((v, i) => ({
-                id: v.id,
-                imageUrl: v.imageUrl,
-                thumbnailUrl: v.thumbnailUrl,
-                seed: v.seed,
-                sortOrder: i,
-              })),
-            },
-          },
-        })
-        designId = design.id
-        console.log(`[generatePreview] Design saved: ${designId} with ${variants.length} variants`)
-      } catch (dbErr) {
-        console.error('[generatePreview] DB save failed (non-blocking):', dbErr)
-      }
-    }
+    try {
+      // Generate variants in parallel
+      const promises = Array.from({ length: count }, (_, i) =>
+        generateSingleVariant(prompt, i)
+      )
 
-    return { success: true, variants, prompt, designId }
-  } catch (error) {
-    console.error('[generatePreview] Error:', error)
-    return {
-      success: false,
-      variants: [],
-      prompt,
-      error: error instanceof Error ? error.message : 'Okänt fel vid generering',
+      const results = await Promise.allSettled(promises)
+
+      for (const result of results) {
+        if (result.status === 'fulfilled' && result.value) {
+          variants.push(result.value)
+        }
+      }
+
+      if (variants.length === 0) {
+        return {
+          success: false,
+          variants: [],
+          prompt,
+          error: 'Kunde inte generera några varianter. Försök igen.',
+        }
+      }
+    } catch (error) {
+      console.error('[generatePreview] Error:', error)
+      return {
+        success: false,
+        variants: [],
+        prompt,
+        error: error instanceof Error ? error.message : 'Okänt fel vid generering',
+      }
     }
   }
+
+  // Persist to DB (both demo and real mode)
+  let designId: string | undefined
+  if (variants.length > 0) {
+    const userId = input.anonId || 'anonymous'
+    try {
+      const design = await prisma.design.create({
+        data: {
+          userId,
+          title: `${style} design`,
+          imageUrl: variants[0].imageUrl,
+          style,
+          prompt,
+          roomImageUrl: input.roomImageUrl || null,
+          wallCorners: input.wallCorners || null,
+          variants: {
+            create: variants.map((v, i) => ({
+              id: v.id,
+              imageUrl: v.imageUrl,
+              thumbnailUrl: v.thumbnailUrl,
+              seed: v.seed,
+              sortOrder: i,
+            })),
+          },
+        },
+      })
+      designId = design.id
+      console.log(`[generatePreview] Design saved: ${designId} with ${variants.length} variants`)
+    } catch (dbErr) {
+      console.error('[generatePreview] DB save failed (non-blocking):', dbErr)
+    }
+  }
+
+  return { success: true, variants, prompt, designId }
 }
 
 async function generateSingleVariant(
