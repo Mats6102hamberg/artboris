@@ -1,155 +1,187 @@
-# Handover — Artboris / Poster Lab
+# Handover — Artboris
 
-**GitHub:** https://github.com/Mats6102hamberg/usk
-**Lokal sökväg:** `/Users/matshamberg/CascadeProjects/Artboris`
-**Senast uppdaterad:** 2026-02-12
-
----
-
-## Projektöversikt
-
-Artboris är en Next.js 16-app med två moduler:
-
-1. **Art Scanner** — Skannar Bukowskis, Barnebys, Auctionet, Tradera efter undervärderade konstverk. Använder GPT-4 för AI-värdering och en heuristisk fallback (`priceAnalyzer.ts`). Inkluderar BorisArt AI-chatbot.
-
-2. **Poster Lab** (NY) — Användare laddar upp rumsfoto, markerar vägg, väljer bland 12 stilar, får 4 AI-genererade posterförslag (DALL-E 3), redigerar (ram, storlek, placering), och beställer tryck via ett credit-system.
+**GitHub:** https://github.com/Mats6102hamberg/artboris
+**Local path:** `/Users/matshamberg/CascadeProjects/Artboris`
+**Last updated:** 2026-02-13
 
 ---
 
-## Hur man kommer igång
+## Project Overview
+
+Artboris is a Next.js 16 app with multiple products:
+
+1. **Wallcraft** (main product) — Create unique art for your walls. Includes 4 interactive creative tools, AI-powered design studio, room mockup preview, and print ordering via Stripe.
+2. **Art Scanner** — Scans auction houses for undervalued artworks with GPT-4 valuation.
+3. **BorisArt AI** — GPT-4 chatbot for art questions.
+4. **My Artworks** — Personal art collection manager.
+
+---
+
+## Getting Started
 
 ```bash
 cd /Users/matshamberg/CascadeProjects/Artboris
 npm install
-npx prisma migrate dev    # OBS: Ej kört ännu — krävs för nya tabeller
 npm run dev
 ```
 
-**Miljövariabler** (`.env`):
-```
+Works in **demo mode** without any API keys. Open http://localhost:3000.
+
+**For full features:**
+```bash
+# Create .env.local with:
 DATABASE_URL=postgresql://...
 OPENAI_API_KEY=sk-...
+STRIPE_SECRET_KEY=sk_...
+STRIPE_WEBHOOK_SECRET=whsec_...
+BLOB_READ_WRITE_TOKEN=vercel_blob_...
+REPLICATE_API_TOKEN=r8_...
+
+# Run migrations
+npx prisma migrate dev
 ```
 
 ---
 
-## Arkitektur — Poster Lab
+## Wallcraft Architecture
 
-### Användarflöde
+### Routes
+
+| Route | Page | Description |
+|-------|------|-------------|
+| `/wallcraft` | Landing | Hero, creative tools grid, featured designs, CTA, footer |
+| `/wallcraft/studio` | Design Studio | Upload room → mark wall → pick style → AI generates 4 variants |
+| `/wallcraft/result` | Results | Variant selection (redirects to design editor) |
+| `/wallcraft/design/[id]` | Design Editor | Position on wall, pick frame & size, auto-saves state |
+| `/wallcraft/gallery` | Gallery | Public inspiration gallery with filter, sort, likes |
+| `/wallcraft/checkout` | Checkout | Stripe checkout flow |
+| `/wallcraft/mandala` | Mandala Maker | Radial symmetry drawing tool (4–16 fold) |
+| `/wallcraft/pattern` | Pattern Studio | Seamless tile pattern creator with live repeat preview |
+| `/wallcraft/abstract` | Abstract Painter | Generative flow-field particle painting |
+| `/wallcraft/colorfield` | Color Field Studio | Minimalist color field compositions (Rothko/Albers) |
+
+### Creative Tools — Shared Architecture
+
+All 4 creative tools follow the same pattern:
+
 ```
-/poster-lab          → Upload rum → Markera 4 hörn → Välj stil
-/poster-lab/result   → Se 4 varianter → Justera (mood/färg/kontrast/text) → Förfina
-/poster-lab/editor   → Placera på vägg → Ram → Storlek → Prisöversikt
-/poster-lab/checkout → Köp credits → Beställ → Slutrender triggas
-/poster-lab/gallery  → Inspirationsflöde (filtrera stil, sortera, gilla)
-```
-
-### Nyckelkomponenter
-| Komponent | Fil | Ansvar |
-|-----------|-----|--------|
-| RoomUpload | `components/poster/RoomUpload.tsx` | Drag-drop bilduppladdning |
-| WallMarker | `components/poster/WallMarker.tsx` | Klicka 4 hörn, dra för att justera |
-| StylePicker | `components/poster/StylePicker.tsx` | 12 stilar med färgpreview |
-| VariantsGrid | `components/poster/VariantsGrid.tsx` | 2×2 grid med val-indikator |
-| ControlsPanel | `components/poster/ControlsPanel.tsx` | Mood, kontrast, ljus, mättnad, färg, text |
-| MockupPreview | `components/poster/MockupPreview.tsx` | CSS-baserad väggplacering |
-| FramePicker | `components/poster/FramePicker.tsx` | 6 ramalternativ |
-| SizePicker | `components/poster/SizePicker.tsx` | 8 storlekar (A5–70×100) |
-
-### Backend-tjänster
-| Tjänst | Fil | Beskrivning |
-|--------|-----|-------------|
-| generatePreview | `server/services/ai/generatePreview.ts` | DALL-E 3, 4 parallella varianter |
-| refinePreview | `server/services/ai/refinePreview.ts` | Ny variant baserad på feedback |
-| generateFinalPrint | `server/services/ai/generateFinalPrint.ts` | HD-render (efter betalning) |
-| composeMockup | `server/services/mockup/composeMockup.ts` | CSS-overlay för väggplacering |
-| canSpend / spend | `server/services/credits/` | Credit-kontroll och transaktioner |
-| publish / list | `server/services/gallery/` | Galleri CRUD + likes |
-| createOrder | `server/services/orders/createOrder.ts` | Order + credit-avdrag i transaktion |
-
-### Databasmodeller (Prisma)
-```prisma
-CreditAccount    — userId (unique), balance, totalPurchased, totalSpent
-CreditTransaction — userId, amount, type, description, orderId
-GalleryItem      — designId, userId, title, imageUrl, style, likes, isPublished
-PosterOrder      — userId, designId, variantId, frameId, sizeId, status, creditsSpent
+Canvas drawing/generation → Refine (local processing) → Compare (before/after slider)
+  → "Use as Wall Art" (upload to Blob → create Design → open editor)
+  → "Download PNG" (direct export)
 ```
 
-### Stilsystem (`lib/prompts/styles.ts`)
-12 stilar: `nordic`, `retro`, `minimal`, `abstract`, `botanical`, `geometric`, `watercolor`, `line-art`, `photography`, `typographic`, `pop-art`, `japanese`
+**Key shared module:** `src/lib/mandala/refineArtwork.ts`
+- Local canvas image processing (no external services)
+- Smoothing (box blur), contrast (S-curve), vibrance boost, radial depth glow
+- Configurable via `RefineSettings` interface
+- Used by all 4 creative tools
 
-Varje stil har: label, description, promptPrefix, defaultMood, defaultColors.
+### Navigation
 
-### Säkerhet (`lib/prompts/safety.ts`)
-Blocklista med ~30 termer (SV+EN) + regex-mönster. Kontrolleras innan varje AI-anrop.
+- **Desktop:** "Tools" dropdown in navbar → links to all 4 creative tools
+- **Mobile:** Hamburger menu with "Creative Tools" section
+- **Landing page:** Creative Tools section with 5 cards (4 tools + Design Studio)
+
+### Backend Services
+
+| Service | File | Description |
+|---------|------|-------------|
+| generatePreview | `server/services/ai/generatePreview.ts` | DALL-E 3, 4 parallel variants. Demo mode returns local SVGs. |
+| refinePreview | `server/services/ai/refinePreview.ts` | New variant based on user feedback |
+| generateFinalPrint | `server/services/ai/generateFinalPrint.ts` | HD render for printing |
+| composeMockup | `server/services/mockup/composeMockup.ts` | CSS-based wall placement |
+| canSpend / spend | `server/services/credits/` | Credit check and transactions |
+| publish / list / like | `server/services/gallery/` | Gallery CRUD + anonymous likes |
+| createOrder | `server/services/orders/createOrder.ts` | Order + credit deduction in transaction |
+| generatePrintAsset | `server/services/print/generatePrintAsset.ts` | Sharp-based print file generation |
+| sendEmail | `server/services/email/sendEmail.ts` | Order confirmation emails |
+
+### Key Components
+
+| Component | File | Purpose |
+|-----------|------|---------|
+| Button | `components/ui/Button.tsx` | Variants: primary/secondary/ghost/outline, sizes: sm/md/lg |
+| Card | `components/ui/Card.tsx` | Variants: default/elevated/bordered |
+| LanguageSwitcher | `components/ui/LanguageSwitcher.tsx` | EN/SV toggle |
+| RoomUpload | `components/poster/RoomUpload.tsx` | Drag-drop image upload |
+| WallMarker | `components/poster/WallMarker.tsx` | Click 4 corners, drag to adjust |
+| StylePicker | `components/poster/StylePicker.tsx` | 18 styles with color preview |
+| MockupPreview | `components/poster/MockupPreview.tsx` | CSS-based wall placement |
+| CreditBadge | `components/poster/CreditBadge.tsx` | Credit balance display |
+
+### i18n System
+
+- Dictionaries: `src/i18n/en.json`, `src/i18n/sv.json`
+- Provider: `src/lib/i18n/context.tsx` → `I18nProvider` + `useTranslation()` hook
+- Locale stored in `localStorage('wallcraft-locale')`
+- All Wallcraft pages use English strings (translated from Swedish)
+
+### Database Models (Prisma)
+
+**Design & Gallery:**
+- `Design` — style, roomType, colorMood, likesCount, position/scale/frame/size state
+- `DesignVariant` — individual generated variants
+- `DesignAsset` — print files (roles: PREVIEW/PRINT/THUMB) with DPI, size, URL
+- `Like` — anonymous likes with anonId, `@@unique([designId, anonId])`
+- `RoomMeta` — wall color, light type, mood (1:1 to Design)
+
+**Credits:**
+- `CreditAccount` — balance per user (anonId)
+- `CreditTransaction` — purchase/spend history
+
+**Orders:**
+- `Order` — main order with status enum, prices in cents (SEK)
+- `OrderItem` — product type (POSTER/CANVAS/METAL/FRAMED_POSTER), size, frame, paper
+- `Payment` — Stripe integration (checkout session, payment intent)
+- `ShippingAddress` — full address with ISO country code
+- `Fulfillment` — print status per item: partner, tracking, timestamps
+- `PrintPartner` — seeded: Crimson (crimson.se, Stockholm)
+
+### Print Pipeline
+
+```
+Design editor → PATCH auto-save (position, scale, crop, frame, size)
+  → Order created → Stripe checkout → Webhook confirms payment
+  → GENERATE_PRINT_FINAL triggered (non-blocking)
+  → renderFinalPrint.ts: fetch design + crop from DB → Sharp processing → Blob upload → DesignAsset
+  → Admin UI: shows READY/MISSING for PRINT_FINAL with download link
+```
+
+### Brand Style
+
+- Background: `#FAFAF8` (warm off-white)
+- Scandinavian modern, minimal, warm neutral tones
+- Font: light weight headings, medium body
+- `rounded-2xl` cards, `rounded-xl` buttons
+- No clutter, no neon
 
 ---
 
-## Kända begränsningar & TODO
+## Known Limitations & TODO
 
-### Kritiskt (för produktion)
-- [ ] **Auth** — Ingen autentisering. `userId` är hårdkodat som `'demo-user'`
-- [ ] **Betalning** — Credits köps utan riktig betalning (Stripe/Klarna behövs)
-- [ ] **Bildlagring** — Rumsfoto sparas lokalt i `public/uploads/`. Behöver S3/Cloudinary
-- [ ] **DB-migration** — `prisma migrate dev` har ej körts för de nya modellerna
+### For Production
+- [ ] **Auth** — No real authentication. Uses cookie-based `anonId`
+- [ ] **Remaining Swedish** — poster-lab, admin UI, some components still have Swedish strings
+- [ ] **Frame assets** — PNG placeholders, need real frame images
+- [ ] **Tests** — No test suite
 
-### Bra att ha
-- [ ] **Upscaling** — DALL-E 3 max 1024×1792. Behöver super-resolution för tryck
-- [ ] **Asset-bilder** — Ram-PNG:er är placeholders
-- [ ] **Perspektivtransform** — Fungerar med CSS. Server-side compositing (Sharp) för slutrender
-- [ ] **E-post** — Orderbekräftelse
-- [ ] **Admin** — Orderhantering, gallerimoderering
-
-### Teknisk skuld
-- [ ] TypeScript strict-check ej verifierad
-- [ ] Inga tester
-- [ ] Variants skickas via URL-params (kan bli för långt) — bör använda sessionStorage eller DB
+### Nice to Have
+- [ ] **SEO** — Meta tags, OG images for Wallcraft pages
+- [ ] **Onboarding** — First-visit tutorial
+- [ ] **Gallery seeding** — Pre-populate with example designs
+- [ ] **More creative tools** — Typography tool, collage maker, etc.
+- [ ] **Social sharing** — Share designs to social media
 
 ---
 
-## Rekommenderade nästa steg (för att locka användare)
-
-Konceptet "skapa AI-konst → se den på din vägg → beställ tryck" har potential — det löser ett riktigt problem som Desenio/Poster Store inte gör. Men just nu är det ett tekniskt skelett. Här är vad som behövs för att göra det visningsbart:
-
-### 1. Demo-läge med mockbilder (PRIO 1)
-Hela flödet kräver idag en OpenAI API-nyckel. Bygg ett demo-läge som returnerar fördefinierade exempelbilder så att vem som helst kan klicka igenom hela flödet utan API-nyckel. Gör det till default om `OPENAI_API_KEY` saknas.
-
-### 2. Landingpage med "wow"-faktor (PRIO 1)
-`/poster-lab` går idag rakt in i upload-steget. Behöver en hero-sektion med:
-- Stor mockup-bild (poster i snyggt rum)
-- Kort pitch: "Skapa unik konst med AI — se den på din vägg"
-- CTA-knapp
-- 3-stegs-förklaring med ikoner
-- Exempelgalleri (3-4 bilder)
-
-### 3. Seed:a galleriet (PRIO 2)
-Galleriet är tomt. Fyll med 10-20 snygga exempeldesigns i olika stilar så det finns inspiration direkt. Lägg till social proof ("Skapad av 247 användare" etc.)
-
-### 4. Mobilanpassning (PRIO 2)
-WallMarker-komponenten kräver troligen touch-events för att fungera på mobil. Testa och fixa.
-
-### 5. Onboarding (PRIO 3)
-Kort intro/tutorial vid första besöket som visar flödet i 3 steg.
-
----
-
-## Git-remotes
+## Git
 
 | Remote | URL |
 |--------|-----|
 | `origin` | https://github.com/Mats6102hamberg/artboris.git |
-| `usk` | https://github.com/Mats6102hamberg/usk.git |
 
-Pusha med: `git push usk main`
+Push: `git push origin main`
 
 ---
 
-## Kontakt & kontext
-
-Projektet ligger i `/Users/matshamberg/CascadeProjects/Artboris` tillsammans med andra Cascade-projekt:
-- Boris Type
-- Petanque-Den-Kompletta-Guiden
-- health-coach-ai
-- net-sailor / net-sailor-core
-- nursecore
-- uskcore
+*Last updated: 2026-02-13 · Built with Cascade AI*

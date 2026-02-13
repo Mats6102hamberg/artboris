@@ -1,61 +1,96 @@
-# Session Summary — Artboris / Poster Lab
+# Session Summary — Artboris
 
-**Datum:** 2026-02-12
-**GitHub:** https://github.com/Mats6102hamberg/usk
-**Lokal sökväg:** `/Users/matshamberg/CascadeProjects/Artboris`
-
----
-
-## Vad gjordes denna session
-
-### 1. Projektgenomgång
-- Gick igenom hela Artboris-kodbasen (Art Scanner)
-- Identifierade tech stack, arkitektur, alla filer och flöden
-- Konstaterade att inga session/handover-filer fanns sedan tidigare
-
-### 2. Poster Lab — Komplett ny modul (65 filer, ~5 700 rader)
-
-Byggde hela Poster Lab-modulen från scratch baserat på en planerad filstruktur. Modulen låter användare experimentera fram egen konst och se den i sitt rum.
-
-**Skapade filer:**
-
-| Kategori | Filer | Beskrivning |
-|----------|-------|-------------|
-| **Types** | `design.ts`, `room.ts`, `order.ts` | TypeScript-typer för hela modulen |
-| **Lib/prompts** | `styles.ts`, `templates.ts`, `safety.ts` | 12 stilar, prompt-byggare, innehållsfilter |
-| **Lib/image** | `transform.ts`, `resize.ts`, `watermark.ts` | Perspektivtransform, storlekar (A5–70×100), vattenstämpel |
-| **Lib/pricing** | `credits.ts`, `prints.ts` | Credit-paket, rampriser, printpriser |
-| **Server/services** | 8 filer i `ai/`, `mockup/`, `credits/`, `gallery/`, `orders/` | All backend-logik |
-| **Components** | 10 React-komponenter i `poster/` | RoomUpload, WallMarker, StylePicker, VariantsGrid, ControlsPanel, FramePicker, SizePicker, MockupPreview, CreditBadge, PublishToggle |
-| **API Routes** | 10 routes | rooms/upload, designs/generate, designs/refine, mockups/render, credits/balance, credits/spend, orders/create, renders/final, gallery/publish, gallery/list |
-| **Pages** | 5 sidor | poster-lab (start), result, editor, gallery, checkout |
-| **Prisma** | 4 nya modeller | CreditAccount, CreditTransaction, GalleryItem, PosterOrder |
-| **Assets** | 7 placeholder-filer | Ramar (black, white, oak, walnut, gold), matta, skugga |
-
-### 3. Integration
-- Lade till "Poster Lab"-knapp i Art Scanner-headern (`page.tsx`)
-- Körde `prisma generate` för att uppdatera klienten
-
-### 4. Git
-- Committade allt: `feat: Add Poster Lab - AI poster creation tool...`
-- Pushade till nytt repo: https://github.com/Mats6102hamberg/usk
-- Lade till `usk` som extra remote (origin = artboris, usk = usk)
+**Date:** 2026-02-13
+**GitHub:** https://github.com/Mats6102hamberg/artboris
+**Local path:** `/Users/matshamberg/CascadeProjects/Artboris`
 
 ---
 
-## Vad som INTE gjordes / kvarstår
+## Latest Session (2026-02-13)
 
-- [ ] `prisma migrate dev` — nya tabeller finns i schemat men ej migrerade till databasen
-- [ ] TypeScript build-verifiering (`npx tsc --noEmit`) — avbröts
-- [ ] Riktiga asset-bilder (ramar etc.) — är placeholders
-- [ ] Autentisering — userId är hårdkodat som `'demo-user'`
-- [ ] Betalningsintegration (Stripe/Klarna) — credits köps utan riktig betalning
-- [ ] Bilduppladdning till molnlagring (S3/Cloudinary) — sparas lokalt i `public/uploads/`
-- [ ] Upscaling av DALL-E-bilder till tryckupplösning
+### 1. Three New Creative Tools
+
+Built three complete interactive creative tools for Wallcraft, all with the same premium Scandinavian UI:
+
+**Pattern Studio** (`/wallcraft/pattern`)
+- Seamless tile pattern creator with live repeat preview
+- 4 repeat modes: grid, brick, mirror, diagonal
+- 5 drawing tools: brush, eraser, line, circle, rect
+- Configurable tile size (64–256px), opacity, color palettes, backgrounds
+- Exports 1024×1024px tiled pattern
+- Undo/redo, clear, grid overlay
+
+**Abstract Painter** (`/wallcraft/abstract`)
+- Generative flow-field particle painting with real-time animation
+- 5 flow styles: smooth, turbulent, spiral, waves, organic
+- Controls: particle count (50–800), speed, trail length, particle size, complexity
+- 8 color palettes (Aurora, Ember, Deep Sea, Forest, Dusk, Earth, Monochrome, Candy)
+- Generate → watch → stop when satisfied
+- Undo to previous snapshot
+
+**Color Field Studio** (`/wallcraft/colorfield`)
+- Minimalist color field compositions inspired by Rothko and Albers
+- 12 preset palettes (Rothko Warm/Cool, Albers, Sunset, Ocean Depth, etc.)
+- 5 layouts: horizontal, vertical, grid, centered, floating
+- 5 textures: none, subtle, canvas, linen, grain
+- 4 edge modes: sharp, soft, feathered, painterly
+- Adjustable padding, gap, corner radius
+- Add/remove/reorder color fields with individual weight control
+- Shuffle colors button
+
+### 2. Shared Features Across All Tools
+
+All creative tools (including existing Mandala Maker) share:
+- **Refine** button — local canvas processing (smoothing, contrast, vibrance, depth glow) via `refineArtwork()`
+- **Before/After comparison** — slider with drag support (mouse + touch)
+- **Use as Wall Art** — uploads PNG to Blob → creates Design → opens design editor
+- **Download PNG** — direct export
+- **Mobile responsive** — adaptive canvas sizes, touch support
+
+### 3. Landing Page Navigation Updated
+
+- **Desktop:** "Tools" dropdown menu in navbar with all 4 creative tools
+- **Mobile:** All tools listed in hamburger menu under "Creative Tools" heading
+- **Creative Tools section:** Expanded from 2 cards to 5 (Mandala, Pattern, Abstract, Color Field + full-width Design Studio card)
+
+### 4. Documentation Rewrite
+
+- Rewrote README.md — full English, current architecture, all features
+- Rewrote SESSION-SUMMARY.md — this file
+- Rewrote HANDOVER.md — complete handover for new developers
 
 ---
 
-## Kända lint-varningar
-- `response.data` i OpenAI-anrop — fixade med optional chaining (`?.`)
-- Spread-ordning i `designs/generate/route.ts` — fixade med `Object.assign`
-- Prisma-modeller krävde `prisma generate` (kört)
+## Previous Sessions (Summary)
+
+### Mandala Maker + Refine Feature
+- Built Mandala Maker (`/wallcraft/mandala`) with 4–16 fold radial symmetry
+- Created `refineArtwork()` module (`src/lib/mandala/refineArtwork.ts`) — local canvas processing
+- Added Refine button, overlay, before/after slider comparison
+
+### Swedish → English Translation
+- Translated all Wallcraft pages, API routes, server services, demo data to English
+- Remaining Swedish only in non-Wallcraft files (poster-lab, admin UI, some components)
+
+### Wallcraft Platform
+- Built complete Wallcraft product: landing page, studio, result, design editor, gallery, checkout
+- i18n system (EN/SV) with context provider
+- 18 art styles for AI generation
+
+### Infrastructure
+- Stripe checkout + webhook integration
+- Admin order management
+- Print pipeline (Sharp + Vercel Blob)
+- PrintPartner seeded (Crimson, Stockholm)
+- Persistent design storage (DB + Blob)
+
+---
+
+## Known Remaining Work
+
+- [ ] Authentication — userId is cookie-based anonId, no real auth
+- [ ] Translate remaining Swedish in poster-lab, admin UI, some components
+- [ ] Real asset images for frames (currently placeholders)
+- [ ] SEO optimization for Wallcraft pages
+- [ ] Onboarding / tutorial for first-time users
+- [ ] Seed gallery with example designs

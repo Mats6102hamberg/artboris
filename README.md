@@ -1,259 +1,218 @@
-# 🎨 Artboris — AI-driven Konstplattform
+# Artboris — Art Platform
 
-> Hitta undervärderade konstverk, analysera marknaden och skapa unik konst för din vägg — allt i en app.
+> Create unique art for your walls — with interactive creative tools, AI generation, room preview, and print ordering.
 
 **GitHub:** https://github.com/Mats6102hamberg/artboris
+**Live:** Deployed on Vercel
 
 ---
 
 ## Tech Stack
 
-| Lager | Teknik |
-|-------|--------|
+| Layer | Technology |
+|-------|-----------|
 | Frontend | Next.js 16, React 19, TailwindCSS 4 |
 | Backend | Next.js API Routes (App Router) |
-| AI | OpenAI GPT-4 (värdering, chatbot), DALL-E 3 (bildgenerering) |
-| Databas | PostgreSQL + Prisma ORM |
-| Scraping | Axios, Cheerio, Puppeteer (stealth) |
+| AI | OpenAI GPT-4 (valuation, chatbot), DALL-E 3 (image generation) |
+| Database | PostgreSQL + Prisma ORM |
+| Storage | Vercel Blob (persistent image storage) |
+| Payments | Stripe (checkout + webhooks) |
+| Image Processing | Sharp (server-side), Canvas API (client-side) |
+| i18n | Custom EN/SV system with context provider |
 
 ---
 
-## Funktioner
+## Products
 
-### 1. 🔍 Art Scanner — Hitta undervärderad konst
+### Wallcraft — AI-Designed Art for Your Home
 
-Skannar auktionshus och marknadsplatser i realtid efter konstverk med vinstpotential.
+The main product. A complete pipeline from creation to print delivery.
 
-| Funktion | Beskrivning |
-|----------|-------------|
-| **4 källor** | Bukowskis, Barnebys, Auctionet, Tradera |
-| **Söktyper** | Målningar och Skulpturer |
-| **AI-värdering** | Estimerat marknadsvärde, vinstmarginal, konfidensnivå |
-| **Filter** | Minsta vinst (kr), prisintervall, vinstmarginal (%), risknivå, rekommendation |
-| **Snabbfilter** | "Hög vinst (min 50k)", "Säkert val", "Återställ" |
-| **Sortering** | Vinst, vinstmarginal, pris (stigande/fallande), konfidens |
-| **Analys-modal** | Bild, prisanalys, marknadsdata, trend (stigande/stabil/fallande), KÖP/HÅLL/UNDVIK |
-| **Portfölj** | Spara och följ intressanta objekt |
+**URL:** `/wallcraft` (planned: wallcraft.artboris.com)
 
-### 2. 🤖 BorisArt AI — Konstassistent
+#### Creative Tools
 
-En AI-chattbot byggd på GPT-4 som svarar på frågor om:
-- Konstnärer och deras verk
-- Konststilar och epoker
-- Värderingar och marknadstrender
-- Investeringsråd för konst
-
-### 3. 🖼️ Mina Tavlor — Personlig konstsamling
-
-Hantera och visa dina egna konstverk:
-- Ladda upp bilder
-- Spara metadata (konstnär, teknik, storlek, inköpspris)
-- Visa i en snygg gallerivy
-
-### 4. 🎨 Poster Lab — AI-driven Konstskapare
-
-Skapa unik konst för din vägg med AI. Komplett flöde från rum till beställning.
-
-#### Flöde
-
-```
-📷 Ladda upp rum → 📐 Markera vägg (4 hörn) → 🎨 Välj stil (18 stilar)
-    → 🤖 Generera 4 AI-varianter (DALL-E 3)
-    → 🔍 Välj favorit → Förfina med kontroller (mood, färg, kontrast, text)
-    → 🖼️ Editor: placera på vägg, välj ram & storlek
-    → 💳 Checkout: köp credits → beställ tryck
-    → (Valfritt) Dela i inspirationsgalleriet
-```
-
-#### 18 Konststilar
-
-| Stil | Emoji | Beskrivning |
+| Tool | Route | Description |
 |------|-------|-------------|
-| Nordic | 🌿 | Ljusa toner, skandinavisk enkelhet |
-| Retro | 📻 | 70-tals vibbar, varma färger |
-| Minimal | ◻️ | Rent, enkelt, begränsad palett |
-| Abstract | 🎨 | Fria former, expressiva färger |
-| Botanical | 🌸 | Växter, blommor, naturliga illustrationer |
-| Geometric | 🔷 | Geometriska former, Bauhaus-inspirerat |
-| Watercolor | 💧 | Mjuka akvarelltoner |
-| Line Art | ✏️ | Eleganta linjeteckningar |
-| Photography | 📷 | Fotografiskt, stämningsfullt |
-| Typographic | 🔤 | Text som konst |
-| Pop Art | 💥 | Warhol-inspirerat, starka färger |
-| Japanese | 🌸 | Ukiyo-e, zen, japansk estetik |
-| Art Deco | ✨ | Guld, geometri, 1920-tals glamour |
-| Surrealism | 👁️ | Drömlandskap, Dalí-inspirerat |
-| Graffiti | 🎤 | Street art, spray, urban kultur |
-| Pastel | 🧁 | Mjuka pastelltoner, lugnt och ljust |
-| Dark & Moody | 🌑 | Mörkt, dramatiskt, mystiskt |
-| Mid-Century | 💎 | 50/60-tals design, retro-modern |
+| **Mandala Maker** | `/wallcraft/mandala` | Draw symmetric mandala patterns with 4–16 fold radial symmetry. Brush, eraser, color palettes, undo/redo. |
+| **Pattern Studio** | `/wallcraft/pattern` | Create seamless repeating tile patterns. 4 repeat modes (grid, brick, mirror, diagonal). Shape tools (line, circle, rect). Live preview. Exports 1024px tiled image. |
+| **Abstract Painter** | `/wallcraft/abstract` | Generative flow-field particle painting. 5 flow styles (smooth, turbulent, spiral, waves, organic). Real-time animation with controls for particles, speed, trail, size, complexity. |
+| **Color Field Studio** | `/wallcraft/colorfield` | Minimalist color field compositions inspired by Rothko and Albers. 12 preset palettes, 5 layouts, 5 textures, 4 edge modes. Adjustable padding, gap, and corner radius. |
+| **Design Studio** | `/wallcraft/studio` | Upload room photo → mark wall → pick style → AI generates 4 variants (DALL-E 3) → edit in room mockup → order print. |
 
-#### Poster Lab-funktioner
+All creative tools share:
+- **Refine** — Local canvas image processing (smoothing, contrast, vibrance, depth glow) with before/after slider comparison
+- **Use as Wall Art** — Export to Blob → create Design → open in design editor
+- **Download PNG** — Direct export
+- **Mobile responsive** — Touch support, adaptive layouts
+- **Premium Scandinavian UI** — Warm off-white (#FAFAF8), rounded cards, subtle animations
 
-- **Demo-läge** — Fungerar helt utan OpenAI API-nyckel med lokala SVG-konstverk
-- **Mobilanpassad** — Touch-stöd för väggmarkering, responsiva layouter, sticky knappar
-- **Zoom-lightbox** — Dubbelklicka för fullscreen på varianter
-- **Galleri** — Designs med filtrering, sortering, optimistic like-toggle och "Skapa liknande"-CTA
-- **Credit-system** — Prisberäkning för tryck och ramar
-- **Konfetti-animation** — Vid orderbekräftelse
-- **Animerad landingpage** — Mörkt tema med scrollande stilgalleri och glödande CTA
+#### Design Studio Flow
+
+```
+Upload room → Mark wall (4 corners) → Pick style (18 styles)
+  → AI generates 4 variants (DALL-E 3)
+  → Select favorite → Refine with controls (mood, color, contrast)
+  → Editor: position on wall, pick frame & size
+  → Checkout: buy credits → order print
+  → (Optional) Share to inspiration gallery
+```
+
+#### 18 Art Styles
+
+Nordic · Retro · Minimal · Abstract · Botanical · Geometric · Watercolor · Line Art · Photography · Typographic · Pop Art · Japanese · Art Deco · Surrealism · Graffiti · Pastel · Dark & Moody · Mid-Century
+
+#### Gallery
+
+Public inspiration gallery with filtering by style, sorting, anonymous likes (cookie-based anonId), and "Create similar" CTA.
 
 ---
 
-## Projektstruktur
+### Art Scanner
+
+Scans auction houses (Bukowskis, Barnebys, Auctionet, Tradera) for undervalued artworks. GPT-4 valuation with confidence levels, profit margins, and buy/hold/avoid recommendations.
+
+### BorisArt AI
+
+GPT-4 chatbot for art questions — artists, styles, valuations, market trends, investment advice.
+
+### My Artworks
+
+Personal art collection manager — upload images, save metadata (artist, technique, size, purchase price), gallery view.
+
+---
+
+## Project Structure
 
 ```
 src/
 ├── app/
-│   ├── page.tsx                    # Art Scanner (huvudsida)
-│   ├── poster-lab/
-│   │   ├── page.tsx                # Poster Lab (landing + create-flöde)
-│   │   ├── result/page.tsx         # Variant-val med zoom-lightbox
-│   │   ├── editor/page.tsx         # Ram, storlek, placering på vägg
-│   │   ├── gallery/page.tsx        # Inspirationsgalleri med filter
-│   │   └── checkout/page.tsx       # Kassa med konfetti
+│   ├── page.tsx                        # Art Scanner (home)
+│   ├── wallcraft/
+│   │   ├── page.tsx                    # Landing page (hero, tools, featured, CTA)
+│   │   ├── layout.tsx                  # I18nProvider wrapper
+│   │   ├── studio/page.tsx             # AI creation flow
+│   │   ├── result/page.tsx             # Variant selection
+│   │   ├── design/[id]/page.tsx        # Design editor (frame, size, position)
+│   │   ├── gallery/page.tsx            # Inspiration gallery
+│   │   ├── checkout/page.tsx           # Checkout flow
+│   │   ├── mandala/page.tsx            # Mandala Maker
+│   │   ├── pattern/page.tsx            # Pattern Studio
+│   │   ├── abstract/page.tsx           # Abstract Painter
+│   │   └── colorfield/page.tsx         # Color Field Studio
+│   ├── admin/orders/page.tsx           # Admin order management
+│   ├── order/[id]/page.tsx             # Order confirmation
+│   ├── poster-lab/                     # Legacy poster lab (original version)
 │   └── api/
-│       ├── scan/                   # Auktionsskanning
-│       ├── boris-ai/               # BorisArt AI chatbot
-│       ├── my-artworks/            # CRUD för egna konstverk
-│       ├── rooms/upload/           # Rumsfoto-uppladdning
-│       ├── designs/generate/       # AI-generering (4 varianter)
-│       ├── designs/refine/         # Förfina variant
-│       ├── mockups/render/         # Mockup på vägg
-│       ├── credits/                # Creditsaldo + köp/dra
-│       ├── orders/create/          # Skapa order
-│       ├── renders/final/          # Slutrender för tryck
-│       └── gallery/
-│           ├── list/              # Lista galleri med filter/sortering
-│           ├── like/              # Toggle like (POST) / unlike (DELETE)
-│           └── publish/           # Publicera/avpublicera design
+│       ├── designs/generate/           # AI generation (4 variants)
+│       ├── designs/[id]/               # GET/PATCH design + print-final
+│       ├── rooms/upload/               # Room photo upload
+│       ├── credits/                    # Balance + spend
+│       ├── gallery/                    # List, like, publish
+│       ├── orders/create/              # Create order
+│       ├── checkout/                   # Stripe checkout session
+│       ├── webhook/stripe/             # Stripe webhook handler
+│       ├── admin/orders/               # Admin CRUD
+│       └── renders/final/              # Print-ready render
 ├── components/
-│   ├── BorisArtChat.tsx            # AI-chattassistent
-├── server/services/
-│   ├── ai/                         # generatePreview, refinePreview, generateFinalPrint
-│   ├── mockup/                     # composeMockup (CSS-baserad)
-│   ├── credits/                    # canSpend, spend
-│   ├── gallery/
-│   │   ├── list.ts                # listGallery
-│   │   ├── like.ts                # toggleLike, removeLike, hasLiked ($transaction)
-│   │   └── publish.ts             # publishToGallery, unpublish
-│   └── orders/                    # createOrder (Order + OrderItem)
+│   ├── ui/                             # Button, Card, LanguageSwitcher
+│   └── poster/                         # RoomUpload, WallMarker, StylePicker, etc.
 ├── lib/
-│   ├── prompts/                    # 18 stilar, promptmallar, säkerhetsfilter
-│   ├── image/                      # transform, resize, watermark
-│   ├── pricing/                    # credits, prints
-│   ├── demo/                       # Demo-bilder och fallback-logik
-│   ├── scrapers.ts                 # Bukowskis, Barnebys, Auctionet, Tradera
-│   ├── aiValuation.ts              # GPT-4 värdering
-│   ├── borisArtAI.ts               # BorisArt chatbot
-│   ├── priceAnalyzer.ts            # Heuristisk prisanalys (fallback)
-│   ├── anonId.ts                   # Cookie-baserad anonym identifiering
-│   ├── prisma.ts                   # Prisma singleton
-├── types/
-│   ├── design.ts                   # Design, Variant, Controls, Style, Frame, Size
-│   ├── room.ts                     # Room, WallCorners
-│   └── order.ts                    # Order, Credits, Shipping
-└── public/assets/demo/             # 16 SVG demo-konstverk + demo-rum
+│   ├── mandala/refineArtwork.ts        # Local canvas refinement engine
+│   ├── i18n/                           # I18nProvider, useTranslation, dictionaries
+│   ├── prompts/                        # 18 styles, prompt templates, safety filter
+│   ├── pricing/                        # Credits, prints
+│   ├── demo/                           # Demo images and fallback logic
+│   └── anonId.ts                       # Cookie-based anonymous identification
+├── server/services/
+│   ├── ai/                             # generatePreview, refinePreview, generateFinalPrint
+│   ├── mockup/                         # composeMockup
+│   ├── credits/                        # canSpend, spend
+│   ├── gallery/                        # publish, list, like
+│   ├── orders/                         # createOrder
+│   ├── email/                          # sendEmail
+│   └── print/                          # generatePrintAsset
+├── i18n/                               # en.json, sv.json dictionaries
+└── types/                              # design.ts, room.ts, order.ts
 ```
 
 ---
 
-## Kom igång
+## Getting Started
 
 ```bash
-# Klona
 git clone https://github.com/Mats6102hamberg/artboris.git
 cd artboris
-
-# Installera
 npm install
-
-# Starta (fungerar i demo-läge utan API-nyckel)
 npm run dev
 ```
 
-Öppna http://localhost:3000
+Open http://localhost:3000 — works in demo mode without API keys.
 
-**Med AI-funktioner (valfritt):**
+**With full AI features (optional):**
 ```bash
-# Skapa .env.local
-echo "OPENAI_API_KEY=sk-..." > .env.local
-echo "DATABASE_URL=postgresql://..." >> .env.local
-
-# Migrera databas
+cp .env.example .env.local
+# Fill in: OPENAI_API_KEY, DATABASE_URL, STRIPE_SECRET_KEY, etc.
 npx prisma migrate dev
 ```
 
-## Miljövariabler
+## Environment Variables
 
-| Variabel | Beskrivning | Krävs? |
-|----------|-------------|--------|
-| `DATABASE_URL` | PostgreSQL connection string | Nej (demo-läge utan) |
-| `OPENAI_API_KEY` | OpenAI API-nyckel (GPT-4 + DALL-E 3) | Nej (demo-läge utan) |
-| `STRIPE_SECRET_KEY` | Stripe secret key (sk_...) | Ja, för betalning |
-| `STRIPE_WEBHOOK_SECRET` | Stripe webhook signing secret (whsec_...) | Ja, för webhook |
-| `REPLICATE_API_TOKEN` | Replicate API-token för 4×/8× upscaling | Ja, för print |
-| `BLOB_READ_WRITE_TOKEN` | Vercel Blob token för permanent bildlagring | Ja, för print |
-| `NEXT_PUBLIC_APP_URL` | App-URL för redirects (default: http://localhost:3000) | Nej |
+| Variable | Description | Required? |
+|----------|-------------|-----------|
+| `DATABASE_URL` | PostgreSQL connection string | No (demo mode) |
+| `OPENAI_API_KEY` | OpenAI API key (GPT-4 + DALL-E 3) | No (demo mode) |
+| `STRIPE_SECRET_KEY` | Stripe secret key | Yes, for payments |
+| `STRIPE_WEBHOOK_SECRET` | Stripe webhook signing secret | Yes, for webhooks |
+| `REPLICATE_API_TOKEN` | Replicate API token for upscaling | Yes, for print |
+| `BLOB_READ_WRITE_TOKEN` | Vercel Blob token for image storage | Yes, for print |
+| `NEXT_PUBLIC_APP_URL` | App URL for redirects | No |
 
-## Databasmodeller (Prisma)
+## Database Models (Prisma)
 
-### Konst & Galleri
-- **Artwork** — Sparade konstverk (Art Scanner)
-- **Design** — Skapade designs med style, roomType, colorMood, likesCount. Relationer: Like[], RoomMeta, OrderItem[], DesignAsset[]
-- **Like** — Anonyma likes med anonId (cookie), `@@unique([designId, anonId])`, toggle med Prisma-transaktioner
-- **RoomMeta** — Väggfärg, ljustyp, stämning (1:1 till Design)
+**Design & Gallery:** Design, DesignVariant, DesignAsset, Like, RoomMeta
+**Credits:** CreditAccount, CreditTransaction
+**Orders:** Order, OrderItem, Payment, ShippingAddress, Fulfillment, PrintPartner
 
-### Credits
-- **CreditAccount** — Creditsaldo per användare
-- **CreditTransaction** — Köp/förbrukningshistorik
+## Credits System
 
-### Order & Fulfillment
-- **Order** — Huvudorder med anonId, status (enum), priser i cents (SEK)
-- **OrderItem** — Produktrad: productType (POSTER/CANVAS/METAL/FRAMED_POSTER), sizeCode, frameColor, paperType, prissnap
-- **Payment** — Stripe-integration (checkout session, payment intent)
-- **ShippingAddress** — Fullständig leveransadress med ISO-landskod
-- **Fulfillment** — Tryckstatus per rad: partner, tracking, timestamps
-- **PrintPartner** — Tryckeri-koppling (seedat: Crimson, crimson.se, Stockholm)
-- **DesignAsset** — Tryckfiler i roller (PREVIEW/PRINT/THUMB) med DPI, storlek, URL
-
-### Enums
-`OrderStatus` · `FulfillmentStatus` · `PaymentProvider` · `AssetRole` · `PrintProductType` · `FrameColor` · `PaperType`
-
-## Credits-system
-
-| Paket | Credits | Pris |
-|-------|---------|------|
+| Package | Credits | Price |
+|---------|---------|-------|
 | Starter | 10 | 49 kr |
 | Creator | 30 | 99 kr |
 | Pro | 75 | 199 kr |
 | Studio | 200 | 449 kr |
 
-| Åtgärd | Kostnad |
-|--------|---------|
-| Generera 4 förslag | 2 credits |
-| Förfina variant | 1 credit |
-| Slutrender för tryck | 5 credits |
+| Action | Cost |
+|--------|------|
+| Generate 4 variants | 2 credits |
+| Refine variant | 1 credit |
+| Print-ready render | 5 credits |
 
 ---
 
 ## Status
 
-| Funktion | Status |
-|----------|--------|
-| Art Scanner | ✅ Klar |
-| BorisArt AI | ✅ Klar |
-| Mina Tavlor | ✅ Klar |
-| Poster Lab (18 stilar) | ✅ Klar |
-| Demo-läge | ✅ Klar |
-| Mobilanpassning | ✅ Klar |
-| Likes-system (anonId, toggle, transaktioner) | ✅ Klar |
-| Inspirationsgalleri (filter, "Skapa liknande") | ✅ Klar |
-| Order/Fulfillment-modeller | ✅ Klar (schema + migration) |
-| PrintPartner (Crimson) | ✅ Seedat |
-| Stripe-checkout | ✅ Klar |
-| Tryckflöde (Fulfillment → Crimson) | 🔜 Nästa steg |
+| Feature | Status |
+|---------|--------|
+| Wallcraft Landing Page | ✅ Done |
+| Design Studio (18 styles, AI generation) | ✅ Done |
+| Mandala Maker + Refine | ✅ Done |
+| Pattern Studio | ✅ Done |
+| Abstract Painter | ✅ Done |
+| Color Field Studio | ✅ Done |
+| Design Editor (frame, size, position) | ✅ Done |
+| Demo mode (no API key needed) | ✅ Done |
+| i18n (EN/SV) | ✅ Done |
+| Gallery (filter, sort, likes) | ✅ Done |
+| Stripe Checkout | ✅ Done |
+| Admin Order Management | ✅ Done |
+| Print Pipeline (Sharp + Blob) | ✅ Done |
+| PrintPartner (Crimson) | ✅ Seeded |
+| Mobile responsive | ✅ Done |
+| Art Scanner | ✅ Done |
+| BorisArt AI Chatbot | ✅ Done |
 
 ---
 
-*Byggt med Cascade AI · Februari 2026*
+*Built with Cascade AI · February 2026*
