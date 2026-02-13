@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation'
 import { useTranslation } from '@/lib/i18n/context'
 import Button from '@/components/ui/Button'
 import CreditBadge from '@/components/poster/CreditBadge'
+import { refineArtwork } from '@/lib/mandala/refineArtwork'
 
 // ─── Types ───
 type Tool = 'brush' | 'eraser'
@@ -57,6 +58,17 @@ export default function MandalaPage() {
   const [historyIndex, setHistoryIndex] = useState(-1)
   const [isSaving, setIsSaving] = useState(false)
   const [canvasSize, setCanvasSize] = useState(600)
+
+  // Refine state
+  const [isRefining, setIsRefining] = useState(false)
+  const [showComparison, setShowComparison] = useState(false)
+  const [originalImageData, setOriginalImageData] = useState<ImageData | null>(null)
+  const [refinedImageData, setRefinedImageData] = useState<ImageData | null>(null)
+  const [originalDataUrl, setOriginalDataUrl] = useState<string>('')
+  const [refinedDataUrl, setRefinedDataUrl] = useState<string>('')
+  const [sliderPosition, setSliderPosition] = useState(50)
+  const sliderRef = useRef<HTMLDivElement>(null)
+  const isDraggingSlider = useRef(false)
 
   // Responsive canvas size
   useEffect(() => {
@@ -358,6 +370,73 @@ export default function MandalaPage() {
     }
   }
 
+  // ─── Refine ───
+  const imageDataToDataUrl = (imgData: ImageData): string => {
+    const tmpCanvas = document.createElement('canvas')
+    tmpCanvas.width = imgData.width
+    tmpCanvas.height = imgData.height
+    const tmpCtx = tmpCanvas.getContext('2d')
+    if (!tmpCtx) return ''
+    tmpCtx.putImageData(imgData, 0, 0)
+    return tmpCanvas.toDataURL('image/png')
+  }
+
+  const handleRefine = async () => {
+    const canvas = canvasRef.current
+    if (!canvas) return
+    const ctx = canvas.getContext('2d')
+    if (!ctx) return
+
+    // Capture original
+    const original = ctx.getImageData(0, 0, canvas.width, canvas.height)
+    setOriginalImageData(original)
+    setOriginalDataUrl(imageDataToDataUrl(original))
+
+    // Show refining overlay
+    setIsRefining(true)
+
+    // Run refinement in next frame to allow overlay to render
+    await new Promise((r) => setTimeout(r, 50))
+
+    const refined = refineArtwork(original)
+    setRefinedImageData(refined)
+    setRefinedDataUrl(imageDataToDataUrl(refined))
+
+    // Elegant delay for the fade
+    await new Promise((r) => setTimeout(r, 1200))
+
+    setIsRefining(false)
+    setSliderPosition(50)
+    setShowComparison(true)
+  }
+
+  const handleUseRefined = () => {
+    const canvas = canvasRef.current
+    if (!canvas || !refinedImageData) return
+    const ctx = canvas.getContext('2d')
+    if (!ctx) return
+    ctx.putImageData(refinedImageData, 0, 0)
+    saveHistory()
+    setShowComparison(false)
+    setOriginalImageData(null)
+    setRefinedImageData(null)
+  }
+
+  const handleKeepOriginal = () => {
+    setShowComparison(false)
+    setOriginalImageData(null)
+    setRefinedImageData(null)
+  }
+
+  const handleSliderDrag = (clientX: number) => {
+    const container = sliderRef.current
+    if (!container) return
+    const rect = container.getBoundingClientRect()
+    const x = clientX - rect.left
+    const pct = Math.max(0, Math.min(100, (x / rect.width) * 100))
+    setSliderPosition(pct)
+  }
+
   const downloadPng = () => {
     const canvas = canvasRef.current
     if (!canvas) return
@@ -603,6 +682,17 @@ export default function MandalaPage() {
 
             {/* Actions */}
             <div className="space-y-2">
+              <button
+                onClick={handleRefine}
+                disabled={isRefining}
+                className="w-full py-3 px-4 rounded-xl text-sm font-medium transition-all duration-300 border border-gray-200/80 bg-gradient-to-r from-gray-50 to-white text-gray-700 hover:from-gray-100 hover:to-gray-50 hover:border-gray-300 hover:shadow-sm disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+              >
+                <svg className="w-4 h-4 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9.813 15.904L9 18.75l-.813-2.846a4.5 4.5 0 00-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 003.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 003.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 00-3.09 3.09zM18.259 8.715L18 9.75l-.259-1.035a3.375 3.375 0 00-2.455-2.456L14.25 6l1.036-.259a3.375 3.375 0 002.455-2.456L18 2.25l.259 1.035a3.375 3.375 0 002.455 2.456L21.75 6l-1.036.259a3.375 3.375 0 00-2.455 2.456z" />
+                </svg>
+                Refine
+              </button>
+              <div className="h-px bg-gray-100 my-1" />
               <Button
                 size="lg"
                 onClick={handleSaveAsDesign}
@@ -631,6 +721,102 @@ export default function MandalaPage() {
           </div>
         </div>
       </main>
+
+      {/* ─── Refining overlay ─── */}
+      {isRefining && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/20 backdrop-blur-sm animate-in fade-in duration-500">
+          <div className="text-center animate-in fade-in zoom-in-95 duration-700">
+            <div className="w-12 h-12 mx-auto mb-4 rounded-full border-2 border-gray-300/40 border-t-gray-600 animate-spin" />
+            <p className="text-lg font-light text-gray-700 tracking-wide">Refining...</p>
+          </div>
+        </div>
+      )}
+
+      {/* ─── Before / After comparison ─── */}
+      {showComparison && originalDataUrl && refinedDataUrl && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/30 backdrop-blur-sm animate-in fade-in duration-300">
+          <div className="bg-white rounded-2xl shadow-2xl max-w-2xl w-[95vw] mx-4 overflow-hidden animate-in fade-in zoom-in-95 duration-500">
+            {/* Header */}
+            <div className="px-6 pt-5 pb-3">
+              <h3 className="text-lg font-medium text-gray-900 text-center">Compare</h3>
+              <p className="text-xs text-gray-400 text-center mt-1">Drag the slider to compare</p>
+            </div>
+
+            {/* Slider comparison */}
+            <div className="px-6">
+              <div
+                ref={sliderRef}
+                className="relative w-full aspect-square rounded-xl overflow-hidden cursor-col-resize select-none"
+                onMouseDown={() => { isDraggingSlider.current = true }}
+                onMouseMove={(e) => { if (isDraggingSlider.current) handleSliderDrag(e.clientX) }}
+                onMouseUp={() => { isDraggingSlider.current = false }}
+                onMouseLeave={() => { isDraggingSlider.current = false }}
+                onTouchStart={() => { isDraggingSlider.current = true }}
+                onTouchMove={(e) => { if (isDraggingSlider.current) handleSliderDrag(e.touches[0].clientX) }}
+                onTouchEnd={() => { isDraggingSlider.current = false }}
+              >
+                {/* Refined (full background) */}
+                <img
+                  src={refinedDataUrl}
+                  alt="Refined"
+                  className="absolute inset-0 w-full h-full object-cover"
+                  draggable={false}
+                />
+
+                {/* Original (clipped by slider) */}
+                <div
+                  className="absolute inset-0 overflow-hidden"
+                  style={{ width: `${sliderPosition}%` }}
+                >
+                  <img
+                    src={originalDataUrl}
+                    alt="Original"
+                    className="absolute inset-0 w-full h-full object-cover"
+                    style={{ width: `${sliderRef.current?.offsetWidth || 600}px` }}
+                    draggable={false}
+                  />
+                </div>
+
+                {/* Slider line */}
+                <div
+                  className="absolute top-0 bottom-0 w-0.5 bg-white shadow-lg"
+                  style={{ left: `${sliderPosition}%`, transform: 'translateX(-50%)' }}
+                >
+                  <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-8 h-8 bg-white rounded-full shadow-lg flex items-center justify-center">
+                    <svg className="w-4 h-4 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 9l4-4 4 4m0 6l-4 4-4-4" />
+                    </svg>
+                  </div>
+                </div>
+
+                {/* Labels */}
+                <span className="absolute top-3 left-3 text-[10px] font-medium text-white/90 bg-black/30 backdrop-blur-sm px-2 py-0.5 rounded-md">
+                  Original
+                </span>
+                <span className="absolute top-3 right-3 text-[10px] font-medium text-white/90 bg-black/30 backdrop-blur-sm px-2 py-0.5 rounded-md">
+                  Refined
+                </span>
+              </div>
+            </div>
+
+            {/* Actions */}
+            <div className="px-6 py-5 flex gap-3">
+              <button
+                onClick={handleKeepOriginal}
+                className="flex-1 py-3 rounded-xl text-sm font-medium text-gray-600 bg-gray-100 hover:bg-gray-200 transition-all"
+              >
+                Keep Original
+              </button>
+              <button
+                onClick={handleUseRefined}
+                className="flex-1 py-3 rounded-xl text-sm font-medium text-white bg-gray-900 hover:bg-gray-800 transition-all"
+              >
+                Use Refined
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 }
