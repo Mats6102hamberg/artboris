@@ -39,9 +39,8 @@ export default function MockupPreview({
 }: MockupPreviewProps) {
   const containerRef = useRef<HTMLDivElement>(null)
   const [isDragging, setIsDragging] = useState(false)
-  const [isResizing, setIsResizing] = useState(false)
   const dragStart = useRef<{ x: number; y: number; posX: number; posY: number } | null>(null)
-  const resizeStart = useRef<{ x: number; y: number; scale: number } | null>(null)
+  const pinchStart = useRef<{ dist: number; scale: number } | null>(null)
 
   const frame = getFrameById(frameId)
   const size = getSizeById(sizeId)
@@ -56,9 +55,11 @@ export default function MockupPreview({
 
   const frameWidthPx = frame && frame.id !== 'none' ? frame.width * 0.4 : 0
 
-  // --- Drag to move ---
+  // --- Drag to move (touch + mouse) ---
   const handleDragStart = useCallback((e: React.MouseEvent | React.TouchEvent) => {
     if (!onPositionChange || !containerRef.current) return
+    // If two-finger touch, let pinch handle it
+    if ('touches' in e && e.touches.length >= 2) return
     e.preventDefault()
     const clientX = 'touches' in e ? e.touches[0].clientX : e.clientX
     const clientY = 'touches' in e ? e.touches[0].clientY : e.clientY
@@ -67,6 +68,8 @@ export default function MockupPreview({
 
     const handleMove = (ev: MouseEvent | TouchEvent) => {
       if (!dragStart.current || !containerRef.current) return
+      // If pinch started, stop drag
+      if ('touches' in ev && ev.touches.length >= 2) return
       const cx = 'touches' in ev ? ev.touches[0].clientX : ev.clientX
       const cy = 'touches' in ev ? ev.touches[0].clientY : ev.clientY
       const rect = containerRef.current.getBoundingClientRect()
@@ -92,42 +95,38 @@ export default function MockupPreview({
     window.addEventListener('touchend', handleUp)
   }, [positionX, positionY, onPositionChange])
 
-  // --- Corner resize ---
-  const handleResizeStart = useCallback((e: React.MouseEvent | React.TouchEvent) => {
-    if (!onScaleChange || !containerRef.current) return
-    e.preventDefault()
-    e.stopPropagation()
-    const clientX = 'touches' in e ? e.touches[0].clientX : e.clientX
-    const clientY = 'touches' in e ? e.touches[0].clientY : e.clientY
-    resizeStart.current = { x: clientX, y: clientY, scale }
-    setIsResizing(true)
+  // --- Pinch to zoom (touch) ---
+  const getTouchDist = (t1: { clientX: number; clientY: number }, t2: { clientX: number; clientY: number }) =>
+    Math.hypot(t2.clientX - t1.clientX, t2.clientY - t1.clientY)
 
-    const handleMove = (ev: MouseEvent | TouchEvent) => {
-      if (!resizeStart.current || !containerRef.current) return
-      const cx = 'touches' in ev ? ev.touches[0].clientX : ev.clientX
-      const cy = 'touches' in ev ? ev.touches[0].clientY : ev.clientY
-      const rect = containerRef.current.getBoundingClientRect()
-      // Diagonal distance change → scale change
-      const dx = (cx - resizeStart.current.x) / rect.width
-      const dy = (cy - resizeStart.current.y) / rect.height
-      const delta = (dx + dy) * 2
-      const newScale = Math.max(0.2, Math.min(4.0, resizeStart.current.scale + delta))
+  const handleTouchStart = useCallback((e: React.TouchEvent) => {
+    if (e.touches.length === 2 && onScaleChange) {
+      e.preventDefault()
+      pinchStart.current = { dist: getTouchDist(e.touches[0], e.touches[1]), scale }
+    }
+  }, [scale, onScaleChange])
+
+  const handleTouchMove = useCallback((e: React.TouchEvent) => {
+    if (e.touches.length === 2 && pinchStart.current && onScaleChange) {
+      e.preventDefault()
+      const newDist = getTouchDist(e.touches[0], e.touches[1])
+      const ratio = newDist / pinchStart.current.dist
+      const newScale = Math.max(0.2, Math.min(4.0, pinchStart.current.scale * ratio))
       onScaleChange(newScale)
     }
+  }, [onScaleChange])
 
-    const handleUp = () => {
-      resizeStart.current = null
-      setIsResizing(false)
-      window.removeEventListener('mousemove', handleMove)
-      window.removeEventListener('mouseup', handleUp)
-      window.removeEventListener('touchmove', handleMove)
-      window.removeEventListener('touchend', handleUp)
-    }
+  const handleTouchEnd = useCallback(() => {
+    pinchStart.current = null
+  }, [])
 
-    window.addEventListener('mousemove', handleMove)
-    window.addEventListener('mouseup', handleUp)
-    window.addEventListener('touchmove', handleMove, { passive: false })
-    window.addEventListener('touchend', handleUp)
+  // --- Scroll wheel to zoom (desktop) ---
+  const handleWheel = useCallback((e: React.WheelEvent) => {
+    if (!onScaleChange) return
+    e.preventDefault()
+    const delta = -e.deltaY * 0.002
+    const newScale = Math.max(0.2, Math.min(4.0, scale + delta))
+    onScaleChange(newScale)
   }, [scale, onScaleChange])
 
   const isInteractive = !!(onPositionChange || onScaleChange)
@@ -164,60 +163,35 @@ export default function MockupPreview({
         />
       )}
 
-      {/* Poster — draggable */}
+      {/* Poster — draggable with generous touch area */}
       <div
-        className={`absolute overflow-hidden ${isInteractive ? 'cursor-grab' : ''} ${isDragging ? 'cursor-grabbing' : ''}`}
+        className={`absolute ${isInteractive ? 'cursor-grab active:cursor-grabbing' : ''} ${isDragging ? '!cursor-grabbing' : ''}`}
         style={{
           left: `${placement.left * 100}%`,
           top: `${placement.top * 100}%`,
           width: `${placement.width * 100}%`,
           height: `${placement.height * 100}%`,
           zIndex: 10,
+          padding: isInteractive ? '12px' : 0,
+          margin: isInteractive ? '-12px' : 0,
+          touchAction: 'none',
         }}
         onMouseDown={handleDragStart}
-        onTouchStart={handleDragStart}
+        onTouchStart={(e) => { handleDragStart(e); handleTouchStart(e) }}
+        onTouchMove={handleTouchMove}
+        onTouchEnd={handleTouchEnd}
+        onWheel={handleWheel}
       >
-        <img
-          src={designImageUrl}
-          alt="Poster"
-          className="w-full h-full"
-          style={cropToCSS(cropMode, cropOffsetX, cropOffsetY)}
-          draggable={false}
-        />
-
-        {/* Interactive border when hovering */}
-        {isInteractive && (
-          <div className={`absolute inset-0 border-2 transition-opacity ${isDragging || isResizing ? 'border-blue-500 opacity-100' : 'border-blue-400 opacity-0 hover:opacity-100'}`} />
-        )}
+        <div className="w-full h-full overflow-hidden" style={{ margin: isInteractive ? '12px' : 0 }}>
+          <img
+            src={designImageUrl}
+            alt="Poster"
+            className="w-full h-full"
+            style={cropToCSS(cropMode, cropOffsetX, cropOffsetY)}
+            draggable={false}
+          />
+        </div>
       </div>
-
-      {/* Resize handles — corners */}
-      {isInteractive && (
-        <>
-          {[
-            { pos: 'top-0 left-0', cursor: 'nw-resize', translate: '-translate-x-1/2 -translate-y-1/2' },
-            { pos: 'top-0 right-0', cursor: 'ne-resize', translate: 'translate-x-1/2 -translate-y-1/2' },
-            { pos: 'bottom-0 left-0', cursor: 'sw-resize', translate: '-translate-x-1/2 translate-y-1/2' },
-            { pos: 'bottom-0 right-0', cursor: 'se-resize', translate: 'translate-x-1/2 translate-y-1/2' },
-          ].map((handle, i) => (
-            <div
-              key={i}
-              className={`absolute ${handle.pos} ${handle.translate} w-3 h-3 bg-white/80 border border-gray-400 rounded-full shadow-sm hover:bg-white hover:border-blue-500 hover:scale-150 transition-all z-20 ${isDragging || isResizing ? 'opacity-100' : 'opacity-0 group-hover/mockup:opacity-70'}`}
-              style={{
-                left: handle.pos.includes('left-0')
-                  ? `${placement.left * 100}%`
-                  : `${(placement.left + placement.width) * 100}%`,
-                top: handle.pos.includes('top-0')
-                  ? `${placement.top * 100}%`
-                  : `${(placement.top + placement.height) * 100}%`,
-                cursor: handle.cursor,
-              }}
-              onMouseDown={handleResizeStart}
-              onTouchStart={handleResizeStart}
-            />
-          ))}
-        </>
-      )}
     </div>
   )
 }
