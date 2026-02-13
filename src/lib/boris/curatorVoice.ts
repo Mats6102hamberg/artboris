@@ -163,7 +163,7 @@ export function getBorisComment(event: BorisEvent): string {
       return pick(MOVE_COMMENTS)
 
     case 'scale':
-      return pick(SCALE_COMMENTS[event.direction])
+      return pick(SCALE_COMMENTS[event.direction] || SCALE_COMMENTS.up)
 
     case 'style_match': {
       const styleComments = STYLE_COMMENTS[event.style] || STYLE_COMMENTS['default']
