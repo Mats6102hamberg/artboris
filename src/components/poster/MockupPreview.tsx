@@ -143,6 +143,11 @@ export default function MockupPreview({
   const isInteractive = !!(onPositionChange || onScaleChange)
   const showReference = isInteractive && Math.abs(scale - 1.0) > 0.02 && referencePlacement
 
+  // Calculate previewed cm size based on scale
+  const previewWidthCm = posterWidthCm ? Math.round(posterWidthCm * scale) : null
+  const previewHeightCm = posterHeightCm ? Math.round(posterHeightCm * scale) : null
+  const isScaled = Math.abs(scale - 1.0) > 0.02
+
   return (
     <div ref={containerRef} className="group/mockup relative rounded-xl overflow-hidden shadow-lg select-none">
       <img src={roomImageUrl} alt="Rum" className="w-full pointer-events-none" draggable={false} />
@@ -226,6 +231,34 @@ export default function MockupPreview({
           />
         </div>
       </div>
+
+      {/* Floating size tag */}
+      {isInteractive && posterWidthCm && posterHeightCm && (
+        <div
+          className="absolute pointer-events-none z-20 flex justify-center"
+          style={{
+            left: `${placement.left * 100}%`,
+            top: `calc(${(placement.top + placement.height) * 100}% + 8px)`,
+            width: `${placement.width * 100}%`,
+          }}
+        >
+          <div className={`inline-flex items-center gap-1.5 bg-black/60 backdrop-blur-md text-white text-[11px] font-medium px-3 py-1.5 rounded-full transition-all duration-200 ${
+            isScaled ? 'opacity-100' : 'opacity-70'
+          }`}>
+            {isScaled ? (
+              <>
+                <span className="opacity-60 line-through">{posterWidthCm}×{posterHeightCm}</span>
+                <svg className="w-3 h-3 opacity-50" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" />
+                </svg>
+                <span className="text-white font-semibold">{previewWidthCm}×{previewHeightCm} cm</span>
+              </>
+            ) : (
+              <span>{posterWidthCm}×{posterHeightCm} cm</span>
+            )}
+          </div>
+        </div>
+      )}
     </div>
   )
 }
