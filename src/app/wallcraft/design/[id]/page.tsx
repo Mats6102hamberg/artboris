@@ -13,6 +13,8 @@ import Button from '@/components/ui/Button'
 import { calculatePrintPrice, formatSEK, getFrameById as getFrame, FRAME_OPTIONS } from '@/lib/pricing/prints'
 import { getSizeById } from '@/lib/image/resize'
 import { useCart } from '@/lib/cart/CartContext'
+import BorisVoice from '@/components/boris/BorisVoice'
+import { getBorisComment } from '@/lib/boris/curatorVoice'
 
 interface DesignVariantData {
   id: string
@@ -60,6 +62,61 @@ export default function WallcraftDesignPage() {
   const [shuffleCooldown, setShuffleCooldown] = useState(false)
   const [realisticMode, setRealisticMode] = useState<boolean | undefined>(undefined)
   const lastShuffleTime = useRef(0)
+
+  // Boris curator voice
+  const [borisMessage, setBorisMessage] = useState<string | null>(null)
+  const borisTimeout = useRef<NodeJS.Timeout | null>(null)
+  const hasShownPlacement = useRef(false)
+  const prevFrameId = useRef(frameId)
+  const prevSizeId = useRef(sizeId)
+  const prevScale = useRef(scale)
+  const moveDebounce = useRef<NodeJS.Timeout | null>(null)
+
+  // Boris: show placement comment on first load
+  useEffect(() => {
+    if (!design || hasShownPlacement.current) return
+    hasShownPlacement.current = true
+    const timer = setTimeout(() => {
+      setBorisMessage(getBorisComment({ type: 'placement' }))
+    }, 1200)
+    return () => clearTimeout(timer)
+  }, [design])
+
+  // Boris: react to frame changes
+  useEffect(() => {
+    if (prevFrameId.current === frameId) return
+    prevFrameId.current = frameId
+    if (!design) return
+    if (borisTimeout.current) clearTimeout(borisTimeout.current)
+    borisTimeout.current = setTimeout(() => {
+      setBorisMessage(getBorisComment({
+        type: 'style_match',
+        frameId,
+        style: design.style || 'default',
+      }))
+    }, 400)
+  }, [frameId, design])
+
+  // Boris: react to size changes
+  useEffect(() => {
+    if (prevSizeId.current === sizeId) return
+    prevSizeId.current = sizeId
+    if (borisTimeout.current) clearTimeout(borisTimeout.current)
+    borisTimeout.current = setTimeout(() => {
+      setBorisMessage(getBorisComment({ type: 'size_change', sizeId }))
+    }, 400)
+  }, [sizeId])
+
+  // Boris: react to scale changes (resize handles)
+  useEffect(() => {
+    if (Math.abs(prevScale.current - scale) < 0.05) return
+    const direction = scale > prevScale.current ? 'up' : 'down'
+    prevScale.current = scale
+    if (borisTimeout.current) clearTimeout(borisTimeout.current)
+    borisTimeout.current = setTimeout(() => {
+      setBorisMessage(getBorisComment({ type: 'scale', direction }))
+    }, 800)
+  }, [scale])
 
   // Fetch credit balance
   useEffect(() => {
@@ -319,7 +376,16 @@ export default function WallcraftDesignPage() {
                   positionX={positionX}
                   positionY={positionY}
                   scale={scale}
-                  onPositionChange={(x, y) => { setPositionX(x); setPositionY(y) }}
+                  onPositionChange={(x, y) => {
+                    setPositionX(x); setPositionY(y)
+                    // Boris: debounced move feedback
+                    if (moveDebounce.current) clearTimeout(moveDebounce.current)
+                    moveDebounce.current = setTimeout(() => {
+                      if (Math.random() < 0.3) { // 30% chance to comment on moves
+                        setBorisMessage(getBorisComment({ type: 'move' }))
+                      }
+                    }, 1500)
+                  }}
                   onScaleChange={setScale}
                   realisticMode={realisticMode}
                 />
@@ -375,6 +441,9 @@ export default function WallcraftDesignPage() {
                 </>
               )}
             </div>
+
+            {/* Boris curator voice */}
+            <BorisVoice message={borisMessage} className="mt-4" />
 
             {design.variants.length > 1 && (
               <div className="mt-4">
