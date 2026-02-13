@@ -148,19 +148,49 @@ export default function MockupPreview({
   const previewHeightCm = posterHeightCm ? Math.round(posterHeightCm * scale) : null
   const isScaled = Math.abs(scale - 1.0) > 0.02
 
+  // --- Dynamic shadow & light based on poster position ---
+  const dynamicShadow = useMemo(() => {
+    // positionX 0..1: 0=left wall edge, 1=right wall edge
+    // Light source assumed from the opposite side of where the poster is
+    // Poster on left side → light from left → shadow goes right (positive offsetX)
+    // Poster on right side → light from right → shadow goes left (negative offsetX)
+    const lightX = 1 - positionX          // 0..1, where 1 = light from left
+    const shadowOffsetX = (lightX - 0.5) * -16  // -8..+8 px range
+
+    // positionY: higher poster → more shadow below
+    const shadowOffsetY = 4 + (1 - positionY) * 8  // 4..12 px
+
+    // Scale affects shadow depth — bigger poster = more depth = bigger shadow
+    const depthFactor = Math.max(0.6, Math.min(2.0, scale))
+    const blur = Math.round(14 * depthFactor)
+    const spread = Math.round(2 * depthFactor)
+    const opacity = Math.min(0.55, 0.25 + 0.1 * depthFactor)
+
+    // Light reflection angle — gradient from the light side
+    // lightX > 0.5 means light from left, so highlight on left edge
+    const lightAngle = lightX > 0.5 ? 270 : 90 // degrees
+    const highlightOpacity = 0.06 + Math.abs(lightX - 0.5) * 0.12 // 0.06..0.12
+
+    return {
+      boxShadow: `${shadowOffsetX.toFixed(1)}px ${shadowOffsetY.toFixed(1)}px ${blur}px ${spread}px rgba(0,0,0,${opacity.toFixed(2)})`,
+      lightAngle,
+      highlightOpacity,
+    }
+  }, [positionX, positionY, scale])
+
   return (
     <div ref={containerRef} className="group/mockup relative rounded-xl overflow-hidden shadow-lg select-none">
       <img src={roomImageUrl} alt="Rum" className="w-full pointer-events-none" draggable={false} />
 
-      {/* Shadow */}
+      {/* Dynamic shadow — reacts to poster position and scale */}
       <div
-        className="absolute pointer-events-none"
+        className="absolute pointer-events-none transition-shadow duration-150"
         style={{
           left: `${placement.left * 100}%`,
           top: `${placement.top * 100}%`,
           width: `${placement.width * 100}%`,
           height: `${placement.height * 100}%`,
-          boxShadow: '5px 8px 25px rgba(0,0,0,0.4)',
+          boxShadow: dynamicShadow.boxShadow,
           zIndex: 8,
         }}
       />
@@ -221,13 +251,20 @@ export default function MockupPreview({
         onTouchEnd={handleTouchEnd}
         onWheel={handleWheel}
       >
-        <div className="w-full h-full overflow-hidden" style={{ margin: isInteractive ? '12px' : 0 }}>
+        <div className="w-full h-full overflow-hidden relative" style={{ margin: isInteractive ? '12px' : 0 }}>
           <img
             src={designImageUrl}
             alt="Poster"
             className="w-full h-full"
             style={cropToCSS(cropMode, cropOffsetX, cropOffsetY)}
             draggable={false}
+          />
+          {/* Light reflection overlay — subtle highlight on the light-facing edge */}
+          <div
+            className="absolute inset-0 pointer-events-none"
+            style={{
+              background: `linear-gradient(${dynamicShadow.lightAngle}deg, rgba(255,255,255,${dynamicShadow.highlightOpacity}) 0%, transparent 40%, rgba(0,0,0,0.03) 100%)`,
+            }}
           />
         </div>
       </div>
