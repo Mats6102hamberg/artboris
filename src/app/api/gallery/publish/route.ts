@@ -8,7 +8,7 @@ export async function POST(request: NextRequest) {
 
     if (!userId || !title || !imageUrl) {
       return NextResponse.json(
-        { error: 'userId, title och imageUrl krävs.' },
+        { error: 'userId, title and imageUrl are required.' },
         { status: 400 }
       )
     }
@@ -41,7 +41,7 @@ export async function DELETE(request: NextRequest) {
 
     if (!galleryItemId || !userId) {
       return NextResponse.json(
-        { error: 'galleryItemId och userId krävs.' },
+        { error: 'galleryItemId and userId are required.' },
         { status: 400 }
       )
     }
@@ -51,7 +51,7 @@ export async function DELETE(request: NextRequest) {
   } catch (error) {
     console.error('[gallery/publish DELETE] Error:', error)
     return NextResponse.json(
-      { error: 'Avpublicering misslyckades.' },
+      { error: 'Unpublish failed.' },
       { status: 500 }
     )
   }

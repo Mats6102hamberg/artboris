@@ -41,7 +41,7 @@ export async function POST(req: Request) {
 }
 
 async function processCheckoutCompleted(orderId: string, session: Stripe.Checkout.Session) {
-  // ── Idempotens: kolla om redan PAID ──
+  // ── Idempotency: check if already PAID ──
   const order = await prisma.order.findUnique({
     where: { id: orderId },
     select: { status: true },
@@ -57,7 +57,7 @@ async function processCheckoutCompleted(orderId: string, session: Stripe.Checkou
     return
   }
 
-  // ── Transaktion: markera PAID + uppdatera Payment ──
+  // ── Transaction: mark PAID + update Payment ──
   await prisma.$transaction([
     prisma.order.update({
       where: { id: orderId },
@@ -74,12 +74,12 @@ async function processCheckoutCompleted(orderId: string, session: Stripe.Checkou
 
   console.log(`[stripe webhook] Order ${orderId} → PAID`)
 
-  // ── Skicka orderbekräftelse (non-blocking) ──
+  // ── Send order confirmation (non-blocking) ──
   sendOrderConfirmation(orderId).catch(err =>
     console.error(`[stripe webhook] Email failed for ${orderId}:`, err)
   )
 
-  // ── Hämta OrderItems ──
+  // ── Fetch OrderItems ──
   const items = await prisma.orderItem.findMany({
     where: { orderId },
     include: { design: { select: { imageUrl: true } } },
@@ -91,7 +91,7 @@ async function processCheckoutCompleted(orderId: string, session: Stripe.Checkou
   for (const item of items) {
     const itemLog = `[stripe webhook] OrderItem ${item.id} (design=${item.designId}, size=${item.sizeCode})`
 
-    // Fulfillment: skapa bara om ingen redan finns
+    // Fulfillment: create only if none exists
     let fulfillment = await prisma.fulfillment.findUnique({
       where: { orderItemId: item.id },
     })
@@ -109,10 +109,10 @@ async function processCheckoutCompleted(orderId: string, session: Stripe.Checkou
       console.log(`${itemLog} Fulfillment already exists (${fulfillment.status})`)
     }
 
-    // ── Upscale pipeline (fail-safe: fångar fel per item) ──
+    // ── Upscale pipeline (fail-safe: catches errors per item) ──
     if (isPremiumSize(item.sizeCode)) {
-      // Premium (70×100): 8× tar ~60-120s — för långsamt för webhook.
-      // Skapa placeholder, admin genererar tryckfil manuellt.
+      // Premium (70×100): 8× takes ~60-120s — too slow for webhook.
+      // Create placeholder, admin generates print file manually.
       console.log(`${itemLog} ⚠️  Premium size (${item.sizeCode}) — skipping upscale in webhook. Use admin to generate.`)
 
       const existingAsset = await prisma.designAsset.findUnique({
@@ -158,7 +158,7 @@ async function processCheckoutCompleted(orderId: string, session: Stripe.Checkou
           throw new Error(result.error || 'generatePrintAsset returned success=false')
         }
       } catch (err) {
-        // ── Fail-safe: markera fulfillment FAILED, logga, fortsätt ──
+        // ── Fail-safe: mark fulfillment FAILED, log, continue ──
         console.error(`${itemLog} UPSCALE FAILED:`, err)
 
         await prisma.fulfillment.update({
@@ -170,7 +170,7 @@ async function processCheckoutCompleted(orderId: string, session: Stripe.Checkou
         })
 
         console.error(`${itemLog} Fulfillment marked FAILED — continuing with next item`)
-        // Avbryt INTE webhooken — fortsätt med nästa item
+        // Do NOT abort the webhook — continue with next item
       }
     }
   }

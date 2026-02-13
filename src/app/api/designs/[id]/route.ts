@@ -17,13 +17,13 @@ export async function GET(
     })
 
     if (!design) {
-      return NextResponse.json({ error: 'Design hittades inte.' }, { status: 404 })
+      return NextResponse.json({ error: 'Design not found.' }, { status: 404 })
     }
 
     return NextResponse.json({ success: true, design })
   } catch (error) {
     console.error('[designs/[id]] GET error:', error)
-    return NextResponse.json({ error: 'Kunde inte hämta design.' }, { status: 500 })
+    return NextResponse.json({ error: 'Could not load design.' }, { status: 500 })
   }
 }
 
@@ -40,10 +40,10 @@ export async function PATCH(
     // Verify ownership
     const existing = await prisma.design.findUnique({ where: { id } })
     if (!existing) {
-      return NextResponse.json({ error: 'Design hittades inte.' }, { status: 404 })
+      return NextResponse.json({ error: 'Design not found.' }, { status: 404 })
     }
     if (existing.userId !== anonId) {
-      return NextResponse.json({ error: 'Ingen behörighet.' }, { status: 403 })
+      return NextResponse.json({ error: 'Unauthorized.' }, { status: 403 })
     }
 
     // Only allow updating specific fields
@@ -68,6 +68,6 @@ export async function PATCH(
     return NextResponse.json({ success: true, design })
   } catch (error) {
     console.error('[designs/[id]] PATCH error:', error)
-    return NextResponse.json({ error: 'Kunde inte uppdatera design.' }, { status: 500 })
+    return NextResponse.json({ error: 'Could not update design.' }, { status: 500 })
   }
 }

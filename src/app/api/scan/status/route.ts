@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 
 export async function GET(request: NextRequest) {
   try {
-    // Kontrollera om Puppeteer är tillgängligt
+    // Check if Puppeteer is available
     const puppeteerStatus = await checkPuppeteerStatus()
     
     return NextResponse.json({

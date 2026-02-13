@@ -25,7 +25,7 @@ export async function GET() {
       },
     })
 
-    // Hämta DesignAssets PRINT + PRINT_FINAL för alla designs i ordrarna
+    // Fetch DesignAssets PRINT + PRINT_FINAL for all designs in orders
     const designIds = [...new Set(orders.flatMap(o => o.items.map(i => i.designId)))]
     const assetSelect = {
       id: true,
@@ -80,7 +80,7 @@ export async function GET() {
     return NextResponse.json({ success: true, orders: enriched })
   } catch (error) {
     console.error('[admin/orders GET] Error:', error)
-    return NextResponse.json({ error: 'Kunde inte hämta ordrar.' }, { status: 500 })
+    return NextResponse.json({ error: 'Could not fetch orders.' }, { status: 500 })
   }
 }
 
@@ -90,7 +90,7 @@ export async function PATCH(request: NextRequest) {
     const { action, fulfillmentId, trackingNumber, trackingUrl, carrier } = body
 
     if (!fulfillmentId || !action) {
-      return NextResponse.json({ error: 'fulfillmentId och action krävs.' }, { status: 400 })
+      return NextResponse.json({ error: 'fulfillmentId and action are required.' }, { status: 400 })
     }
 
     if (action === 'IN_PRODUCTION') {
@@ -106,7 +106,7 @@ export async function PATCH(request: NextRequest) {
         },
       })
 
-      // Uppdatera Order-status också
+      // Update Order status as well
       await prisma.order.update({
         where: { id: fulfillment.orderItem.orderId },
         data: { status: 'IN_PRODUCTION' },
@@ -139,7 +139,7 @@ export async function PATCH(request: NextRequest) {
         include: { orderItem: { select: { orderId: true } } },
       })
 
-      // Kolla om alla items i ordern är SHIPPED
+      // Check if all items in the order are SHIPPED
       const allItems = await prisma.orderItem.findMany({
         where: { orderId: fulfillment.orderItem.orderId },
         include: { fulfillment: true },
@@ -154,7 +154,7 @@ export async function PATCH(request: NextRequest) {
         })
       }
 
-      // Skicka spårningsmail (non-blocking)
+      // Send tracking email (non-blocking)
       sendShippedEmail(fulfillment.orderItem.orderId, {
         carrier: carrier ?? null,
         trackingNumber: trackingNumber ?? null,
@@ -187,7 +187,7 @@ export async function PATCH(request: NextRequest) {
           data: { status: 'DELIVERED' },
         })
 
-        // Skicka leveransbekräftelse (non-blocking)
+        // Send delivery confirmation (non-blocking)
         sendDeliveredEmail(fulfillment.orderItem.orderId).catch(err =>
           console.error('[admin] Delivered email failed:', err)
         )
@@ -201,7 +201,7 @@ export async function PATCH(request: NextRequest) {
       const { orderItemId } = body
 
       if (!orderItemId) {
-        return NextResponse.json({ error: 'orderItemId krävs för GENERATE_PRINT.' }, { status: 400 })
+        return NextResponse.json({ error: 'orderItemId is required for GENERATE_PRINT.' }, { status: 400 })
       }
 
       const item = await prisma.orderItem.findUnique({
@@ -210,7 +210,7 @@ export async function PATCH(request: NextRequest) {
       })
 
       if (!item) {
-        return NextResponse.json({ error: 'OrderItem hittades inte.' }, { status: 404 })
+        return NextResponse.json({ error: 'OrderItem not found.' }, { status: 404 })
       }
 
       console.log(`[admin] Triggering print asset generation for OrderItem ${orderItemId}`)
@@ -224,7 +224,7 @@ export async function PATCH(request: NextRequest) {
       })
 
       if (result.success) {
-        // Om fulfillment var FAILED, sätt tillbaka till QUEUED
+        // If fulfillment was FAILED, reset to QUEUED
         if (fulfillmentId) {
           const f = await prisma.fulfillment.findUnique({ where: { id: fulfillmentId } })
           if (f && f.status === 'FAILED') {
@@ -249,7 +249,7 @@ export async function PATCH(request: NextRequest) {
       const { orderItemId } = body
 
       if (!orderItemId) {
-        return NextResponse.json({ error: 'orderItemId krävs för GENERATE_PRINT_FINAL.' }, { status: 400 })
+        return NextResponse.json({ error: 'orderItemId is required for GENERATE_PRINT_FINAL.' }, { status: 400 })
       }
 
       const item = await prisma.orderItem.findUnique({
@@ -257,7 +257,7 @@ export async function PATCH(request: NextRequest) {
       })
 
       if (!item) {
-        return NextResponse.json({ error: 'OrderItem hittades inte.' }, { status: 404 })
+        return NextResponse.json({ error: 'OrderItem not found.' }, { status: 404 })
       }
 
       console.log(`[admin] Triggering PRINT_FINAL for OrderItem ${orderItemId}`)
@@ -280,9 +280,9 @@ export async function PATCH(request: NextRequest) {
       }
     }
 
-    return NextResponse.json({ error: `Okänd action: ${action}` }, { status: 400 })
+    return NextResponse.json({ error: `Unknown action: ${action}` }, { status: 400 })
   } catch (error) {
     console.error('[admin/orders PATCH] Error:', error)
-    return NextResponse.json({ error: 'Kunde inte uppdatera.' }, { status: 500 })
+    return NextResponse.json({ error: 'Could not update.' }, { status: 500 })
   }
 }

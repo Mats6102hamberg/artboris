@@ -9,7 +9,7 @@ export async function POST(request: NextRequest) {
 
     if (!designId || !productType || !sizeCode || unitPriceCents == null) {
       return NextResponse.json(
-        { error: 'Obligatoriska fält: designId, productType, sizeCode, unitPriceCents.' },
+        { error: 'Required fields: designId, productType, sizeCode, unitPriceCents.' },
         { status: 400 }
       )
     }

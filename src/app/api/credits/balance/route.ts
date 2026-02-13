@@ -16,7 +16,7 @@ export async function GET(request: NextRequest) {
   } catch (error) {
     console.error('[credits/balance] Error:', error)
     return NextResponse.json(
-      { error: 'Kunde inte hämta saldo.' },
+      { error: 'Could not fetch balance.' },
       { status: 500 }
     )
   }

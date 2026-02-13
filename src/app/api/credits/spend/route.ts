@@ -14,7 +14,7 @@ export async function POST(request: NextRequest) {
 
     if (!userId || !amount) {
       return NextResponse.json(
-        { error: 'userId och amount krävs.' },
+        { error: 'userId and amount are required.' },
         { status: 400 }
       )
     }
@@ -23,7 +23,7 @@ export async function POST(request: NextRequest) {
       const result = await addCredits(
         userId,
         amount,
-        description || `Köp: ${packageId || 'credits'}`
+        description || `Purchase: ${packageId || 'credits'}`
       )
       return NextResponse.json(result)
     }

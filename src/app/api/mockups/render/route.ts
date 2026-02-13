@@ -13,7 +13,7 @@ export async function POST(request: NextRequest) {
 
     if (!roomImageUrl || !designImageUrl) {
       return NextResponse.json(
-        { error: 'Rum- och designbild krävs.' },
+        { error: 'Room and design image are required.' },
         { status: 400 }
       )
     }

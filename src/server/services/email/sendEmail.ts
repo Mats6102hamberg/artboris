@@ -39,7 +39,7 @@ export async function sendOrderConfirmation(orderId: string) {
     const { data, error } = await getResend().emails.send({
       from: getFromEmail(),
       to,
-      subject: `Orderbekräftelse — Artboris #${orderId.slice(0, 8)}`,
+      subject: `Order Confirmation — Artboris #${orderId.slice(0, 8)}`,
       react: OrderConfirmation({
         customerName,
         orderId,

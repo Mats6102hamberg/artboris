@@ -32,9 +32,9 @@ export async function POST(request: NextRequest) {
         description: body.description,
         price: body.price,
         imageUrl: body.imageUrl ?? '',
-        category: body.category ?? 'målning',
+        category: body.category ?? 'painting',
         year: body.year,
-        status: 'tillgänglig',
+        status: 'available',
         views: 0,
       },
     })

@@ -76,7 +76,7 @@ export async function generatePreview(input: GeneratePreviewInput): Promise<Gene
           success: false,
           variants: [],
           prompt,
-          error: 'Kunde inte generera några varianter. Försök igen.',
+          error: 'Could not generate any variants. Please try again.',
         }
       }
     } catch (error) {
@@ -85,7 +85,7 @@ export async function generatePreview(input: GeneratePreviewInput): Promise<Gene
         success: false,
         variants: [],
         prompt,
-        error: error instanceof Error ? error.message : 'Okänt fel vid generering',
+        error: error instanceof Error ? error.message : 'Unknown error during generation',
       }
     }
   }

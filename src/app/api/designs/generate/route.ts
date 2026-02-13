@@ -14,7 +14,7 @@ export async function POST(request: NextRequest) {
     if (!usage.canGenerate) {
       return NextResponse.json(
         {
-          error: `Du har använt alla ${usage.generationsLimit} gratis genereringar idag. Kom tillbaka imorgon!`,
+          error: `You have used all ${usage.generationsLimit} free generations today. Come back tomorrow!`,
           quotaExceeded: true,
           remaining: 0,
           limit: usage.generationsLimit,
@@ -33,12 +33,12 @@ export async function POST(request: NextRequest) {
     }
 
     if (!style) {
-      return NextResponse.json({ error: 'Stil krävs.' }, { status: 400 })
+      return NextResponse.json({ error: 'Style is required.' }, { status: 400 })
     }
 
     const styleDef = getStyleDefinition(style)
     if (!styleDef) {
-      return NextResponse.json({ error: 'Okänd stil.' }, { status: 400 })
+      return NextResponse.json({ error: 'Unknown style.' }, { status: 400 })
     }
 
     const defaultControls: DesignControls = Object.assign(

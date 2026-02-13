@@ -9,7 +9,7 @@ export async function POST(request: NextRequest) {
 
     if (!designId) {
       return NextResponse.json(
-        { error: 'designId krävs.' },
+        { error: 'designId is required.' },
         { status: 400 }
       )
     }
@@ -34,7 +34,7 @@ export async function DELETE(request: NextRequest) {
 
     if (!designId) {
       return NextResponse.json(
-        { error: 'designId krävs.' },
+        { error: 'designId is required.' },
         { status: 400 }
       )
     }

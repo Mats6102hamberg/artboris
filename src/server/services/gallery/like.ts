@@ -6,8 +6,8 @@ export interface LikeResult {
 }
 
 /**
- * Toggle like: om redan gillad → ta bort, annars → skapa.
- * Använder Prisma-transaktion för att hålla likesCount synkad.
+ * Toggle like: if already liked → remove, otherwise → create.
+ * Uses Prisma transaction to keep likesCount in sync.
  */
 export async function toggleLike(designId: string, anonId: string): Promise<LikeResult> {
   const existing = await prisma.like.findUnique({
@@ -15,7 +15,7 @@ export async function toggleLike(designId: string, anonId: string): Promise<Like
   })
 
   if (existing) {
-    // Unlike — transaktion: ta bort like + minska räknare
+    // Unlike — transaction: delete like + decrement counter
     const [, updated] = await prisma.$transaction([
       prisma.like.delete({ where: { id: existing.id } }),
       prisma.design.update({
@@ -26,7 +26,7 @@ export async function toggleLike(designId: string, anonId: string): Promise<Like
     return { liked: false, likesCount: Math.max(0, updated.likesCount) }
   }
 
-  // Like — transaktion: skapa like + öka räknare
+  // Like — transaction: create like + increment counter
   const [, updated] = await prisma.$transaction([
     prisma.like.create({ data: { designId, anonId } }),
     prisma.design.update({

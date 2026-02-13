@@ -47,7 +47,7 @@ export function composeMockupCSS(input: ComposeMockupInput): ComposeMockupResult
       success: false,
       mockupUrl: null,
       cssOverlay: null,
-      error: `Okänd storlek: ${config.sizeId}`,
+      error: `Unknown size: ${config.sizeId}`,
     }
   }
 

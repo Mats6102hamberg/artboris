@@ -89,7 +89,7 @@ export async function generatePrintAsset(
   })
   console.log(`${logPrefix} Upscale success: ${upscaleResult.finalWidthPx}×${upscaleResult.finalHeightPx}`)
 
-  // ── Kolla om vi når target DPI ──
+  // ── Check if we reach target DPI ──
   const target = getTargetDimensions(sizeCode, targetDpi)
   const meetsDpi = meetsTargetDpi(
     upscaleResult.finalWidthPx,
@@ -143,7 +143,7 @@ export async function generatePrintAsset(
     upscaleProvider: upscaleResult.upscaleProvider,
   }
 
-  // Om placeholder redan finns (från webhook), uppdatera den
+  // If placeholder already exists (from webhook), update it
   const asset = existing
     ? await prisma.designAsset.update({
         where: { id: existing.id },

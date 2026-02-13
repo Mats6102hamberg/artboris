@@ -33,7 +33,7 @@ export async function generateFinalPrint(input: FinalPrintInput): Promise<FinalP
       imageUrl: null,
       widthPx: 0,
       heightPx: 0,
-      error: `Okänd storlek: ${sizeId}`,
+      error: `Unknown size: ${sizeId}`,
     }
   }
 
@@ -68,7 +68,7 @@ export async function generateFinalPrint(input: FinalPrintInput): Promise<FinalP
         imageUrl: null,
         widthPx,
         heightPx,
-        error: 'Ingen bild genererades för slutrender.',
+        error: 'No image generated for final render.',
       }
     }
 
@@ -88,7 +88,7 @@ export async function generateFinalPrint(input: FinalPrintInput): Promise<FinalP
       imageUrl: null,
       widthPx,
       heightPx,
-      error: error instanceof Error ? error.message : 'Okänt fel vid slutrender',
+      error: error instanceof Error ? error.message : 'Unknown error during final render',
     }
   }
 }

@@ -10,7 +10,7 @@ export async function GET() {
   } catch (error) {
     console.error('[usage] Error:', error)
     return NextResponse.json(
-      { error: 'Kunde inte hämta användning.' },
+      { error: 'Could not fetch usage.' },
       { status: 500 }
     )
   }

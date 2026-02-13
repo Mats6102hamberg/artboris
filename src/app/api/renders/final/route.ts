@@ -15,7 +15,7 @@ export async function POST(request: NextRequest) {
 
     if (!orderId || !originalPrompt || !sizeId) {
       return NextResponse.json(
-        { error: 'orderId, originalPrompt och sizeId krävs.' },
+        { error: 'orderId, originalPrompt and sizeId are required.' },
         { status: 400 }
       )
     }

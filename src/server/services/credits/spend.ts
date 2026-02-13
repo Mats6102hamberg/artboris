@@ -18,7 +18,7 @@ export async function spendCredits(
     return {
       success: false,
       newBalance: 0,
-      error: 'Inte tillräckligt med credits.',
+      error: 'Insufficient credits.',
     }
   }
 
@@ -103,7 +103,7 @@ export async function addCredits(
     return {
       success: false,
       newBalance: 0,
-      error: 'Kunde inte lägga till credits.',
+      error: 'Could not add credits.',
     }
   }
 }

@@ -31,13 +31,13 @@ export async function createOrder(input: CreateOrderInput): Promise<CreateOrderR
     const spendResult = await spendCredits(
       input.anonId,
       creditCost,
-      `Order: design ${input.designId}, storlek ${input.sizeCode}`,
+      `Order: design ${input.designId}, size ${input.sizeCode}`,
     )
 
     if (!spendResult.success) {
       return {
         success: false,
-        error: spendResult.error || 'Inte tillräckligt med credits.',
+        error: spendResult.error || 'Insufficient credits.',
       }
     }
   }

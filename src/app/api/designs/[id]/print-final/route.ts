@@ -18,7 +18,7 @@ export async function POST(
 
     if (!sizeCode || !productType) {
       return NextResponse.json(
-        { error: 'sizeCode och productType krävs.' },
+        { error: 'sizeCode and productType are required.' },
         { status: 400 }
       )
     }
@@ -46,7 +46,7 @@ export async function POST(
   } catch (error) {
     console.error('[designs/[id]/print-final] Error:', error)
     return NextResponse.json(
-      { error: 'Kunde inte rendera tryckfil.' },
+      { error: 'Could not render print file.' },
       { status: 500 }
     )
   }

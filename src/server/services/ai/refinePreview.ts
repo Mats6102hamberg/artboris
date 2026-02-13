@@ -92,7 +92,7 @@ export async function refinePreview(input: RefinePreviewInput): Promise<RefinePr
       success: false,
       variant: null,
       prompt,
-      error: error instanceof Error ? error.message : 'Okänt fel vid förfining',
+      error: error instanceof Error ? error.message : 'Unknown error during refinement',
     }
   }
 }
