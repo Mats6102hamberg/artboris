@@ -174,6 +174,28 @@ export default function Home() {
             </div>
           </div>
 
+          {/* Beskrivningar under knapparna */}
+          <div className="mt-4 grid grid-cols-1 sm:grid-cols-3 gap-3">
+            <a href="/wallcraft" className="group block bg-gradient-to-br from-green-50 to-teal-50 border border-green-200/60 rounded-xl p-4 hover:shadow-md hover:border-green-300 transition-all">
+              <h3 className="text-sm font-semibold text-green-800 group-hover:text-green-900">Wallcraft</h3>
+              <p className="text-xs text-green-700/70 mt-1 leading-relaxed">
+                Designa AI-genererad väggkonst. Ladda upp ditt rum, välj stil och se tavlan på din vägg i realtid.
+              </p>
+            </a>
+            <button onClick={() => setShowBorisChat(!showBorisChat)} className="group text-left bg-gradient-to-br from-purple-50 to-blue-50 border border-purple-200/60 rounded-xl p-4 hover:shadow-md hover:border-purple-300 transition-all">
+              <h3 className="text-sm font-semibold text-purple-800 group-hover:text-purple-900">BorisArt AI</h3>
+              <p className="text-xs text-purple-700/70 mt-1 leading-relaxed">
+                Din personliga konstexpert. Ställ frågor om konstverk, få analyser, trender och investeringsråd.
+              </p>
+            </button>
+            <button onClick={() => setShowPortfolio(!showPortfolio)} className="group text-left bg-gradient-to-br from-fuchsia-50 to-purple-50 border border-purple-200/60 rounded-xl p-4 hover:shadow-md hover:border-purple-300 transition-all">
+              <h3 className="text-sm font-semibold text-purple-800 group-hover:text-purple-900">Portfölj ({portfolio.length})</h3>
+              <p className="text-xs text-purple-700/70 mt-1 leading-relaxed">
+                Dina sparade konstverk. Håll koll på potentiella investeringar och följ värdeutvecklingen.
+              </p>
+            </button>
+          </div>
+
           {/* Tab Navigation */}
           <div className="mt-4 flex space-x-1 bg-gray-100 p-1 rounded-lg">
             <button
