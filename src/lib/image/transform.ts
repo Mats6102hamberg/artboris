@@ -115,10 +115,10 @@ function solveLinearSystem(A: number[][], b: number[]): number[] | null {
 }
 
 /**
- * Assumed wall width in cm for realistic poster sizing.
- * A typical Scandinavian living room wall is ~300 cm wide.
+ * Assumed visible wall width in cm for realistic poster sizing.
+ * The visible wall area in a typical room photo is ~200 cm wide.
  */
-const ASSUMED_WALL_WIDTH_CM = 300
+const ASSUMED_WALL_WIDTH_CM = 200
 
 /**
  * Calculate poster position and size within wall area.
@@ -146,9 +146,17 @@ export function calculatePosterPlacement(
   let baseHeight: number
 
   if (posterWidthCm && posterHeightCm) {
-    // Realistic sizing: poster cm relative to assumed wall width
+    // Realistic sizing: poster cm relative to assumed visible wall width
     baseWidth = (posterWidthCm / ASSUMED_WALL_WIDTH_CM) * wallWidth * scale
     baseHeight = (posterHeightCm / ASSUMED_WALL_WIDTH_CM) * wallWidth * scale
+
+    // Ensure poster is never invisibly small (min 10% of wall width)
+    const minWidth = wallWidth * 0.10
+    if (baseWidth < minWidth && scale >= 0.5) {
+      const boost = minWidth / baseWidth
+      baseWidth *= boost
+      baseHeight *= boost
+    }
   } else {
     // Fallback: use aspect ratio with a default proportion
     baseWidth = wallWidth * 0.35 * scale
