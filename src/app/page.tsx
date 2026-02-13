@@ -175,11 +175,17 @@ export default function Home() {
           </div>
 
           {/* Beskrivningar under knapparna */}
-          <div className="mt-4 grid grid-cols-1 sm:grid-cols-3 gap-3">
+          <div className="mt-4 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
             <a href="/wallcraft" className="group block bg-gradient-to-br from-green-50 to-teal-50 border border-green-200/60 rounded-xl p-4 hover:shadow-md hover:border-green-300 transition-all">
               <h3 className="text-sm font-semibold text-green-800 group-hover:text-green-900">Wallcraft</h3>
               <p className="text-xs text-green-700/70 mt-1 leading-relaxed">
                 Designa AI-genererad väggkonst. Ladda upp ditt rum, välj stil och se tavlan på din vägg i realtid.
+              </p>
+            </a>
+            <a href="/wallcraft/print-your-own" className="group block bg-gradient-to-br from-amber-50 to-orange-50 border border-amber-200/60 rounded-xl p-4 hover:shadow-md hover:border-amber-300 transition-all">
+              <h3 className="text-sm font-semibold text-amber-800 group-hover:text-amber-900">Print Your Own</h3>
+              <p className="text-xs text-amber-700/70 mt-1 leading-relaxed">
+                Ladda upp ditt eget foto och se hur det tar sig på din vägg. Dra i hörnen för att ändra storlek.
               </p>
             </a>
             <button onClick={() => setShowBorisChat(!showBorisChat)} className="group text-left bg-gradient-to-br from-purple-50 to-blue-50 border border-purple-200/60 rounded-xl p-4 hover:shadow-md hover:border-purple-300 transition-all">
