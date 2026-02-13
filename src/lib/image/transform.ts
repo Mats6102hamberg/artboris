@@ -163,11 +163,10 @@ export function calculatePosterPlacement(
     baseHeight = baseWidth / posterAspectRatio
   }
 
-  const maxWidth = wallWidth * 1.2
-  const maxHeight = wallHeight * 1.2
-  const width = Math.min(baseWidth, maxWidth)
-  const height = Math.min(baseHeight, maxHeight)
+  const width = baseWidth
+  const height = baseHeight
 
+  // Allow poster to extend beyond wall edges when zoomed large
   const left = tl.x + (wallWidth - width) * positionX
   const top = tl.y + (wallHeight - height) * positionY
 

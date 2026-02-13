@@ -190,7 +190,7 @@ export default function MockupPreview({
   }, [positionX, positionY, scale])
 
   return (
-    <div ref={containerRef} className="group/mockup relative rounded-xl overflow-hidden shadow-lg select-none">
+    <div ref={containerRef} className="group/mockup relative rounded-xl shadow-lg select-none" style={{ overflow: 'clip' }}>
       <img src={roomImageUrl} alt="Rum" className="w-full pointer-events-none" draggable={false} />
 
       {/* Dynamic shadow — reacts to poster position and scale */}
