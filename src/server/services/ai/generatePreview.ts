@@ -146,30 +146,67 @@ async function generateSingleVariant(
       }
     )
 
-    // Flux returns an array of URLs or ReadableStream
-    const outputArr = output as any[]
-    const tempUrl = typeof outputArr?.[0] === 'string'
-      ? outputArr[0]
-      : outputArr?.[0]?.url?.() || null
+    // Flux output can be: string[], ReadableStream[], or FileOutput[]
+    const outputArr = Array.isArray(output) ? output : [output]
+    const firstOutput = outputArr[0]
 
-    if (!tempUrl) {
-      console.error(`[generateSingleVariant] No output URL for variant ${index}`)
+    let imageUrl = ''
+
+    try {
+      if (typeof firstOutput === 'string') {
+        // Direct URL string — fetch and upload to Blob
+        const imgRes = await fetch(firstOutput)
+        const imgBlob = await imgRes.blob()
+        const blobResult = await put(
+          `designs/preview_${Date.now()}_${index}.webp`,
+          imgBlob,
+          { access: 'public', contentType: 'image/webp' }
+        )
+        imageUrl = blobResult.url
+      } else if (firstOutput && typeof firstOutput === 'object') {
+        // ReadableStream or FileOutput — convert to blob and upload
+        let blob: Blob
+        if (typeof firstOutput.url === 'function') {
+          // FileOutput with .url() method
+          const url = firstOutput.url()
+          const imgRes = await fetch(url)
+          blob = await imgRes.blob()
+        } else if (firstOutput instanceof ReadableStream || typeof firstOutput.getReader === 'function') {
+          // ReadableStream — read all chunks
+          const reader = (firstOutput as ReadableStream).getReader()
+          const chunks: BlobPart[] = []
+          while (true) {
+            const { done, value } = await reader.read()
+            if (done) break
+            if (value) chunks.push(value)
+          }
+          blob = new Blob(chunks, { type: 'image/webp' })
+        } else if (firstOutput.url) {
+          // Object with url property
+          const imgRes = await fetch(String(firstOutput.url))
+          blob = await imgRes.blob()
+        } else {
+          console.error(`[generateSingleVariant] Unknown output type for variant ${index}:`, typeof firstOutput)
+          return null
+        }
+        const blobResult = await put(
+          `designs/preview_${Date.now()}_${index}.webp`,
+          blob,
+          { access: 'public', contentType: 'image/webp' }
+        )
+        imageUrl = blobResult.url
+      } else {
+        console.error(`[generateSingleVariant] No output for variant ${index}`)
+        return null
+      }
+    } catch (uploadErr) {
+      console.error(`[generateSingleVariant] Upload failed for variant ${index}:`, uploadErr)
       return null
     }
 
-    // Upload to Vercel Blob for persistent URL
-    let imageUrl = typeof tempUrl === 'string' ? tempUrl : ''
-    try {
-      const imgRes = await fetch(imageUrl)
-      const imgBlob = await imgRes.blob()
-      const blobResult = await put(
-        `designs/preview_${Date.now()}_${index}.webp`,
-        imgBlob,
-        { access: 'public', contentType: 'image/webp' }
-      )
-      imageUrl = blobResult.url
-    } catch (blobErr) {
-      console.error(`[generateSingleVariant] Blob upload failed for variant ${index}, using temp URL:`, blobErr)
+    if (!imageUrl) {
+      console.error(`[generateSingleVariant] No image URL for variant ${index}`)
+      return null
     }
 
     return {
