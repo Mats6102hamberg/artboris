@@ -132,7 +132,7 @@ function pick<T>(arr: T[]): T {
 
 function getSizeCategory(sizeId: string): 'small' | 'medium' | 'large' {
   const size = POSTER_SIZES.find((s: any) => s.id === sizeId)
-  if (!size) return 'medium'
+  if (!size || !size.widthCm || !size.heightCm) return 'medium'
   
   const w = Number(size.widthCm * 10) // Convert cm to mm
   const h = Number(size.heightCm * 10)
