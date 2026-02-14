@@ -3,8 +3,6 @@
  * Returns curated comments based on frame, size, position, and style.
  */
 
-import { POSTER_SIZES } from '@/lib/image/resize'
-
 // --- Frame feedback ---
 const FRAME_COMMENTS: Record<string, string[]> = {
   none: [
@@ -131,18 +129,9 @@ function pick<T>(arr: T[]): T {
 }
 
 function getSizeCategory(sizeId: string): 'small' | 'medium' | 'large' {
-  const size = POSTER_SIZES.find((s: any) => s.id === sizeId)
-  if (!size || !size.widthCm || !size.heightCm) return 'medium'
-  
-  const w = Number(size.widthCm * 10) // Convert cm to mm
-  const h = Number(size.heightCm * 10)
-  
-  if (!Number.isFinite(w) || !Number.isFinite(h) || w <= 0 || h <= 0) return 'medium'
-  
-  const area = w * h
-  
-  if (area < 200000) return 'small'
-  if (area < 700000) return 'medium'
+  if (!sizeId) return 'medium'
+  if (['a5', 'a4', '30x40'].includes(sizeId)) return 'small'
+  if (['a3', '40x50', '50x70'].includes(sizeId)) return 'medium'
   return 'large'
 }
 
