@@ -1,4 +1,4 @@
-import OpenAI from 'openai'
+import Replicate from 'replicate'
 import { StylePreset, DesignControls, DesignVariant } from '@/types/design'
 import { buildGeneratePrompt } from '@/lib/prompts/templates'
 import { checkPromptSafety } from '@/lib/prompts/safety'
@@ -6,8 +6,8 @@ import { isDemoMode, getDemoVariants } from '@/lib/demo/demoImages'
 import { put } from '@vercel/blob'
 import { prisma } from '@/lib/prisma'
 
-const openai = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY || '',
+const replicate = new Replicate({
+  auth: process.env.REPLICATE_API_TOKEN || '',
 })
 
 export interface GeneratePreviewInput {
@@ -76,7 +76,7 @@ export async function generatePreview(input: GeneratePreviewInput): Promise<Gene
           success: false,
           variants: [],
           prompt,
-          error: 'Bildgenereringen misslyckades. Kontrollera att din OpenAI API-nyckel är giltig och har tillräckligt med kredit.',
+          error: 'Bildgenereringen misslyckades. Kontrollera att din Replicate API-nyckel är giltig och har tillräckligt med kredit.',
         }
       }
     } catch (error) {
@@ -130,33 +130,47 @@ async function generateSingleVariant(
   index: number
 ): Promise<Omit<DesignVariant, 'designId'> | null> {
   try {
-    const response = await openai.images.generate({
-      model: 'dall-e-3',
-      prompt,
-      n: 1,
-      size: '1024x1792', // Portrait 2:3-ish
-      quality: 'standard',
-    })
+    const seed = Math.floor(Math.random() * 999999)
 
-    const tempUrl = response.data?.[0]?.url
-    if (!tempUrl) return null
+    const output = await replicate.run(
+      'black-forest-labs/flux-schnell',
+      {
+        input: {
+          prompt,
+          num_outputs: 1,
+          aspect_ratio: '2:3', // Portrait
+          output_format: 'webp',
+          output_quality: 90,
+          seed,
+        },
+      }
+    )
+
+    // Flux returns an array of URLs or ReadableStream
+    const outputArr = output as any[]
+    const tempUrl = typeof outputArr?.[0] === 'string'
+      ? outputArr[0]
+      : outputArr?.[0]?.url?.() || null
+
+    if (!tempUrl) {
+      console.error(`[generateSingleVariant] No output URL for variant ${index}`)
+      return null
+    }
 
     // Upload to Vercel Blob for persistent URL
-    let imageUrl = tempUrl
+    let imageUrl = typeof tempUrl === 'string' ? tempUrl : ''
     try {
-      const imgRes = await fetch(tempUrl)
+      const imgRes = await fetch(imageUrl)
       const imgBlob = await imgRes.blob()
       const blobResult = await put(
-        `designs/preview_${Date.now()}_${index}.png`,
+        `designs/preview_${Date.now()}_${index}.webp`,
         imgBlob,
-        { access: 'public', contentType: 'image/png' }
+        { access: 'public', contentType: 'image/webp' }
       )
       imageUrl = blobResult.url
     } catch (blobErr) {
       console.error(`[generateSingleVariant] Blob upload failed for variant ${index}, using temp URL:`, blobErr)
     }
-
-    const seed = Math.floor(Math.random() * 999999)
 
     return {
       id: `var_${Date.now()}_${index}`,

@@ -114,7 +114,7 @@ const DEMO_IMAGES: Record<string, string[]> = {
 export const DEMO_ROOM_IMAGE = '/assets/demo/room-sample.svg'
 
 export function isDemoMode(): boolean {
-  return !process.env.OPENAI_API_KEY
+  return !process.env.REPLICATE_API_TOKEN && !process.env.OPENAI_API_KEY
 }
 
 export function getDemoVariants(style: StylePreset) {
