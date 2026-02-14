@@ -327,13 +327,7 @@ export default function MockupPreview({
             borderRadius: '2px',
             zIndex: 11,
           }}
-        >
-          <span
-            className="absolute -top-5 left-1/2 -translate-x-1/2 text-[10px] font-medium text-white bg-black/50 backdrop-blur-sm px-2 py-0.5 rounded-full whitespace-nowrap"
-          >
-            {sizeLabel}
-          </span>
-        </div>
+        />
       )}
 
       {/* Poster — draggable with generous touch area */}
