@@ -76,7 +76,7 @@ export async function generatePreview(input: GeneratePreviewInput): Promise<Gene
           success: false,
           variants: [],
           prompt,
-          error: 'Could not generate any variants. Please try again.',
+          error: 'Bildgenereringen misslyckades. Kontrollera att din OpenAI API-nyckel är giltig och har tillräckligt med kredit.',
         }
       }
     } catch (error) {
@@ -166,8 +166,10 @@ async function generateSingleVariant(
       isSelected: false,
       createdAt: new Date().toISOString(),
     }
-  } catch (error) {
-    console.error(`[generateSingleVariant] Variant ${index} failed:`, error)
+  } catch (error: any) {
+    const msg = error?.message || error?.error?.message || 'Unknown error'
+    const status = error?.status || error?.response?.status || 'N/A'
+    console.error(`[generateSingleVariant] Variant ${index} failed (status ${status}):`, msg)
     return null
   }
 }
