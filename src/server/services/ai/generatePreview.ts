@@ -147,8 +147,10 @@ async function generateSingleVariant(
     )
 
     // Flux output can be: string[], ReadableStream[], or FileOutput[]
+    console.log(`[generateSingleVariant] Variant ${index} raw output type: ${typeof output}, isArray: ${Array.isArray(output)}`)
     const outputArr = Array.isArray(output) ? output : [output]
     const firstOutput = outputArr[0]
+    console.log(`[generateSingleVariant] Variant ${index} firstOutput type: ${typeof firstOutput}, value preview: ${String(firstOutput).substring(0, 100)}`)
 
     let imageUrl = ''
 

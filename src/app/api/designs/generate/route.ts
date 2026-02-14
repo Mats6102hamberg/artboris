@@ -5,6 +5,8 @@ import { getStyleDefinition } from '@/lib/prompts/styles'
 import { getOrCreateAnonId } from '@/lib/anonId'
 import { getUsage, incrementGeneration } from '@/server/services/usage/dailyUsage'
 
+export const maxDuration = 60
+
 export async function POST(request: NextRequest) {
   try {
     const anonId = await getOrCreateAnonId()
