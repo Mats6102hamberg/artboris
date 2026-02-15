@@ -410,24 +410,22 @@ export default function MockupPreview({
         </div>
       </div>
 
-      {/* Resize corner handles — always visible when interactive */}
+      {/* Resize corner handles — invisible but functional, cursor changes on hover */}
       {isInteractive && onScaleChange && (
         <>
           {[
-            { corner: 'br', cursor: 'nwse-resize', left: `calc(${(placement.left + placement.width) * 100}% - 14px)`, top: `calc(${(placement.top + placement.height) * 100}% - 14px)`, borderClass: 'border-r-[2.5px] border-b-[2.5px] bottom-1 right-1' },
-            { corner: 'bl', cursor: 'nesw-resize', left: `calc(${placement.left * 100}% - 14px)`, top: `calc(${(placement.top + placement.height) * 100}% - 14px)`, borderClass: 'border-l-[2.5px] border-b-[2.5px] bottom-1 left-1' },
-            { corner: 'tr', cursor: 'nesw-resize', left: `calc(${(placement.left + placement.width) * 100}% - 14px)`, top: `calc(${placement.top * 100}% - 14px)`, borderClass: 'border-r-[2.5px] border-t-[2.5px] top-1 right-1' },
-            { corner: 'tl', cursor: 'nwse-resize', left: `calc(${placement.left * 100}% - 14px)`, top: `calc(${placement.top * 100}% - 14px)`, borderClass: 'border-l-[2.5px] border-t-[2.5px] top-1 left-1' },
-          ].map(({ corner, cursor, left, top, borderClass }) => (
+            { corner: 'br', cursor: 'nwse-resize', left: `calc(${(placement.left + placement.width) * 100}% - 14px)`, top: `calc(${(placement.top + placement.height) * 100}% - 14px)` },
+            { corner: 'bl', cursor: 'nesw-resize', left: `calc(${placement.left * 100}% - 14px)`, top: `calc(${(placement.top + placement.height) * 100}% - 14px)` },
+            { corner: 'tr', cursor: 'nesw-resize', left: `calc(${(placement.left + placement.width) * 100}% - 14px)`, top: `calc(${placement.top * 100}% - 14px)` },
+            { corner: 'tl', cursor: 'nwse-resize', left: `calc(${placement.left * 100}% - 14px)`, top: `calc(${placement.top * 100}% - 14px)` },
+          ].map(({ corner, cursor, left, top }) => (
             <div
               key={corner}
               className="absolute z-20"
               style={{ left, top, width: '28px', height: '28px', cursor }}
               onMouseDown={handleResizeStart}
               onTouchStart={handleResizeStart}
-            >
-              <div className={`w-3.5 h-3.5 border-white/90 absolute ${borderClass}`} style={{ filter: 'drop-shadow(0 1px 3px rgba(0,0,0,0.4))' }} />
-            </div>
+            />
           ))}
         </>
       )}
