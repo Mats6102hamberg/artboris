@@ -75,6 +75,8 @@ export default function ArtistPage() {
   const [uploadFile, setUploadFile] = useState<File | null>(null)
   const [uploadPreview, setUploadPreview] = useState<string | null>(null)
   const [uploading, setUploading] = useState(false)
+  const [imageResolution, setImageResolution] = useState<{ w: number; h: number } | null>(null)
+  const [uploadResult, setUploadResult] = useState<any>(null)
   const fileInputRef = useRef<HTMLInputElement>(null)
 
   // Check for saved token on mount
@@ -180,6 +182,11 @@ export default function ArtistPage() {
     if (file) {
       setUploadFile(file)
       setUploadPreview(URL.createObjectURL(file))
+      setUploadResult(null)
+      // Read image dimensions client-side
+      const img = new Image()
+      img.onload = () => setImageResolution({ w: img.naturalWidth, h: img.naturalHeight })
+      img.src = URL.createObjectURL(file)
     }
   }
 
@@ -209,15 +216,21 @@ export default function ArtistPage() {
       })
       const data = await res.json()
       if (data.success) {
-        setShowUpload(false)
+        setUploadResult(data.imageInfo)
         setUploadFile(null)
         setUploadPreview(null)
+        setImageResolution(null)
         setUploadForm({
           title: '', description: '', technique: '', category: 'painting',
           year: '', widthCm: '', heightCm: '', artistPriceSEK: '',
           isOriginal: false, maxPrints: '',
         })
         fetchListings()
+        // Auto-close after showing result briefly
+        setTimeout(() => {
+          setShowUpload(false)
+          setUploadResult(null)
+        }, 4000)
       } else {
         alert(data.error || 'Uppladdning misslyckades')
       }
@@ -597,7 +610,31 @@ export default function ArtistPage() {
               </div>
 
               <form onSubmit={handleUploadListing} className="space-y-4">
+                {/* Upload success result */}
+                {uploadResult && (
+                  <div className="bg-emerald-50 border border-emerald-200 rounded-xl p-4 space-y-2">
+                    <div className="flex items-center gap-2">
+                      <svg className="w-5 h-5 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" /></svg>
+                      <p className="font-medium text-emerald-800">Uppladdning klar!</p>
+                    </div>
+                    <p className="text-sm text-emerald-700">
+                      Bild: {uploadResult.optimizedSize}px
+                      {uploadResult.wasResized && ` (nedskalad från ${uploadResult.originalSize})`}
+                    </p>
+                    <p className="text-sm text-emerald-700">
+                      Tryckkvalitet: <strong>{{
+                        perfect: 'Perfekt — 300+ DPI',
+                        good: 'Bra — 200+ DPI',
+                        fair: 'Acceptabel — 150+ DPI',
+                        low: 'Låg upplösning',
+                      }[uploadResult.overallQuality as string] || uploadResult.overallQuality}</strong>
+                      {uploadResult.maxPrintSize && ` (upp till ${uploadResult.maxPrintSize})`}
+                    </p>
+                  </div>
+                )}
+
                 {/* Image upload */}
+                {!uploadResult && (
                 <div>
                   <input
                     ref={fileInputRef}
@@ -607,11 +644,33 @@ export default function ArtistPage() {
                     onChange={handleFileSelect}
                   />
                   {uploadPreview ? (
-                    <div className="relative aspect-[3/4] rounded-xl overflow-hidden bg-gray-100 cursor-pointer" onClick={() => fileInputRef.current?.click()}>
-                      <img src={uploadPreview} alt="Preview" className="w-full h-full object-cover" />
-                      <div className="absolute inset-0 bg-black/20 flex items-center justify-center opacity-0 hover:opacity-100 transition-opacity">
-                        <span className="text-white font-medium">Byt bild</span>
+                    <div className="relative rounded-xl overflow-hidden bg-gray-100">
+                      <div className="aspect-[3/4] cursor-pointer" onClick={() => fileInputRef.current?.click()}>
+                        <img src={uploadPreview} alt="Preview" className="w-full h-full object-cover" />
+                        <div className="absolute inset-0 bg-black/20 flex items-center justify-center opacity-0 hover:opacity-100 transition-opacity">
+                          <span className="text-white font-medium">Byt bild</span>
+                        </div>
                       </div>
+                      {imageResolution && (
+                        <div className="absolute bottom-2 left-2 right-2 flex items-center justify-between">
+                          <span className="text-xs bg-black/60 text-white px-2 py-1 rounded-lg">
+                            {imageResolution.w} × {imageResolution.h} px
+                          </span>
+                          <span className={`text-xs px-2 py-1 rounded-lg font-medium ${
+                            Math.max(imageResolution.w, imageResolution.h) >= 5000
+                              ? 'bg-emerald-500/90 text-white'
+                              : Math.max(imageResolution.w, imageResolution.h) >= 3000
+                              ? 'bg-amber-500/90 text-white'
+                              : 'bg-red-500/90 text-white'
+                          }`}>
+                            {Math.max(imageResolution.w, imageResolution.h) >= 5000
+                              ? 'Hög upplösning ✓'
+                              : Math.max(imageResolution.w, imageResolution.h) >= 3000
+                              ? 'Medel upplösning'
+                              : 'Låg upplösning — kan påverka tryckkvalitet'}
+                          </span>
+                        </div>
+                      )}
                     </div>
                   ) : (
                     <button
@@ -623,9 +682,11 @@ export default function ArtistPage() {
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 4v16m8-8H4" />
                       </svg>
                       <span className="text-gray-500">Välj bild (max 50 MB)</span>
+                      <span className="text-xs text-gray-400">Rekommenderat: minst 4000×6000 px för bästa tryck</span>
                     </button>
                   )}
                 </div>
+                )}
 
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">Titel *</label>

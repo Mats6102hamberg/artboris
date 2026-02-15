@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 import { put } from '@vercel/blob'
+import { optimizeForPrint } from '@/lib/image/printOptimize'
 
 // GET: Public gallery — fetch all published listings
 export async function GET(request: NextRequest) {
@@ -92,13 +93,32 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Bilden är för stor (max 50 MB).' }, { status: 400 })
     }
 
-    // Upload to Vercel Blob
-    const ext = file.name.split('.').pop() || 'jpg'
-    const filename = `market/${artist.id}/${Date.now()}_${Math.random().toString(36).slice(2, 8)}.${ext}`
-    const blob = await put(filename, file, {
-      access: 'public',
-      contentType: file.type,
-    })
+    // ── Sharp print optimization pipeline ──
+    const fileBuffer = Buffer.from(await file.arrayBuffer())
+    let optimized
+    try {
+      optimized = await optimizeForPrint(fileBuffer)
+    } catch (err: any) {
+      return NextResponse.json({ error: err.message || 'Bildbehandling misslyckades.' }, { status: 400 })
+    }
+
+    const ts = Date.now()
+    const slug = Math.random().toString(36).slice(2, 8)
+    const printExt = optimized.printMimeType === 'image/png' ? 'png' : 'jpg'
+
+    // Upload print-ready version
+    const printBlob = await put(
+      `market/${artist.id}/${ts}_${slug}_print.${printExt}`,
+      optimized.printBuffer,
+      { access: 'public', contentType: optimized.printMimeType }
+    )
+
+    // Upload thumbnail
+    const thumbBlob = await put(
+      `market/${artist.id}/${ts}_${slug}_thumb.jpg`,
+      optimized.thumbnailBuffer,
+      { access: 'public', contentType: 'image/jpeg' }
+    )
 
     const listing = await prisma.artworkListing.create({
       data: {
@@ -108,7 +128,13 @@ export async function POST(request: NextRequest) {
         technique,
         category,
         year,
-        imageUrl: blob.url,
+        imageUrl: printBlob.url,
+        printUrl: printBlob.url,
+        thumbnailUrl: thumbBlob.url,
+        imageWidthPx: optimized.optimizedWidthPx,
+        imageHeightPx: optimized.optimizedHeightPx,
+        maxPrintSize: optimized.maxPrintSize,
+        printQuality: optimized.overallQuality,
         widthCm,
         heightCm,
         artistPriceSEK,
@@ -119,7 +145,19 @@ export async function POST(request: NextRequest) {
       },
     })
 
-    return NextResponse.json({ success: true, listing })
+    return NextResponse.json({
+      success: true,
+      listing,
+      imageInfo: {
+        originalSize: `${optimized.originalWidthPx}×${optimized.originalHeightPx}`,
+        optimizedSize: `${optimized.optimizedWidthPx}×${optimized.optimizedHeightPx}`,
+        wasResized: optimized.wasResized,
+        resizeDirection: optimized.resizeDirection,
+        maxPrintSize: optimized.maxPrintSize,
+        overallQuality: optimized.overallQuality,
+        sizeQualities: optimized.sizeQualities,
+      },
+    })
   } catch (error) {
     console.error('[market/listings] POST Error:', error)
     return NextResponse.json({ error: 'Kunde inte skapa konstverk.' }, { status: 500 })
