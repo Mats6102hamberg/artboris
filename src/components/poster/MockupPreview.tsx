@@ -72,14 +72,6 @@ export default function MockupPreview({
     return calculatePosterPlacement(wallCorners, positionX, positionY, scale, posterAspect, posterWidthCm, posterHeightCm)
   }, [wallCorners, positionX, positionY, scale, posterAspect, posterWidthCm, posterHeightCm])
 
-  // Reference placement at scale=1.0 (the actual selected size)
-  const referencePlacement = useMemo(() => {
-    if (wallCorners.length !== 4) return null
-    return calculatePosterPlacement(wallCorners, positionX, positionY, 1.0, posterAspect, posterWidthCm, posterHeightCm)
-  }, [wallCorners, positionX, positionY, posterAspect, posterWidthCm, posterHeightCm])
-
-  const sizeLabel = size ? `${size.widthCm}×${size.heightCm} cm` : ''
-
   const frameWidthPx = frame && frame.id !== 'none' ? frame.width * 0.4 : 0
 
   // --- Drag to move with momentum/inertia ---
@@ -246,7 +238,7 @@ export default function MockupPreview({
   }, [scale, onScaleChange])
 
   const isInteractive = !!(onPositionChange || onScaleChange)
-  const showReference = isInteractive && Math.abs(scale - 1.0) > 0.02 && referencePlacement
+  const hitPad = isInteractive ? 24 : 0 // extra touch area around poster (px)
 
   // --- Dynamic shadow & light based on poster position ---
   const dynamicShadow = useMemo(() => {
@@ -314,33 +306,15 @@ export default function MockupPreview({
         />
       )}
 
-      {/* Reference outline — shows the selected size at scale=1.0 */}
-      {showReference && referencePlacement && (
-        <div
-          className="absolute pointer-events-none"
-          style={{
-            left: `${referencePlacement.left * 100}%`,
-            top: `${referencePlacement.top * 100}%`,
-            width: `${referencePlacement.width * 100}%`,
-            height: `${referencePlacement.height * 100}%`,
-            border: '1.5px dashed rgba(255,255,255,0.7)',
-            borderRadius: '2px',
-            zIndex: 11,
-          }}
-        />
-      )}
-
       {/* Poster — draggable with generous touch area */}
       <div
         className={`absolute ${isInteractive ? 'cursor-grab active:cursor-grabbing' : ''} ${isDragging ? '!cursor-grabbing' : ''}`}
         style={{
-          left: `${placement.left * 100}%`,
-          top: `${placement.top * 100}%`,
-          width: `${placement.width * 100}%`,
-          height: `${placement.height * 100}%`,
+          left: `calc(${placement.left * 100}% - ${hitPad}px)`,
+          top: `calc(${placement.top * 100}% - ${hitPad}px)`,
+          width: `calc(${placement.width * 100}% + ${hitPad * 2}px)`,
+          height: `calc(${placement.height * 100}% + ${hitPad * 2}px)`,
           zIndex: 10,
-          padding: isInteractive ? '12px' : 0,
-          margin: isInteractive ? '-12px' : 0,
           touchAction: 'none',
         }}
         onMouseDown={handleDragStart}
@@ -349,15 +323,25 @@ export default function MockupPreview({
         onTouchEnd={handleTouchEnd}
         onWheel={handleWheel}
       >
-        <div className="w-full h-full overflow-hidden relative" style={{ margin: isInteractive ? '12px' : 0 }}>
+        {/* Visual poster — positioned exactly at placement coordinates */}
+        <div
+          className="absolute overflow-hidden"
+          style={{
+            left: `${hitPad}px`,
+            top: `${hitPad}px`,
+            right: `${hitPad}px`,
+            bottom: `${hitPad}px`,
+          }}
+        >
           <img
             src={designImageUrl}
             alt="Poster"
             className="w-full h-full"
             style={cropToCSS(cropMode, cropOffsetX, cropOffsetY)}
             draggable={false}
+            onError={(e) => console.error('[MockupPreview] Image failed to load:', designImageUrl, e)}
           />
-          {/* Light reflection overlay — subtle highlight on the light-facing edge */}
+          {/* Light reflection overlay */}
           <div
             className="absolute inset-0 pointer-events-none"
             style={{
