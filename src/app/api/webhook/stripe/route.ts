@@ -3,6 +3,8 @@ import Stripe from 'stripe'
 import { prisma } from '@/lib/prisma'
 import { generatePrintAsset, isPremiumSize } from '@/server/services/print/generatePrintAsset'
 import { sendOrderConfirmation } from '@/server/services/email/sendEmail'
+import { addCredits } from '@/server/services/credits/spend'
+import { FIRST_PURCHASE_BONUS } from '@/lib/pricing/credits'
 
 function getStripe() {
   return new Stripe(process.env.STRIPE_SECRET_KEY!, {
@@ -29,8 +31,35 @@ export async function POST(req: Request) {
 
   if (event.type === 'checkout.session.completed') {
     const session = event.data.object as Stripe.Checkout.Session
-    const orderId = session.metadata?.orderId
 
+    // ── Credits purchase ──
+    if (session.metadata?.type === 'credits_purchase') {
+      const userId = session.metadata.userId
+      const credits = parseInt(session.metadata.credits || '0')
+      const packageId = session.metadata.packageId
+
+      if (userId && credits > 0) {
+        console.log(`[stripe webhook] Credits purchase: ${credits} credits for ${userId} (${packageId})`)
+
+        // Check if first purchase → bonus
+        const existingTx = await prisma.creditTransaction.findFirst({
+          where: { userId, type: 'purchase' },
+        })
+        const isFirstPurchase = !existingTx
+
+        await addCredits(userId, credits, `Köp: ${packageId} (${credits} credits)`)
+
+        if (isFirstPurchase && FIRST_PURCHASE_BONUS > 0) {
+          await addCredits(userId, FIRST_PURCHASE_BONUS, `Bonus: första köpet (+${FIRST_PURCHASE_BONUS} credits)`)
+          console.log(`[stripe webhook] First purchase bonus: +${FIRST_PURCHASE_BONUS} credits for ${userId}`)
+        }
+
+        console.log(`[stripe webhook] Credits added for ${userId}`)
+      }
+    }
+
+    // ── Order purchase ──
+    const orderId = session.metadata?.orderId
     if (orderId) {
       console.log(`[stripe webhook] Processing order: ${orderId}`)
       await processCheckoutCompleted(orderId, session)

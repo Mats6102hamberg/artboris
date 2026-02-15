@@ -54,4 +54,8 @@ export interface CreditPackage {
   credits: number
   priceSEK: number
   popular: boolean
+  badge?: string
+  subtitle?: string
+  pricePerCredit?: number
+  estAnalyses?: number
 }
