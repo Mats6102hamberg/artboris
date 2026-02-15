@@ -1,6 +1,6 @@
 import { prisma } from '@/lib/prisma'
 
-const FREE_GENERATIONS_PER_DAY = 5
+const FREE_GENERATIONS_PER_DAY = 50
 const FREE_REFINES_PER_DAY = 0 // No free refines
 
 function todayDate(): string {
