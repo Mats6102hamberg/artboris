@@ -41,9 +41,22 @@ export default function MockupPreview({
 }: MockupPreviewProps) {
   const containerRef = useRef<HTMLDivElement>(null)
   const [isDragging, setIsDragging] = useState(false)
+  const [isResizing, setIsResizing] = useState(false)
   const dragStart = useRef<{ x: number; y: number; posX: number; posY: number } | null>(null)
   const pinchStart = useRef<{ dist: number; scale: number } | null>(null)
   const rafRef = useRef<number | null>(null)
+
+  // Set cursor on body during drag/resize so it persists even when mouse moves fast
+  useEffect(() => {
+    if (isDragging) {
+      document.body.style.cursor = 'grabbing'
+      return () => { document.body.style.cursor = '' }
+    }
+    if (isResizing) {
+      document.body.style.cursor = 'nwse-resize'
+      return () => { document.body.style.cursor = '' }
+    }
+  }, [isDragging, isResizing])
 
   // Low-power detection: auto-disable realistic mode on weak devices
   const [isLowPower, setIsLowPower] = useState(false)
@@ -165,14 +178,16 @@ export default function MockupPreview({
   }, [positionX, positionY, onPositionChange, stopMomentum])
 
   // --- Resize handles (corner drag to scale) ---
-  const resizeStart = useRef<{ y: number; scale: number } | null>(null)
+  const resizeStart = useRef<{ x: number; y: number; scale: number } | null>(null)
 
   const handleResizeStart = useCallback((e: React.MouseEvent | React.TouchEvent) => {
     if (!onScaleChange || !containerRef.current) return
     e.preventDefault()
     e.stopPropagation()
+    const clientX = 'touches' in e ? e.touches[0].clientX : e.clientX
     const clientY = 'touches' in e ? e.touches[0].clientY : e.clientY
-    resizeStart.current = { y: clientY, scale }
+    resizeStart.current = { x: clientX, y: clientY, scale }
+    setIsResizing(true)
 
     const handleMove = (ev: MouseEvent | TouchEvent) => {
       if (!resizeStart.current || !containerRef.current) return
@@ -180,16 +195,21 @@ export default function MockupPreview({
       rafRef.current = requestAnimationFrame(() => {
         rafRef.current = null
         if (!resizeStart.current || !containerRef.current) return
+        const cx = 'touches' in ev ? (ev as TouchEvent).touches[0].clientX : (ev as MouseEvent).clientX
         const cy = 'touches' in ev ? (ev as TouchEvent).touches[0].clientY : (ev as MouseEvent).clientY
         const rect = containerRef.current.getBoundingClientRect()
+        // Use diagonal distance for natural corner-drag feel
+        const dx = (cx - resizeStart.current.x) / rect.width
         const dy = (cy - resizeStart.current.y) / rect.height
-        const newScale = Math.max(0.2, Math.min(4.0, resizeStart.current.scale + dy * 2))
+        const diag = (dx + dy) * 1.5
+        const newScale = Math.max(0.2, Math.min(4.0, resizeStart.current.scale + diag))
         onScaleChange(newScale)
       })
     }
 
     const handleUp = () => {
       resizeStart.current = null
+      setIsResizing(false)
       if (rafRef.current) { cancelAnimationFrame(rafRef.current); rafRef.current = null }
       window.removeEventListener('mousemove', handleMove)
       window.removeEventListener('mouseup', handleUp)
@@ -308,7 +328,7 @@ export default function MockupPreview({
 
       {/* Poster — draggable with generous touch area */}
       <div
-        className={`absolute ${isInteractive ? 'cursor-grab active:cursor-grabbing' : ''} ${isDragging ? '!cursor-grabbing' : ''}`}
+        className={`absolute ${isInteractive ? 'cursor-pointer' : ''}`}
         style={{
           left: `calc(${placement.left * 100}% - ${hitPad}px)`,
           top: `calc(${placement.top * 100}% - ${hitPad}px)`,
@@ -390,65 +410,25 @@ export default function MockupPreview({
         </div>
       </div>
 
-      {/* Resize corner handles */}
+      {/* Resize corner handles — always visible when interactive */}
       {isInteractive && onScaleChange && (
         <>
-          {/* Bottom-right corner */}
-          <div
-            className="absolute z-20 cursor-nwse-resize opacity-0 group-hover/mockup:opacity-100 transition-opacity"
-            style={{
-              left: `calc(${(placement.left + placement.width) * 100}% - 10px)`,
-              top: `calc(${(placement.top + placement.height) * 100}% - 10px)`,
-              width: '20px',
-              height: '20px',
-            }}
-            onMouseDown={handleResizeStart}
-            onTouchStart={handleResizeStart}
-          >
-            <div className="w-3 h-3 border-r-2 border-b-2 border-white/80 absolute bottom-1 right-1 drop-shadow-md" />
-          </div>
-          {/* Bottom-left corner */}
-          <div
-            className="absolute z-20 cursor-nesw-resize opacity-0 group-hover/mockup:opacity-100 transition-opacity"
-            style={{
-              left: `calc(${placement.left * 100}% - 10px)`,
-              top: `calc(${(placement.top + placement.height) * 100}% - 10px)`,
-              width: '20px',
-              height: '20px',
-            }}
-            onMouseDown={handleResizeStart}
-            onTouchStart={handleResizeStart}
-          >
-            <div className="w-3 h-3 border-l-2 border-b-2 border-white/80 absolute bottom-1 left-1 drop-shadow-md" />
-          </div>
-          {/* Top-right corner */}
-          <div
-            className="absolute z-20 cursor-nesw-resize opacity-0 group-hover/mockup:opacity-100 transition-opacity"
-            style={{
-              left: `calc(${(placement.left + placement.width) * 100}% - 10px)`,
-              top: `calc(${placement.top * 100}% - 10px)`,
-              width: '20px',
-              height: '20px',
-            }}
-            onMouseDown={handleResizeStart}
-            onTouchStart={handleResizeStart}
-          >
-            <div className="w-3 h-3 border-r-2 border-t-2 border-white/80 absolute top-1 right-1 drop-shadow-md" />
-          </div>
-          {/* Top-left corner */}
-          <div
-            className="absolute z-20 cursor-nwse-resize opacity-0 group-hover/mockup:opacity-100 transition-opacity"
-            style={{
-              left: `calc(${placement.left * 100}% - 10px)`,
-              top: `calc(${placement.top * 100}% - 10px)`,
-              width: '20px',
-              height: '20px',
-            }}
-            onMouseDown={handleResizeStart}
-            onTouchStart={handleResizeStart}
-          >
-            <div className="w-3 h-3 border-l-2 border-t-2 border-white/80 absolute top-1 left-1 drop-shadow-md" />
-          </div>
+          {[
+            { corner: 'br', cursor: 'nwse-resize', left: `calc(${(placement.left + placement.width) * 100}% - 14px)`, top: `calc(${(placement.top + placement.height) * 100}% - 14px)`, borderClass: 'border-r-[2.5px] border-b-[2.5px] bottom-1 right-1' },
+            { corner: 'bl', cursor: 'nesw-resize', left: `calc(${placement.left * 100}% - 14px)`, top: `calc(${(placement.top + placement.height) * 100}% - 14px)`, borderClass: 'border-l-[2.5px] border-b-[2.5px] bottom-1 left-1' },
+            { corner: 'tr', cursor: 'nesw-resize', left: `calc(${(placement.left + placement.width) * 100}% - 14px)`, top: `calc(${placement.top * 100}% - 14px)`, borderClass: 'border-r-[2.5px] border-t-[2.5px] top-1 right-1' },
+            { corner: 'tl', cursor: 'nwse-resize', left: `calc(${placement.left * 100}% - 14px)`, top: `calc(${placement.top * 100}% - 14px)`, borderClass: 'border-l-[2.5px] border-t-[2.5px] top-1 left-1' },
+          ].map(({ corner, cursor, left, top, borderClass }) => (
+            <div
+              key={corner}
+              className="absolute z-20"
+              style={{ left, top, width: '28px', height: '28px', cursor }}
+              onMouseDown={handleResizeStart}
+              onTouchStart={handleResizeStart}
+            >
+              <div className={`w-3.5 h-3.5 border-white/90 absolute ${borderClass}`} style={{ filter: 'drop-shadow(0 1px 3px rgba(0,0,0,0.4))' }} />
+            </div>
+          ))}
         </>
       )}
 
