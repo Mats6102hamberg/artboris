@@ -87,9 +87,10 @@ export async function POST(request: NextRequest) {
       generationsRemaining: remaining,
     })
   } catch (error) {
-    console.error('[designs/generate] Error:', error)
+    const msg = error instanceof Error ? error.message : String(error)
+    console.error('[designs/generate] Error:', msg, error)
     return NextResponse.json(
-      { error: 'Generering misslyckades.' },
+      { error: `Generering misslyckades: ${msg}` },
       { status: 500 }
     )
   }
