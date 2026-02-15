@@ -1,5 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
+import { addCredits } from '@/server/services/credits/spend'
+
+const INVITE_BONUS_CREDITS = 20
 
 export async function POST(request: NextRequest) {
   try {
@@ -69,6 +72,11 @@ export async function POST(request: NextRequest) {
 
       return newArtist
     })
+
+    // Grant welcome credits (outside transaction — non-critical)
+    await addCredits(artist.id, INVITE_BONUS_CREDITS, `Välkomstbonus: ${INVITE_BONUS_CREDITS} credits (inbjudningskod ${inviteCode.toUpperCase()})`).catch(err =>
+      console.error('[register] Failed to add welcome credits:', err)
+    )
 
     return NextResponse.json({
       success: true,
