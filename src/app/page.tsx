@@ -22,6 +22,8 @@ export default function Home() {
   const [showPortfolio, setShowPortfolio] = useState(false)
   const [showFilters, setShowFilters] = useState(true)
   const [showBorisChat, setShowBorisChat] = useState(false)
+  const [borisAnalysis, setBorisAnalysis] = useState<string | null>(null)
+  const [loadingBoris, setLoadingBoris] = useState(false)
   const [activeTab, setActiveTab] = useState<'scanner' | 'my-artworks'>('scanner')
   const [selectedSources, setSelectedSources] = useState<string[]>(['bukowskis', 'barnebys', 'auctionet', 'tradera'])
   const [sortBy, setSortBy] = useState('profit')
@@ -90,9 +92,32 @@ export default function Home() {
     }
   }
 
-  const analyzeItem = (item: any) => {
+  const analyzeItem = async (item: any) => {
     setSelectedItem(item)
     setShowAnalysis(true)
+    setBorisAnalysis(null)
+    setLoadingBoris(true)
+
+    try {
+      const res = await fetch('/api/boris-ai', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          action: 'analyze-my-artwork',
+          data: { artwork: item },
+        }),
+      })
+      const json = await res.json()
+      if (res.ok && json.success) {
+        setBorisAnalysis(json.response)
+      } else {
+        setBorisAnalysis(`Kunde inte hämta analys: ${json.error || 'Okänt fel'}`)
+      }
+    } catch (err) {
+      setBorisAnalysis(`Kunde inte nå Boris AI: ${err instanceof Error ? err.message : 'Nätverksfel'}`)
+    } finally {
+      setLoadingBoris(false)
+    }
   }
 
   const investInItem = (item: any) => {
@@ -706,6 +731,22 @@ export default function Home() {
                         </div>
                       </div>
                     </div>
+                  </div>
+
+                  {/* Boris AI-analys */}
+                  <div className="mt-6 bg-gradient-to-br from-purple-50 to-blue-50 border border-purple-200/60 rounded-lg p-4">
+                    <div className="flex items-center gap-2 mb-3">
+                      <span className="text-xl">🎨</span>
+                      <h4 className="font-semibold text-purple-900">Boris AI-analys</h4>
+                    </div>
+                    {loadingBoris ? (
+                      <div className="flex items-center gap-3 py-4">
+                        <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-purple-600"></div>
+                        <span className="text-purple-700 text-sm">Boris AI analyserar verket...</span>
+                      </div>
+                    ) : borisAnalysis ? (
+                      <p className="text-gray-800 text-sm leading-relaxed whitespace-pre-line">{borisAnalysis}</p>
+                    ) : null}
                   </div>
 
                   <div className="mt-6 flex space-x-4">
