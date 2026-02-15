@@ -38,6 +38,9 @@ export default function WallcraftLanding() {
           </span>
         </div>
         <div className="flex items-center gap-4">
+          <a href="/market" className="text-sm font-medium text-gray-600 hover:text-gray-900 transition-colors hidden sm:block">
+            Art Market
+          </a>
           <a href="/wallcraft/gallery" className="text-sm font-medium text-gray-600 hover:text-gray-900 transition-colors hidden sm:block">
             {t('nav.gallery')}
           </a>
@@ -75,6 +78,7 @@ export default function WallcraftLanding() {
       {/* Mobile menu dropdown */}
       {mobileMenuOpen && (
         <div className="sm:hidden bg-white border-b border-gray-200/60 px-6 py-4 space-y-3 animate-in slide-in-from-top-2">
+          <a href="/market" className="block text-base font-medium text-gray-700 py-2">Art Market</a>
           <a href="/wallcraft/gallery" className="block text-base font-medium text-gray-700 py-2">{t('nav.gallery')}</a>
           <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider pt-2">Creative Tools</p>
           <a href="/wallcraft/mandala" className="block text-base font-medium text-gray-700 py-2">Mandala Maker</a>

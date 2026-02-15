@@ -187,6 +187,12 @@ export default function Home() {
               >
                 Wallcraft
               </a>
+              <a
+                href="/market"
+                className="bg-gradient-to-r from-rose-600 to-pink-600 text-white px-4 py-2 rounded-md hover:from-rose-700 hover:to-pink-700 transition-all"
+              >
+                Art Market
+              </a>
               <button
                 onClick={() => setShowBorisChat(!showBorisChat)}
                 className="bg-gradient-to-r from-purple-600 to-blue-600 text-white px-4 py-2 rounded-md hover:from-purple-700 hover:to-blue-700 transition-all"
@@ -203,11 +209,17 @@ export default function Home() {
           </div>
 
           {/* Beskrivningar under knapparna */}
-          <div className="mt-4 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+          <div className="mt-4 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3">
             <a href="/wallcraft" className="group block bg-gradient-to-br from-green-50 to-teal-50 border border-green-200/60 rounded-xl p-4 hover:shadow-md hover:border-green-300 transition-all">
               <h3 className="text-sm font-semibold text-green-800 group-hover:text-green-900">Wallcraft</h3>
               <p className="text-xs text-green-700/70 mt-1 leading-relaxed">
                 Designa AI-genererad väggkonst. Ladda upp ditt rum, välj stil och se tavlan på din vägg i realtid.
+              </p>
+            </a>
+            <a href="/market" className="group block bg-gradient-to-br from-rose-50 to-pink-50 border border-rose-200/60 rounded-xl p-4 hover:shadow-md hover:border-rose-300 transition-all">
+              <h3 className="text-sm font-semibold text-rose-800 group-hover:text-rose-900">Art Market</h3>
+              <p className="text-xs text-rose-700/70 mt-1 leading-relaxed">
+                Upptäck unik konst från lokala konstnärer. Prova verket på din vägg innan du köper.
               </p>
             </a>
             <a href="/wallcraft/print-your-own" className="group block bg-gradient-to-br from-amber-50 to-orange-50 border border-amber-200/60 rounded-xl p-4 hover:shadow-md hover:border-amber-300 transition-all">
