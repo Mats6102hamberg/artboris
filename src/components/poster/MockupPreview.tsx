@@ -92,12 +92,10 @@ export default function MockupPreview({
   const dragScale = useMemo(() => {
     if (wallCorners.length !== 4) return { x: 1, y: 1 }
     const [tl, tr, , bl] = wallCorners
-    const wallW = Math.abs(tr.x - tl.x)
-    const wallH = Math.abs(bl.y - tl.y)
-    const rangeX = Math.max(0.01, wallW - placement.width)
-    const rangeY = Math.max(0.01, wallH - placement.height)
-    return { x: 1 / rangeX, y: 1 / rangeY }
-  }, [wallCorners, placement.width, placement.height])
+    const wallW = Math.max(0.01, Math.abs(tr.x - tl.x))
+    const wallH = Math.max(0.01, Math.abs(bl.y - tl.y))
+    return { x: 1 / wallW, y: 1 / wallH }
+  }, [wallCorners])
   const dragScaleRef = useRef(dragScale)
   dragScaleRef.current = dragScale
 
@@ -139,8 +137,8 @@ export default function MockupPreview({
         const ds = dragScaleRef.current
         const dx = (cx - dragStart.current.x) / rect.width * ds.x
         const dy = (cy - dragStart.current.y) / rect.height * ds.y
-        const newX = Math.max(-0.5, Math.min(1.5, dragStart.current.posX + dx))
-        const newY = Math.max(-0.5, Math.min(1.5, dragStart.current.posY + dy))
+        const newX = Math.max(-1, Math.min(2, dragStart.current.posX + dx))
+        const newY = Math.max(-1, Math.min(2, dragStart.current.posY + dy))
         onPositionChange(newX, newY)
 
         // Track velocity for momentum
@@ -179,8 +177,8 @@ export default function MockupPreview({
           cvx *= friction
           cvy *= friction
           if (Math.hypot(cvx, cvy) < 0.002) { momentumRef.current = null; return }
-          const nx = Math.max(-0.5, Math.min(1.5, latestPos.current.x + cvx * 0.016))
-          const ny = Math.max(-0.5, Math.min(1.5, latestPos.current.y + cvy * 0.016))
+          const nx = Math.max(-1, Math.min(2, latestPos.current.x + cvx * 0.016))
+          const ny = Math.max(-1, Math.min(2, latestPos.current.y + cvy * 0.016))
           onPositionChange(nx, ny)
           momentumRef.current = requestAnimationFrame(tick)
         }

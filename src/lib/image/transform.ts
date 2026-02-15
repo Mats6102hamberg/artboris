@@ -166,9 +166,10 @@ export function calculatePosterPlacement(
   const width = baseWidth
   const height = baseHeight
 
-  // Allow poster to extend beyond wall edges when zoomed large
-  const left = tl.x + (wallWidth - width) * positionX
-  const top = tl.y + (wallHeight - height) * positionY
+  // Position uses wall center as anchor — positionX/Y 0.5 = centered on wall
+  // Movement range = full wall width/height, allowing free placement
+  const left = tl.x + wallWidth * positionX - width / 2
+  const top = tl.y + wallHeight * positionY - height / 2
 
   return { left, top, width, height }
 }
