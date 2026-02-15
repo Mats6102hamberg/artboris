@@ -11,9 +11,21 @@ export async function GET(request: NextRequest) {
     const page = parseInt(searchParams.get('page') || '1')
     const limit = parseInt(searchParams.get('limit') || '24')
 
-    const where: any = { isPublished: true, isSold: false }
+    // If artist token provided + matching artistId, show ALL their listings
+    const token = request.headers.get('x-artist-token')
+    let isOwnDashboard = false
+    if (token && artistId) {
+      const artist = await prisma.artistProfile.findUnique({ where: { accessToken: token } })
+      if (artist && artist.id === artistId) {
+        isOwnDashboard = true
+      }
+    }
+
+    const where: any = isOwnDashboard
+      ? { artistId }  // Artist sees all their own listings
+      : { isPublic: true, reviewStatus: 'APPROVED', isSold: false }  // Public gallery
     if (category && category !== 'all') where.category = category
-    if (artistId) where.artistId = artistId
+    if (!isOwnDashboard && artistId) where.artistId = artistId
 
     const [listings, total] = await Promise.all([
       prisma.artworkListing.findMany({
@@ -102,7 +114,8 @@ export async function POST(request: NextRequest) {
         artistPriceSEK,
         isOriginal,
         maxPrints,
-        isPublished: true,
+        reviewStatus: 'PROCESSING',
+        isPublic: false,
       },
     })
 

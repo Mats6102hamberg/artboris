@@ -420,8 +420,20 @@ model ArtworkListing {
   artistPriceSEK  Int    // What the artist wants (before 50/50 split)
   isOriginal      Boolean @default(false)  // true = one-of-a-kind, false = print/reproduction
 
+  // Review & publishing — replaces simple isPublished flag
+  reviewStatus    ReviewStatus @default(PROCESSING)
+  isPublic        Boolean      @default(false)  // true when reviewStatus == APPROVED
+
+  // AI / Boris moderation
+  aiChecked       Boolean  @default(false)  // Has Boris AI reviewed the image?
+  faceDetected    Boolean  @default(false)  // Were faces detected in the image?
+  safetyFlag      Boolean  @default(false)  // Flagged for inappropriate content?
+
+  // Model release (consent for photos with people)
+  modelReleaseUrl String?   // Uploaded model release document
+  modelReleaseOk  Boolean  @default(false)  // Consent verified?
+
   // Availability
-  isPublished     Boolean @default(false)
   isSold          Boolean @default(false)  // For originals
   maxPrints       Int?    // null = unlimited prints
   printsSold      Int     @default(0)
@@ -437,8 +449,16 @@ model ArtworkListing {
   marketOrders  MarketOrder[]
 
   @@index([artistId])
-  @@index([isPublished, createdAt])
+  @@index([reviewStatus, createdAt])
+  @@index([isPublic, createdAt])
   @@index([category])
+}
+
+enum ReviewStatus {
+  PROCESSING    // Just uploaded, AI check pending
+  NEEDS_REVIEW  // AI flagged something, manual review needed
+  APPROVED      // All clear, visible in gallery
+  REJECTED      // Not allowed
 }
 
 enum MarketOrderStatus {

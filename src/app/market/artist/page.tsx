@@ -15,12 +15,20 @@ interface Listing {
   title: string
   imageUrl: string
   artistPriceSEK: number
-  isPublished: boolean
+  reviewStatus: 'PROCESSING' | 'NEEDS_REVIEW' | 'APPROVED' | 'REJECTED'
+  isPublic: boolean
   isSold: boolean
   views: number
   tryOnWallCount: number
   printsSold: number
   createdAt: string
+}
+
+const STATUS_LABELS: Record<string, { label: string; color: string }> = {
+  PROCESSING: { label: 'Granskas', color: 'bg-amber-100 text-amber-800' },
+  NEEDS_REVIEW: { label: 'Manuell granskning', color: 'bg-orange-100 text-orange-800' },
+  APPROVED: { label: 'Publicerad', color: 'bg-emerald-100 text-emerald-800' },
+  REJECTED: { label: 'Avvisad', color: 'bg-red-100 text-red-800' },
 }
 
 type View = 'login' | 'register' | 'dashboard'
@@ -91,7 +99,9 @@ export default function ArtistPage() {
     if (!artist) return
     setLoading(true)
     try {
-      const res = await fetch(`/api/market/listings?artistId=${artist.id}`)
+      const res = await fetch(`/api/market/listings?artistId=${artist.id}`, {
+        headers: { 'x-artist-token': artist.accessToken },
+      })
       const data = await res.json()
       setListings(data.listings || [])
     } catch (err) {
@@ -486,6 +496,11 @@ export default function ArtistPage() {
               <div key={listing.id} className="bg-white rounded-xl border border-gray-100 overflow-hidden">
                 <div className="aspect-[3/4] bg-gray-100 relative">
                   <img src={listing.imageUrl} alt={listing.title} className="w-full h-full object-cover" />
+                  {listing.reviewStatus && (
+                    <span className={`absolute top-2 left-2 text-xs font-medium px-2 py-0.5 rounded-full ${STATUS_LABELS[listing.reviewStatus]?.color || 'bg-gray-100 text-gray-600'}`}>
+                      {STATUS_LABELS[listing.reviewStatus]?.label || listing.reviewStatus}
+                    </span>
+                  )}
                 </div>
                 <div className="p-3">
                   <h3 className="font-medium text-gray-900 truncate text-sm">{listing.title}</h3>
@@ -671,7 +686,7 @@ export default function ArtistPage() {
                   disabled={uploading || !uploadFile || !uploadForm.title || !uploadForm.artistPriceSEK}
                   className="w-full py-3 bg-gray-900 text-white rounded-xl hover:bg-gray-800 transition-colors disabled:opacity-50"
                 >
-                  {uploading ? 'Laddar upp...' : 'Publicera konstverk'}
+                  {uploading ? 'Laddar upp...' : 'Skicka för granskning'}
                 </button>
               </form>
             </div>
