@@ -85,7 +85,8 @@ export default function MockupPreview({
     return calculatePosterPlacement(wallCorners, positionX, positionY, scale, posterAspect, posterWidthCm, posterHeightCm)
   }, [wallCorners, positionX, positionY, scale, posterAspect, posterWidthCm, posterHeightCm])
 
-  const frameWidthPx = frame && frame.id !== 'none' ? frame.width * 0.15 : 0
+  // Frame width as fraction of poster width — scales proportionally with the motif
+  const frameFraction = frame && frame.id !== 'none' ? frame.width / 1000 : 0
 
   // --- Drag to move with momentum/inertia ---
   const velocityRef = useRef({ vx: 0, vy: 0 })
@@ -311,15 +312,15 @@ export default function MockupPreview({
         }}
       />
 
-      {/* Frame */}
-      {frame && frame.id !== 'none' && (
+      {/* Frame — scales proportionally with the poster */}
+      {frame && frame.id !== 'none' && frameFraction > 0 && (
         <div
           className="absolute pointer-events-none"
           style={{
-            left: `calc(${placement.left * 100}% - ${frameWidthPx}px)`,
-            top: `calc(${placement.top * 100}% - ${frameWidthPx}px)`,
-            width: `calc(${placement.width * 100}% + ${frameWidthPx * 2}px)`,
-            height: `calc(${placement.height * 100}% + ${frameWidthPx * 2}px)`,
+            left: `${(placement.left - placement.width * frameFraction) * 100}%`,
+            top: `${(placement.top - placement.height * frameFraction) * 100}%`,
+            width: `${(placement.width * (1 + 2 * frameFraction)) * 100}%`,
+            height: `${(placement.height * (1 + 2 * frameFraction)) * 100}%`,
             backgroundColor: frame.color,
             zIndex: 9,
           }}
