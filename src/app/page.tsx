@@ -1,947 +1,627 @@
 'use client'
 
-import { useState } from 'react'
-import BorisArtChat from '@/components/BorisArtChat'
-import MyArtworks from '@/components/MyArtworks'
+import { useState, useEffect } from 'react'
+import { useRouter } from 'next/navigation'
 
-const ALL_SOURCES = [
-  { id: 'bukowskis', label: 'Bukowskis' },
-  { id: 'barnebys', label: 'Barnebys' },
-  { id: 'auctionet', label: 'Auctionet' },
-  { id: 'tradera', label: 'Tradera' },
-  { id: 'lauritz', label: 'Lauritz' },
-  { id: 'stockholms', label: 'Stockholms Aukt.' },
-  { id: 'catawiki', label: 'Catawiki' },
+const FEATURES = [
+  {
+    title: 'Wallcraft Studio',
+    description: 'Skapa AI-genererad väggkonst. Ladda upp ditt rum, välj stil och se tavlan på din vägg i realtid.',
+    icon: (
+      <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9.53 16.122a3 3 0 00-5.78 1.128 2.25 2.25 0 01-2.4 2.245 4.5 4.5 0 008.4-2.245c0-.399-.078-.78-.22-1.128zm0 0a15.998 15.998 0 003.388-1.62m-5.043-.025a15.994 15.994 0 011.622-3.395m3.42 3.42a15.995 15.995 0 004.764-4.648l3.876-5.814a1.151 1.151 0 00-1.597-1.597L14.146 6.32a15.996 15.996 0 00-4.649 4.763m3.42 3.42a6.776 6.776 0 00-3.42-3.42" />
+      </svg>
+    ),
+    href: '/wallcraft/studio',
+    color: 'from-emerald-500 to-teal-600',
+    bgLight: 'from-emerald-50 to-teal-50',
+    borderColor: 'border-emerald-200/60',
+  },
+  {
+    title: 'Art Market',
+    description: 'Upptäck unik konst från lokala konstnärer och fotografer. Prova verket på din vägg innan du köper.',
+    icon: (
+      <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M2.25 15.75l5.159-5.159a2.25 2.25 0 013.182 0l5.159 5.159m-1.5-1.5l1.409-1.409a2.25 2.25 0 013.182 0l2.909 2.909M3.75 21h16.5A2.25 2.25 0 0022.5 18.75V5.25A2.25 2.25 0 0020.25 3H3.75A2.25 2.25 0 001.5 5.25v13.5A2.25 2.25 0 003.75 21z" />
+      </svg>
+    ),
+    href: '/market',
+    color: 'from-rose-500 to-pink-600',
+    bgLight: 'from-rose-50 to-pink-50',
+    borderColor: 'border-rose-200/60',
+  },
+  {
+    title: 'Kreativa verktyg',
+    description: 'Mandala Maker, Pattern Studio, Abstract Painter och Color Field Studio — skapa din egen konst.',
+    icon: (
+      <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M4.098 19.902a3.75 3.75 0 005.304 0l6.401-6.402M6.75 21A3.75 3.75 0 013 17.25V4.125C3 3.504 3.504 3 4.125 3h5.25c.621 0 1.125.504 1.125 1.125v4.072M6.75 21a3.75 3.75 0 003.75-3.75V8.197M6.75 21h13.125c.621 0 1.125-.504 1.125-1.125v-5.25c0-.621-.504-1.125-1.125-1.125h-4.072M10.5 8.197l2.88-2.88c.438-.439 1.15-.439 1.59 0l3.712 3.713c.44.44.44 1.152 0 1.59l-2.879 2.88M6.75 17.25h.008v.008H6.75v-.008z" />
+      </svg>
+    ),
+    href: '/wallcraft',
+    color: 'from-violet-500 to-purple-600',
+    bgLight: 'from-violet-50 to-purple-50',
+    borderColor: 'border-violet-200/60',
+  },
+  {
+    title: 'Print Your Own',
+    description: 'Ladda upp ditt eget foto och se hur det tar sig på din vägg. Beställ som poster med ram.',
+    icon: (
+      <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M6.827 6.175A2.31 2.31 0 015.186 7.23c-.38.054-.757.112-1.134.175C2.999 7.58 2.25 8.507 2.25 9.574V18a2.25 2.25 0 002.25 2.25h15A2.25 2.25 0 0021.75 18V9.574c0-1.067-.75-1.994-1.802-2.169a47.865 47.865 0 00-1.134-.175 2.31 2.31 0 01-1.64-1.055l-.822-1.316a2.192 2.192 0 00-1.736-1.039 48.774 48.774 0 00-5.232 0 2.192 2.192 0 00-1.736 1.039l-.821 1.316z" />
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M16.5 12.75a4.5 4.5 0 11-9 0 4.5 4.5 0 019 0z" />
+      </svg>
+    ),
+    href: '/wallcraft/print-your-own',
+    color: 'from-amber-500 to-orange-600',
+    bgLight: 'from-amber-50 to-orange-50',
+    borderColor: 'border-amber-200/60',
+  },
+  {
+    title: 'Art Scanner',
+    description: 'Hitta undervärderade konstverk på auktioner. AI-driven analys med vinstpotential och risknivå.',
+    icon: (
+      <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z" />
+      </svg>
+    ),
+    href: '/scanner',
+    color: 'from-blue-500 to-indigo-600',
+    bgLight: 'from-blue-50 to-indigo-50',
+    borderColor: 'border-blue-200/60',
+  },
+  {
+    title: 'Boris AI — Konstexpert',
+    description: 'Din personliga konstexpert. Analyserar verk, kommenterar placeringar och ger investeringsråd.',
+    icon: (
+      <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9.813 15.904L9 18.75l-.813-2.846a4.5 4.5 0 00-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 003.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 003.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 00-3.09 3.09zM18.259 8.715L18 9.75l-.259-1.035a3.375 3.375 0 00-2.455-2.456L14.25 6l1.036-.259a3.375 3.375 0 002.455-2.456L18 2.25l.259 1.035a3.375 3.375 0 002.455 2.456L21.75 6l-1.036.259a3.375 3.375 0 00-2.455 2.456z" />
+      </svg>
+    ),
+    href: '/scanner',
+    color: 'from-fuchsia-500 to-purple-600',
+    bgLight: 'from-fuchsia-50 to-purple-50',
+    borderColor: 'border-fuchsia-200/60',
+  },
+]
+
+const STEPS = [
+  {
+    step: '01',
+    title: 'Skapa konto',
+    description: 'Registrera dig gratis och få tillgång till alla verktyg.',
+  },
+  {
+    step: '02',
+    title: 'Utforska & skapa',
+    description: 'Generera AI-konst, bläddra i galleriet eller ladda upp eget.',
+  },
+  {
+    step: '03',
+    title: 'Prova på din vägg',
+    description: 'Ladda upp ett foto av ditt rum och se tavlan live på väggen.',
+  },
+  {
+    step: '04',
+    title: 'Beställ & njut',
+    description: 'Välj ram och storlek. Vi trycker och levererar hem till dig.',
+  },
 ]
 
 export default function Home() {
-  const [isScanning, setIsScanning] = useState(false)
-  const [scanType, setScanType] = useState<'paintings' | 'sculptures'>('paintings')
-  const [results, setResults] = useState<any[]>([])
-  const [scanMeta, setScanMeta] = useState<any>(null)
-  const [selectedItem, setSelectedItem] = useState<any>(null)
-  const [showAnalysis, setShowAnalysis] = useState(false)
-  const [portfolio, setPortfolio] = useState<any[]>([])
-  const [showPortfolio, setShowPortfolio] = useState(false)
-  const [showFilters, setShowFilters] = useState(true)
-  const [showBorisChat, setShowBorisChat] = useState(false)
-  const [borisAnalysis, setBorisAnalysis] = useState<string | null>(null)
-  const [loadingBoris, setLoadingBoris] = useState(false)
-  const [activeTab, setActiveTab] = useState<'scanner' | 'my-artworks'>('scanner')
-  const [selectedSources, setSelectedSources] = useState<string[]>(['bukowskis', 'barnebys', 'auctionet', 'tradera', 'lauritz', 'stockholms', 'catawiki'])
-  const [sortBy, setSortBy] = useState('profit')
-  const [filters, setFilters] = useState({
-    minPrice: 0,
-    maxPrice: 500000,
-    minProfit: 25000,
-    minProfitMargin: 20,
-    maxProfitMargin: 500,
-    riskLevel: 'all' as 'all' | 'low' | 'medium' | 'high',
-    recommendation: 'all' as 'all' | 'buy' | 'hold' | 'avoid',
-  })
+  const router = useRouter()
+  const [heroVisible, setHeroVisible] = useState(false)
+  const [stepsVisible, setStepsVisible] = useState(false)
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
 
-  const toggleSource = (sourceId: string) => {
-    setSelectedSources(prev =>
-      prev.includes(sourceId)
-        ? prev.filter(s => s !== sourceId)
-        : [...prev, sourceId]
-    )
-  }
-
-  const startScan = async () => {
-    if (selectedSources.length === 0) {
-      alert('Välj minst en källa att söka i.')
-      return
-    }
-
-    setIsScanning(true)
-    setResults([])
-    setScanMeta(null)
-    setSelectedItem(null)
-    setShowAnalysis(false)
-
-    try {
-      const response = await fetch('/api/scan', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          type: scanType,
-          sources: selectedSources,
-          sortBy,
-          filters,
-        })
-      })
-
-      const data = await response.json()
-
-      if (!response.ok) {
-        throw new Error(data.error || 'Scanning failed')
-      }
-
-      setResults(data.results || [])
-      setScanMeta({
-        totalFound: data.totalFound,
-        totalFiltered: data.totalFiltered,
-        sourceResults: data.sourceResults,
-        hasAIValuation: data.hasAIValuation,
-        timestamp: data.timestamp,
-      })
-
-    } catch (error) {
-      console.error('Scan error:', error)
-      alert(`Scanning fel: ${error instanceof Error ? error.message : 'Okänt fel'}`)
-    } finally {
-      setIsScanning(false)
-    }
-  }
-
-  const analyzeItem = async (item: any) => {
-    setSelectedItem(item)
-    setShowAnalysis(true)
-    setBorisAnalysis(null)
-    setLoadingBoris(true)
-
-    try {
-      const res = await fetch('/api/boris-ai', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          action: 'analyze-my-artwork',
-          data: { artwork: item },
-        }),
-      })
-      const json = await res.json()
-      if (res.ok && json.success) {
-        setBorisAnalysis(json.response)
-      } else {
-        setBorisAnalysis(`Kunde inte hämta analys: ${json.error || 'Okänt fel'}`)
-      }
-    } catch (err) {
-      setBorisAnalysis(`Kunde inte nå Boris AI: ${err instanceof Error ? err.message : 'Nätverksfel'}`)
-    } finally {
-      setLoadingBoris(false)
-    }
-  }
-
-  const investInItem = (item: any) => {
-    if (item.url) {
-      window.open(item.url, '_blank')
-    } else {
-      alert(`Ingen direktlänk tillgänglig för "${item.title}"`)
-    }
-    setShowAnalysis(false)
-  }
-
-  const saveToPortfolio = (item: any) => {
-    if (!portfolio.find(p => p.title === item.title && p.source === item.source)) {
-      setPortfolio([...portfolio, { ...item, addedDate: new Date().toISOString() }])
-      alert(`"${item.title}" har sparats till din portfölj!`)
-    } else {
-      alert(`"${item.title}" finns redan i din portfölj!`)
-    }
-    setShowAnalysis(false)
-  }
-
-  // Client-side re-filtering for instant updates without re-scanning
-  const filterResults = (items: any[]) => {
-    return items.filter(item => {
-      if (item.price < filters.minPrice || item.price > filters.maxPrice) return false
-      if ((item.profit ?? item.estimatedValue - item.price) < filters.minProfit) return false
-      if (item.profitMargin < filters.minProfitMargin || item.profitMargin > filters.maxProfitMargin) return false
-      if (filters.riskLevel !== 'all' && item.riskLevel !== filters.riskLevel) return false
-      if (filters.recommendation !== 'all' && item.recommendation !== filters.recommendation) return false
-      return true
-    })
-  }
-
-  const sortResults = (items: any[]) => {
-    return [...items].sort((a, b) => {
-      switch (sortBy) {
-        case 'profit': return (b.profit ?? b.estimatedValue - b.price) - (a.profit ?? a.estimatedValue - a.price)
-        case 'profitMargin': return b.profitMargin - a.profitMargin
-        case 'price': return a.price - b.price
-        case 'priceDesc': return b.price - a.price
-        case 'confidence': return b.confidence - a.confidence
-        default: return 0
-      }
-    })
-  }
-
-  const displayResults = sortResults(filterResults(results))
-
-  const formatKr = (n: number) => n.toLocaleString('sv-SE')
+  useEffect(() => {
+    setTimeout(() => setHeroVisible(true), 100)
+    setTimeout(() => setStepsVisible(true), 600)
+  }, [])
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <header className="bg-white shadow-sm">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
-          <div className="flex items-center justify-between">
-            <div>
-              <h1 className="text-3xl font-bold text-gray-900">Art Scanner</h1>
-              <p className="text-gray-600 mt-2">Hitta undervärderade konstverk med vinstpotential</p>
+    <div className="min-h-screen bg-[#FAFAF8] text-gray-900">
+      {/* ─── Navigation ─── */}
+      <nav className="fixed top-0 left-0 right-0 z-50 bg-[#FAFAF8]/80 backdrop-blur-xl border-b border-gray-200/40">
+        <div className="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <span className="text-xl font-semibold tracking-[0.2em] uppercase text-gray-900">
+              Artboris
+            </span>
+          </div>
+          <div className="hidden md:flex items-center gap-6">
+            <a href="/wallcraft" className="text-sm font-medium text-gray-500 hover:text-gray-900 transition-colors">Wallcraft</a>
+            <a href="/market" className="text-sm font-medium text-gray-500 hover:text-gray-900 transition-colors">Art Market</a>
+            <a href="/scanner" className="text-sm font-medium text-gray-500 hover:text-gray-900 transition-colors">Scanner</a>
+            <a
+              href="#skapa-konto"
+              className="text-sm font-medium text-white bg-gray-900 px-5 py-2.5 rounded-xl hover:bg-gray-800 transition-colors"
+            >
+              Skapa konto
+            </a>
+          </div>
+          <button
+            className="md:hidden flex flex-col gap-1.5 p-2"
+            onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+            aria-label="Meny"
+          >
+            <span className={`block w-5 h-0.5 bg-gray-700 transition-transform ${mobileMenuOpen ? 'rotate-45 translate-y-2' : ''}`} />
+            <span className={`block w-5 h-0.5 bg-gray-700 transition-opacity ${mobileMenuOpen ? 'opacity-0' : ''}`} />
+            <span className={`block w-5 h-0.5 bg-gray-700 transition-transform ${mobileMenuOpen ? '-rotate-45 -translate-y-2' : ''}`} />
+          </button>
+        </div>
+
+        {mobileMenuOpen && (
+          <div className="md:hidden bg-white border-b border-gray-200/60 px-6 py-4 space-y-3">
+            <a href="/wallcraft" className="block text-base font-medium text-gray-700 py-2">Wallcraft</a>
+            <a href="/market" className="block text-base font-medium text-gray-700 py-2">Art Market</a>
+            <a href="/scanner" className="block text-base font-medium text-gray-700 py-2">Scanner</a>
+            <a href="#skapa-konto" className="block text-base font-medium text-white bg-gray-900 text-center py-3 rounded-xl mt-2">
+              Skapa konto
+            </a>
+          </div>
+        )}
+      </nav>
+
+      {/* ─── Hero ─── */}
+      <section className="relative pt-32 pb-20 sm:pt-40 sm:pb-32 overflow-hidden">
+        {/* Subtle gradient background */}
+        <div className="absolute inset-0 bg-gradient-to-br from-[#FAFAF8] via-[#F5F0EB] to-[#EDE8E3] opacity-60" />
+        <div className="absolute top-20 right-0 w-[600px] h-[600px] bg-gradient-to-bl from-emerald-100/30 via-transparent to-transparent rounded-full blur-3xl" />
+        <div className="absolute bottom-0 left-0 w-[400px] h-[400px] bg-gradient-to-tr from-rose-100/20 via-transparent to-transparent rounded-full blur-3xl" />
+
+        <div className="relative max-w-7xl mx-auto px-6">
+          <div className={`max-w-4xl transition-all duration-1000 ${heroVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-12'}`}>
+            <div className="inline-flex items-center gap-2 bg-white/60 backdrop-blur-sm border border-gray-200/60 rounded-full px-4 py-1.5 mb-8">
+              <span className="w-2 h-2 bg-emerald-500 rounded-full animate-pulse" />
+              <span className="text-xs font-medium text-gray-600 tracking-wide uppercase">Nu i beta — prova gratis</span>
             </div>
-            <div className="flex space-x-2">
+
+            <h1 className="text-5xl sm:text-6xl lg:text-7xl font-light tracking-tight text-gray-900 leading-[1.08]">
+              Konst som passar
+              <br />
+              <span className="bg-gradient-to-r from-emerald-600 via-teal-600 to-cyan-600 bg-clip-text text-transparent">
+                just din vägg
+              </span>
+            </h1>
+
+            <p className="mt-8 text-lg sm:text-xl text-gray-500 max-w-2xl leading-relaxed">
+              Skapa AI-genererad konst, upptäck lokala konstnärer eller ladda upp ditt eget foto.
+              Se hur det ser ut på din vägg — innan du beställer.
+            </p>
+
+            <div className="mt-10 flex flex-wrap gap-4">
+              <a
+                href="#skapa-konto"
+                className="inline-flex items-center gap-2 bg-gray-900 text-white px-8 py-4 rounded-xl text-base font-medium hover:bg-gray-800 transition-all hover:shadow-lg hover:shadow-gray-900/10"
+              >
+                Kom igång gratis
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" />
+                </svg>
+              </a>
               <a
                 href="/wallcraft"
-                className="bg-gradient-to-r from-green-600 to-teal-600 text-white px-4 py-2 rounded-md hover:from-green-700 hover:to-teal-700 transition-all"
+                className="inline-flex items-center gap-2 bg-white text-gray-700 px-8 py-4 rounded-xl text-base font-medium border border-gray-200 hover:border-gray-300 hover:shadow-md transition-all"
               >
-                Wallcraft
+                Se hur det fungerar
               </a>
-              <a
-                href="/market"
-                className="bg-gradient-to-r from-rose-600 to-pink-600 text-white px-4 py-2 rounded-md hover:from-rose-700 hover:to-pink-700 transition-all"
-              >
-                Art Market
-              </a>
-              <button
-                onClick={() => setShowBorisChat(!showBorisChat)}
-                className="bg-gradient-to-r from-purple-600 to-blue-600 text-white px-4 py-2 rounded-md hover:from-purple-700 hover:to-blue-700 transition-all"
-              >
-                BorisArt AI
-              </button>
-              <button
-                onClick={() => setShowPortfolio(!showPortfolio)}
-                className="bg-purple-600 text-white px-4 py-2 rounded-md hover:bg-purple-700 transition-colors"
-              >
-                Portfölj ({portfolio.length})
-              </button>
             </div>
-          </div>
 
-          {/* Beskrivningar under knapparna */}
-          <div className="mt-4 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3">
-            <a href="/wallcraft" className="group block bg-gradient-to-br from-green-50 to-teal-50 border border-green-200/60 rounded-xl p-4 hover:shadow-md hover:border-green-300 transition-all">
-              <h3 className="text-sm font-semibold text-green-800 group-hover:text-green-900">Wallcraft</h3>
-              <p className="text-xs text-green-700/70 mt-1 leading-relaxed">
-                Designa AI-genererad väggkonst. Ladda upp ditt rum, välj stil och se tavlan på din vägg i realtid.
-              </p>
-            </a>
-            <a href="/market" className="group block bg-gradient-to-br from-rose-50 to-pink-50 border border-rose-200/60 rounded-xl p-4 hover:shadow-md hover:border-rose-300 transition-all">
-              <h3 className="text-sm font-semibold text-rose-800 group-hover:text-rose-900">Art Market</h3>
-              <p className="text-xs text-rose-700/70 mt-1 leading-relaxed">
-                Upptäck unik konst från lokala konstnärer. Prova verket på din vägg innan du köper.
-              </p>
-            </a>
-            <a href="/wallcraft/print-your-own" className="group block bg-gradient-to-br from-amber-50 to-orange-50 border border-amber-200/60 rounded-xl p-4 hover:shadow-md hover:border-amber-300 transition-all">
-              <h3 className="text-sm font-semibold text-amber-800 group-hover:text-amber-900">Print Your Own</h3>
-              <p className="text-xs text-amber-700/70 mt-1 leading-relaxed">
-                Ladda upp ditt eget foto och se hur det tar sig på din vägg. Dra i hörnen för att ändra storlek.
-              </p>
-            </a>
-            <button onClick={() => setShowBorisChat(!showBorisChat)} className="group text-left bg-gradient-to-br from-purple-50 to-blue-50 border border-purple-200/60 rounded-xl p-4 hover:shadow-md hover:border-purple-300 transition-all">
-              <h3 className="text-sm font-semibold text-purple-800 group-hover:text-purple-900">BorisArt AI</h3>
-              <p className="text-xs text-purple-700/70 mt-1 leading-relaxed">
-                Din personliga konstexpert. Ställ frågor om konstverk, få analyser, trender och investeringsråd.
-              </p>
-            </button>
-            <button onClick={() => setShowPortfolio(!showPortfolio)} className="group text-left bg-gradient-to-br from-fuchsia-50 to-purple-50 border border-purple-200/60 rounded-xl p-4 hover:shadow-md hover:border-purple-300 transition-all">
-              <h3 className="text-sm font-semibold text-purple-800 group-hover:text-purple-900">Portfölj ({portfolio.length})</h3>
-              <p className="text-xs text-purple-700/70 mt-1 leading-relaxed">
-                Dina sparade konstverk. Håll koll på potentiella investeringar och följ värdeutvecklingen.
-              </p>
-            </button>
-          </div>
-
-          {/* Tab Navigation */}
-          <div className="mt-4 flex space-x-1 bg-gray-100 p-1 rounded-lg">
-            <button
-              onClick={() => setActiveTab('scanner')}
-              className={`flex-1 px-4 py-2 rounded-md transition-colors ${
-                activeTab === 'scanner'
-                  ? 'bg-white text-blue-600 shadow-sm'
-                  : 'text-gray-600 hover:text-gray-900'
-              }`}
-            >
-              Art Scanner
-            </button>
-            <button
-              onClick={() => setActiveTab('my-artworks')}
-              className={`flex-1 px-4 py-2 rounded-md transition-colors ${
-                activeTab === 'my-artworks'
-                  ? 'bg-white text-blue-600 shadow-sm'
-                  : 'text-gray-600 hover:text-gray-900'
-              }`}
-            >
-              Mina Tavlor
-            </button>
+            {/* Trust strip */}
+            <div className="mt-16 flex flex-wrap items-center gap-8 text-sm text-gray-400">
+              <div className="flex items-center gap-2">
+                <svg className="w-4 h-4 text-emerald-500" fill="currentColor" viewBox="0 0 20 20">
+                  <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                </svg>
+                Gratis att testa
+              </div>
+              <div className="flex items-center gap-2">
+                <svg className="w-4 h-4 text-emerald-500" fill="currentColor" viewBox="0 0 20 20">
+                  <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                </svg>
+                Inget kort krävs
+              </div>
+              <div className="flex items-center gap-2">
+                <svg className="w-4 h-4 text-emerald-500" fill="currentColor" viewBox="0 0 20 20">
+                  <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                </svg>
+                Tryck & leverans i Sverige
+              </div>
+            </div>
           </div>
         </div>
-      </header>
+      </section>
 
-      {activeTab === 'scanner' && (
-        <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-          {/* Kontrollpanel */}
-          <div className="bg-white rounded-lg shadow-lg p-6 mb-8">
-            <div className="flex items-center justify-between mb-4">
-              <h2 className="text-xl font-semibold text-gray-900">Sök-inställningar</h2>
-              <button
-                onClick={() => setShowFilters(!showFilters)}
-                className="text-blue-600 hover:text-blue-800 text-sm font-medium"
-              >
-                {showFilters ? 'Dölj filter' : 'Visa filter'}
-              </button>
-            </div>
-
-            {/* Scan Type */}
-            <div className="flex space-x-4 mb-4">
-              <button
-                onClick={() => setScanType('paintings')}
-                className={`px-4 py-2 rounded-md transition-colors ${
-                  scanType === 'paintings'
-                    ? 'bg-blue-600 text-white'
-                    : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
-                }`}
-              >
-                Målningar
-              </button>
-              <button
-                onClick={() => setScanType('sculptures')}
-                className={`px-4 py-2 rounded-md transition-colors ${
-                  scanType === 'sculptures'
-                    ? 'bg-blue-600 text-white'
-                    : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
-                }`}
-              >
-                Skulpturer & Annat
-              </button>
-            </div>
-
-            {/* Sources */}
-            <div className="mb-4">
-              <label className="block text-sm font-medium text-gray-700 mb-2">Källor</label>
-              <div className="flex flex-wrap gap-2">
-                {ALL_SOURCES.map(source => (
-                  <button
-                    key={source.id}
-                    onClick={() => toggleSource(source.id)}
-                    className={`px-3 py-1.5 rounded-md text-sm font-medium transition-colors ${
-                      selectedSources.includes(source.id)
-                        ? 'bg-blue-600 text-white'
-                        : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
-                    }`}
-                  >
-                    {source.label}
-                  </button>
-                ))}
-              </div>
-            </div>
-
-            {/* Filter Panel */}
-            {showFilters && (
-              <div className="bg-gray-50 rounded-lg p-4 mb-4 space-y-4">
-                <h3 className="font-semibold text-gray-900 mb-3">Filter</h3>
-
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                  {/* Minsta vinst (kr) — KEY FILTER */}
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Minsta vinst (kr)
-                    </label>
-                    <input
-                      type="number"
-                      step="5000"
-                      value={filters.minProfit}
-                      onChange={(e) => setFilters({...filters, minProfit: parseInt(e.target.value) || 0})}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-md text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    />
-                    <p className="text-xs text-gray-500 mt-1">Filtrera bort objekt med för liten vinst</p>
-                  </div>
-
-                  {/* Pris-intervall */}
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Prisintervall (kr)
-                    </label>
-                    <div className="flex space-x-2">
-                      <input
-                        type="number"
-                        placeholder="Min"
-                        value={filters.minPrice}
-                        onChange={(e) => setFilters({...filters, minPrice: parseInt(e.target.value) || 0})}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-md text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                      />
-                      <input
-                        type="number"
-                        placeholder="Max"
-                        value={filters.maxPrice}
-                        onChange={(e) => setFilters({...filters, maxPrice: parseInt(e.target.value) || 500000})}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-md text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                      />
-                    </div>
-                  </div>
-
-                  {/* Vinstmarginal */}
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Vinstmarginal (%)
-                    </label>
-                    <div className="flex space-x-2">
-                      <input
-                        type="number"
-                        placeholder="Min"
-                        value={filters.minProfitMargin}
-                        onChange={(e) => setFilters({...filters, minProfitMargin: parseInt(e.target.value) || 0})}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-md text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                      />
-                      <input
-                        type="number"
-                        placeholder="Max"
-                        value={filters.maxProfitMargin}
-                        onChange={(e) => setFilters({...filters, maxProfitMargin: parseInt(e.target.value) || 500})}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-md text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                      />
-                    </div>
-                  </div>
-
-                  {/* Risknivå */}
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Risknivå
-                    </label>
-                    <select
-                      value={filters.riskLevel}
-                      onChange={(e) => setFilters({...filters, riskLevel: e.target.value as any})}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-md text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    >
-                      <option value="all">Alla</option>
-                      <option value="low">Låg risk</option>
-                      <option value="medium">Medium risk</option>
-                      <option value="high">Hög risk</option>
-                    </select>
-                  </div>
-
-                  {/* Rekommendation */}
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Rekommendation
-                    </label>
-                    <select
-                      value={filters.recommendation}
-                      onChange={(e) => setFilters({...filters, recommendation: e.target.value as any})}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-md text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    >
-                      <option value="all">Alla</option>
-                      <option value="buy">KÖP</option>
-                      <option value="hold">HÅLL</option>
-                      <option value="avoid">UNDVIK</option>
-                    </select>
-                  </div>
-
-                  {/* Sortering */}
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Sortera efter
-                    </label>
-                    <select
-                      value={sortBy}
-                      onChange={(e) => setSortBy(e.target.value)}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-md text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    >
-                      <option value="profit">Vinst (kr) - högst först</option>
-                      <option value="profitMargin">Vinstmarginal (%) - högst först</option>
-                      <option value="price">Pris - lägst först</option>
-                      <option value="priceDesc">Pris - högst först</option>
-                      <option value="confidence">Konfidens - högst först</option>
-                    </select>
-                  </div>
-
-                  {/* Snabb-filter knappar */}
-                  <div className="md:col-span-2 lg:col-span-3">
-                    <div className="flex flex-wrap gap-2">
-                      <button
-                        onClick={() => {
-                          setFilters({
-                            minPrice: 0,
-                            maxPrice: 500000,
-                            minProfit: 50000,
-                            minProfitMargin: 40,
-                            maxProfitMargin: 500,
-                            riskLevel: 'all',
-                            recommendation: 'all',
-                          })
-                          setSortBy('profit')
-                        }}
-                        className="px-3 py-1 bg-green-100 text-green-800 rounded text-sm hover:bg-green-200"
-                      >
-                        Hög vinst (min 50k kr)
-                      </button>
-                      <button
-                        onClick={() => {
-                          setFilters({
-                            minPrice: 0,
-                            maxPrice: 100000,
-                            minProfit: 25000,
-                            minProfitMargin: 30,
-                            maxProfitMargin: 200,
-                            riskLevel: 'low',
-                            recommendation: 'buy',
-                          })
-                          setSortBy('confidence')
-                        }}
-                        className="px-3 py-1 bg-blue-100 text-blue-800 rounded text-sm hover:bg-blue-200"
-                      >
-                        Säkert val
-                      </button>
-                      <button
-                        onClick={() => {
-                          setFilters({
-                            minPrice: 0,
-                            maxPrice: 500000,
-                            minProfit: 0,
-                            minProfitMargin: 0,
-                            maxProfitMargin: 500,
-                            riskLevel: 'all',
-                            recommendation: 'all',
-                          })
-                          setSortBy('profit')
-                        }}
-                        className="px-3 py-1 bg-gray-100 text-gray-800 rounded text-sm hover:bg-gray-200"
-                      >
-                        Återställ
-                      </button>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            )}
-
-            <button
-              onClick={startScan}
-              disabled={isScanning || selectedSources.length === 0}
-              className="w-full bg-green-600 text-white px-6 py-3 rounded-md hover:bg-green-700 transition-colors disabled:bg-gray-400 disabled:cursor-not-allowed"
-            >
-              {isScanning ? (
-                <span className="flex items-center justify-center">
-                  <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white mr-2"></div>
-                  Söker igenom {selectedSources.length} käll{selectedSources.length === 1 ? 'a' : 'or'}...
-                </span>
-              ) : (
-                `Starta Skanning (${selectedSources.length} käll${selectedSources.length === 1 ? 'a' : 'or'})`
-              )}
-            </button>
+      {/* ─── Så fungerar det ─── */}
+      <section className="py-20 sm:py-28 bg-white">
+        <div className="max-w-7xl mx-auto px-6">
+          <div className="text-center mb-16">
+            <h2 className="text-3xl sm:text-4xl font-light tracking-tight text-gray-900">
+              Så fungerar det
+            </h2>
+            <p className="mt-4 text-gray-500 max-w-xl mx-auto">
+              Från idé till tavla på väggen — på bara några minuter.
+            </p>
           </div>
 
-          {/* Scan meta info */}
-          {scanMeta && (
-            <div className="bg-white rounded-lg shadow p-4 mb-4">
-              <div className="flex flex-wrap gap-4 text-sm text-gray-600">
-                <span>Totalt hittade: <strong>{scanMeta.totalFound}</strong></span>
-                <span>Efter filter: <strong>{displayResults.length}</strong></span>
-                {scanMeta.sourceResults && Object.entries(scanMeta.sourceResults).map(([source, count]) => (
-                  <span key={source}>{source}: <strong>{count as number}</strong></span>
-                ))}
-                <span>{scanMeta.hasAIValuation ? 'AI-värderade' : 'PriceAnalyzer-värderade'}</span>
+          <div className={`grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8 transition-all duration-1000 ${stepsVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'}`}>
+            {STEPS.map((step, i) => (
+              <div key={i} className="relative">
+                {i < STEPS.length - 1 && (
+                  <div className="hidden lg:block absolute top-8 left-[calc(50%+40px)] w-[calc(100%-80px)] h-px bg-gradient-to-r from-gray-200 to-gray-100" />
+                )}
+                <div className="text-center">
+                  <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-gray-900 text-white text-lg font-light mb-6">
+                    {step.step}
+                  </div>
+                  <h3 className="text-lg font-medium text-gray-900 mb-2">{step.title}</h3>
+                  <p className="text-sm text-gray-500 leading-relaxed">{step.description}</p>
+                </div>
               </div>
-            </div>
-          )}
+            ))}
+          </div>
+        </div>
+      </section>
 
-          {/* Resultat */}
-          {results.length > 0 && (
-            <div className="bg-white rounded-lg shadow-lg p-6">
-              <h2 className="text-xl font-semibold text-gray-900 mb-4">
-                Resultat ({displayResults.length}{displayResults.length !== results.length ? ` av ${results.length}` : ''})
+      {/* ─── Funktioner ─── */}
+      <section className="py-20 sm:py-28">
+        <div className="max-w-7xl mx-auto px-6">
+          <div className="text-center mb-16">
+            <h2 className="text-3xl sm:text-4xl font-light tracking-tight text-gray-900">
+              Allt du behöver för väggkonst
+            </h2>
+            <p className="mt-4 text-gray-500 max-w-xl mx-auto">
+              Sex kraftfulla verktyg — från AI-generering till konstanalys.
+            </p>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {FEATURES.map((feature, i) => (
+              <a
+                key={i}
+                href={feature.href}
+                className={`group relative bg-gradient-to-br ${feature.bgLight} border ${feature.borderColor} rounded-2xl p-8 hover:shadow-xl hover:shadow-gray-200/50 transition-all duration-300 hover:-translate-y-1`}
+              >
+                <div className={`inline-flex items-center justify-center w-14 h-14 rounded-xl bg-gradient-to-br ${feature.color} text-white mb-6 shadow-lg shadow-gray-200/50 group-hover:scale-110 transition-transform`}>
+                  {feature.icon}
+                </div>
+                <h3 className="text-xl font-medium text-gray-900 mb-3">{feature.title}</h3>
+                <p className="text-sm text-gray-600 leading-relaxed">{feature.description}</p>
+                <div className="mt-6 flex items-center gap-1 text-sm font-medium text-gray-400 group-hover:text-gray-700 transition-colors">
+                  Utforska
+                  <svg className="w-4 h-4 group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                  </svg>
+                </div>
+              </a>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* ─── Boris AI Showcase ─── */}
+      <section className="py-20 sm:py-28 bg-gradient-to-br from-gray-900 via-gray-900 to-gray-800 text-white overflow-hidden relative">
+        <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-gradient-to-bl from-purple-500/10 via-transparent to-transparent rounded-full blur-3xl" />
+        <div className="absolute bottom-0 left-0 w-[300px] h-[300px] bg-gradient-to-tr from-emerald-500/10 via-transparent to-transparent rounded-full blur-3xl" />
+
+        <div className="relative max-w-7xl mx-auto px-6">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
+            <div>
+              <div className="inline-flex items-center gap-2 bg-white/10 backdrop-blur-sm border border-white/10 rounded-full px-4 py-1.5 mb-6">
+                <svg className="w-4 h-4 text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9.813 15.904L9 18.75l-.813-2.846a4.5 4.5 0 00-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 003.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 003.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 00-3.09 3.09z" />
+                </svg>
+                <span className="text-xs font-medium text-gray-300 tracking-wide uppercase">AI-driven</span>
+              </div>
+
+              <h2 className="text-3xl sm:text-4xl font-light tracking-tight leading-tight">
+                Möt <span className="text-purple-400">Boris</span> — din
+                <br />personliga konstexpert
               </h2>
 
-              {displayResults.length === 0 ? (
-                <p className="text-gray-500 py-8 text-center">Inga objekt matchar dina filter. Prova att sänka minsta vinst eller bredda filtren.</p>
-              ) : (
-                <div className="space-y-4">
-                  {displayResults.map((item, index) => {
-                    const profit = item.profit ?? (item.estimatedValue - item.price)
-                    return (
-                      <div key={index} className="border border-gray-200 rounded-lg p-4 hover:shadow-md transition-shadow">
-                        <div className="flex justify-between items-start">
-                          <div className="flex-1 min-w-0">
-                            <h3 className="font-semibold text-gray-900 truncate">{item.title}</h3>
-                            <p className="text-gray-600">{item.artist}</p>
-                            <div className="flex items-center gap-2 mt-1">
-                              <span className="text-sm text-gray-500">{item.source}</span>
-                              {item.url && (
-                                <a
-                                  href={item.url}
-                                  target="_blank"
-                                  rel="noopener noreferrer"
-                                  className="text-xs text-blue-500 hover:underline"
-                                >
-                                  Visa &rarr;
-                                </a>
-                              )}
-                            </div>
-                          </div>
-                          <div className="text-right ml-4 shrink-0">
-                            <p className="text-lg font-bold text-gray-900">{formatKr(item.price)} kr</p>
-                            <p className="text-sm text-gray-500">Est. värde: {formatKr(item.estimatedValue)} kr</p>
-                            <p className={`text-sm font-bold ${profit > 0 ? 'text-green-600' : 'text-red-600'}`}>
-                              {profit > 0 ? '+' : ''}{formatKr(profit)} kr ({item.profitMargin}%)
-                            </p>
-                          </div>
-                        </div>
-                        <div className="mt-3 flex items-center justify-between">
-                          <div className="flex gap-1">
-                            <span className={`px-2 py-0.5 rounded text-xs ${
-                              item.riskLevel === 'low' ? 'bg-green-100 text-green-800' :
-                              item.riskLevel === 'medium' ? 'bg-yellow-100 text-yellow-800' :
-                              'bg-red-100 text-red-800'
-                            }`}>
-                              {item.riskLevel === 'low' ? 'Låg risk' : item.riskLevel === 'medium' ? 'Medium' : 'Hög risk'}
-                            </span>
-                            <span className={`px-2 py-0.5 rounded text-xs ${
-                              item.recommendation === 'buy' ? 'bg-green-100 text-green-800' :
-                              item.recommendation === 'hold' ? 'bg-yellow-100 text-yellow-800' :
-                              'bg-red-100 text-red-800'
-                            }`}>
-                              {item.recommendation === 'buy' ? 'KÖP' : item.recommendation === 'hold' ? 'HÅLL' : 'UNDVIK'}
-                            </span>
-                            <span className="px-2 py-0.5 rounded text-xs bg-gray-100 text-gray-700">
-                              {Math.round(item.confidence * 100)}% konfidens
-                            </span>
-                          </div>
-                          <div className="flex space-x-2">
-                            <button
-                              onClick={() => analyzeItem(item)}
-                              className="px-3 py-1 bg-blue-600 text-white text-sm rounded hover:bg-blue-700"
-                            >
-                              Analysera
-                            </button>
-                            <button
-                              onClick={() => saveToPortfolio(item)}
-                              className="px-3 py-1 bg-green-600 text-white text-sm rounded hover:bg-green-700"
-                            >
-                              Spara
-                            </button>
-                          </div>
-                        </div>
-                      </div>
-                    )
-                  })}
+              <p className="mt-6 text-gray-400 leading-relaxed max-w-lg">
+                Boris analyserar konstverk, kommenterar hur en tavla passar på din vägg,
+                ger investeringsråd och hjälper dig hitta rätt stil. Allt drivet av AI.
+              </p>
+
+              <div className="mt-8 space-y-4">
+                <div className="flex items-start gap-3">
+                  <div className="w-8 h-8 rounded-lg bg-purple-500/20 flex items-center justify-center shrink-0 mt-0.5">
+                    <svg className="w-4 h-4 text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                    </svg>
+                  </div>
+                  <div>
+                    <p className="text-sm font-medium text-white">Konstanalys</p>
+                    <p className="text-sm text-gray-400">Analyserar stil, teknik, marknadsvärde och potential.</p>
+                  </div>
                 </div>
-              )}
-            </div>
-          )}
-
-          {/* No results message */}
-          {!isScanning && results.length === 0 && scanMeta && (
-            <div className="bg-white rounded-lg shadow-lg p-8 text-center">
-              <p className="text-gray-500 text-lg">Inga objekt hittades.</p>
-              <p className="text-gray-400 text-sm mt-2">Prova att välja fler källor eller bredda filtren.</p>
-            </div>
-          )}
-
-          {/* Analys Modal */}
-          {showAnalysis && selectedItem && (
-            <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-              <div className="bg-white rounded-lg shadow-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
-                <div className="p-6">
-                  <div className="flex justify-between items-start mb-4">
-                    <h2 className="text-2xl font-bold text-gray-900">Detaljerad Analys</h2>
-                    <button
-                      onClick={() => setShowAnalysis(false)}
-                      className="text-gray-400 hover:text-gray-600 text-2xl"
-                    >
-                      &times;
-                    </button>
+                <div className="flex items-start gap-3">
+                  <div className="w-8 h-8 rounded-lg bg-emerald-500/20 flex items-center justify-center shrink-0 mt-0.5">
+                    <svg className="w-4 h-4 text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                    </svg>
                   </div>
-
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    {/* Bild och grundinfo */}
-                    <div>
-                      {selectedItem.imageUrl && (
-                        <div className="aspect-square bg-gray-200 rounded-lg mb-4 overflow-hidden">
-                          <img
-                            src={selectedItem.imageUrl}
-                            alt={selectedItem.title}
-                            className="w-full h-full object-cover"
-                          />
-                        </div>
-                      )}
-                      <h3 className="text-xl font-semibold text-gray-900">{selectedItem.title}</h3>
-                      <p className="text-gray-600">{selectedItem.artist}</p>
-                      <p className="text-sm text-gray-500">{selectedItem.description}</p>
-                      <p className="text-sm text-gray-500 mt-2">Källa: {selectedItem.source}</p>
-                      {selectedItem.url && (
-                        <a href={selectedItem.url} target="_blank" rel="noopener noreferrer" className="text-sm text-blue-600 hover:underline mt-1 block">
-                          Visa på {selectedItem.source} &rarr;
-                        </a>
-                      )}
-                    </div>
-
-                    {/* Pris-analys */}
-                    <div className="space-y-4">
-                      <div className="bg-gray-50 rounded-lg p-4">
-                        <h4 className="font-semibold text-gray-900 mb-3">Pris-analys</h4>
-                        <div className="space-y-2">
-                          <div className="flex justify-between">
-                            <span className="text-gray-600">Nuvarande pris:</span>
-                            <span className="font-bold text-gray-900">{formatKr(selectedItem.price)} kr</span>
-                          </div>
-                          <div className="flex justify-between">
-                            <span className="text-gray-600">Estimerat värde:</span>
-                            <span className="font-bold text-blue-600">{formatKr(selectedItem.estimatedValue)} kr</span>
-                          </div>
-                          <hr />
-                          <div className="flex justify-between">
-                            <span className="text-gray-600">Potentiell vinst:</span>
-                            <span className="font-bold text-green-600">
-                              +{formatKr(selectedItem.profit ?? selectedItem.estimatedValue - selectedItem.price)} kr
-                            </span>
-                          </div>
-                          <div className="flex justify-between">
-                            <span className="text-gray-600">Vinstmarginal:</span>
-                            <span className="font-bold text-green-600">{selectedItem.profitMargin}%</span>
-                          </div>
-                        </div>
-                      </div>
-
-                      <div className="bg-blue-50 rounded-lg p-4">
-                        <h4 className="font-semibold text-gray-900 mb-3">Marknadsdata</h4>
-                        <div className="space-y-2">
-                          <div className="flex justify-between">
-                            <span className="text-gray-600">Risknivå:</span>
-                            <span className={`px-2 py-1 rounded text-sm ${
-                              selectedItem.riskLevel === 'low' ? 'bg-green-100 text-green-800' :
-                              selectedItem.riskLevel === 'medium' ? 'bg-yellow-100 text-yellow-800' :
-                              'bg-red-100 text-red-800'
-                            }`}>
-                              {selectedItem.riskLevel === 'low' ? 'Låg' :
-                               selectedItem.riskLevel === 'medium' ? 'Medium' : 'Hög'}
-                            </span>
-                          </div>
-                          <div className="flex justify-between">
-                            <span className="text-gray-600">Konfidens:</span>
-                            <span className="font-bold">{Math.round(selectedItem.confidence * 100)}%</span>
-                          </div>
-                          <div className="flex justify-between">
-                            <span className="text-gray-600">Marknadstrend:</span>
-                            <span className={`px-2 py-1 rounded text-sm ${
-                              selectedItem.marketTrend === 'rising' ? 'bg-green-100 text-green-800' :
-                              selectedItem.marketTrend === 'stable' ? 'bg-gray-100 text-gray-800' :
-                              'bg-red-100 text-red-800'
-                            }`}>
-                              {selectedItem.marketTrend === 'rising' ? 'Stigande' :
-                               selectedItem.marketTrend === 'stable' ? 'Stabil' : 'Fallande'}
-                            </span>
-                          </div>
-                        </div>
-                      </div>
-
-                      <div className={`rounded-lg p-4 ${
-                        selectedItem.recommendation === 'buy' ? 'bg-green-50' :
-                        selectedItem.recommendation === 'hold' ? 'bg-yellow-50' : 'bg-red-50'
-                      }`}>
-                        <h4 className="font-semibold text-gray-900 mb-3">Rekommendation</h4>
-                        <div className="flex items-center space-x-2">
-                          <span className={`px-3 py-1 rounded font-bold ${
-                            selectedItem.recommendation === 'buy' ? 'bg-green-600 text-white' :
-                            selectedItem.recommendation === 'hold' ? 'bg-yellow-600 text-white' :
-                            'bg-red-600 text-white'
-                          }`}>
-                            {selectedItem.recommendation === 'buy' ? 'KÖP' :
-                             selectedItem.recommendation === 'hold' ? 'HÅLL' : 'UNDVIK'}
-                          </span>
-                          <span className="text-gray-700 text-sm">
-                            {selectedItem.recommendation === 'buy' ? 'Stark vinstpotential' :
-                             selectedItem.recommendation === 'hold' ? 'Vänta på bättre läge' :
-                             'Rekommenderas inte'}
-                          </span>
-                        </div>
-                      </div>
-                    </div>
+                  <div>
+                    <p className="text-sm font-medium text-white">Väggkommentarer</p>
+                    <p className="text-sm text-gray-400">Kommenterar hur tavlan passar i ditt rum — färger, proportioner, stil.</p>
                   </div>
-
-                  {/* Boris AI-analys */}
-                  <div className="mt-6 bg-gradient-to-br from-purple-50 to-blue-50 border border-purple-200/60 rounded-lg p-4">
-                    <div className="flex items-center gap-2 mb-3">
-                      <span className="text-xl">🎨</span>
-                      <h4 className="font-semibold text-purple-900">Boris AI-analys</h4>
-                    </div>
-                    {loadingBoris ? (
-                      <div className="flex items-center gap-3 py-4">
-                        <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-purple-600"></div>
-                        <span className="text-purple-700 text-sm">Boris AI analyserar verket...</span>
-                      </div>
-                    ) : borisAnalysis ? (
-                      <p className="text-gray-800 text-sm leading-relaxed whitespace-pre-line">{borisAnalysis}</p>
-                    ) : null}
+                </div>
+                <div className="flex items-start gap-3">
+                  <div className="w-8 h-8 rounded-lg bg-blue-500/20 flex items-center justify-center shrink-0 mt-0.5">
+                    <svg className="w-4 h-4 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                    </svg>
                   </div>
-
-                  <div className="mt-6 flex space-x-4">
-                    <button
-                      onClick={() => investInItem(selectedItem)}
-                      className="flex-1 bg-green-600 text-white px-6 py-3 rounded-md hover:bg-green-700 transition-colors"
-                    >
-                      {selectedItem.url ? 'Öppna auktion' : 'Investera nu'}
-                    </button>
-                    <button
-                      onClick={() => saveToPortfolio(selectedItem)}
-                      className="flex-1 bg-blue-600 text-white px-6 py-3 rounded-md hover:bg-blue-700 transition-colors"
-                    >
-                      Spara till portfölj
-                    </button>
-                    <button
-                      onClick={() => setShowAnalysis(false)}
-                      className="px-6 py-3 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50 transition-colors"
-                    >
-                      Stäng
-                    </button>
+                  <div>
+                    <p className="text-sm font-medium text-white">Investeringsråd</p>
+                    <p className="text-sm text-gray-400">Hjälper dig hitta undervärderade verk med vinstpotential.</p>
                   </div>
                 </div>
               </div>
             </div>
-          )}
 
-          {/* Portfolio Modal */}
-          {showPortfolio && (
-            <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-              <div className="bg-white rounded-lg shadow-xl max-w-4xl w-full max-h-[90vh] overflow-y-auto">
-                <div className="p-6">
-                  <div className="flex justify-between items-start mb-4">
-                    <h2 className="text-2xl font-bold text-gray-900">Min Portfölj</h2>
-                    <button
-                      onClick={() => setShowPortfolio(false)}
-                      className="text-gray-400 hover:text-gray-600 text-2xl"
-                    >
-                      &times;
-                    </button>
-                  </div>
+            {/* Boris chat mockup */}
+            <div className="bg-gray-800/50 backdrop-blur-sm border border-gray-700/50 rounded-2xl p-6 shadow-2xl">
+              <div className="flex items-center gap-3 mb-6">
+                <div className="w-10 h-10 rounded-full bg-gradient-to-br from-purple-500 to-fuchsia-600 flex items-center justify-center text-white text-sm font-bold">
+                  B
+                </div>
+                <div>
+                  <p className="text-sm font-medium text-white">Boris AI</p>
+                  <p className="text-xs text-gray-500">Konstexpert</p>
+                </div>
+                <div className="ml-auto w-2 h-2 bg-emerald-500 rounded-full animate-pulse" />
+              </div>
 
-                  {portfolio.length === 0 ? (
-                    <div className="text-center py-8">
-                      <p className="text-gray-500">Du har inga objekt i din portfölj än.</p>
-                      <p className="text-sm text-gray-400 mt-2">Klicka &quot;Spara&quot; på skannade objekt.</p>
-                    </div>
-                  ) : (
-                    <div className="space-y-4">
-                      {/* Portfolio Summary */}
-                      <div className="bg-gradient-to-r from-purple-50 to-blue-50 rounded-lg p-4">
-                        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-                          <div className="text-center">
-                            <p className="text-sm text-gray-600">Totalt objekt</p>
-                            <p className="text-2xl font-bold text-purple-600">{portfolio.length}</p>
-                          </div>
-                          <div className="text-center">
-                            <p className="text-sm text-gray-600">Total investering</p>
-                            <p className="text-2xl font-bold text-gray-900">
-                              {formatKr(portfolio.reduce((sum: number, item: any) => sum + item.price, 0))} kr
-                            </p>
-                          </div>
-                          <div className="text-center">
-                            <p className="text-sm text-gray-600">Estimerat värde</p>
-                            <p className="text-2xl font-bold text-blue-600">
-                              {formatKr(portfolio.reduce((sum: number, item: any) => sum + item.estimatedValue, 0))} kr
-                            </p>
-                          </div>
-                          <div className="text-center">
-                            <p className="text-sm text-gray-600">Potentiell vinst</p>
-                            <p className="text-2xl font-bold text-green-600">
-                              +{formatKr(portfolio.reduce((sum: number, item: any) => sum + (item.profit ?? item.estimatedValue - item.price), 0))} kr
-                            </p>
-                          </div>
-                        </div>
-                      </div>
-
-                      {/* Portfolio Items */}
-                      <div className="space-y-3">
-                        {portfolio.map((item: any, index: number) => (
-                          <div key={index} className="border border-gray-200 rounded-lg p-4 hover:shadow-md transition-shadow">
-                            <div className="flex justify-between items-start">
-                              <div className="flex-1">
-                                <h3 className="font-semibold text-gray-900">{item.title}</h3>
-                                <p className="text-gray-600">{item.artist}</p>
-                                <p className="text-sm text-gray-500">{item.source}</p>
-                                {item.addedDate && (
-                                  <p className="text-xs text-gray-400 mt-1">
-                                    Tillagd: {new Date(item.addedDate).toLocaleDateString('sv-SE')}
-                                  </p>
-                                )}
-                              </div>
-                              <div className="text-right">
-                                <p className="text-lg font-bold text-gray-900">{formatKr(item.price)} kr</p>
-                                <p className="text-sm text-gray-500">&rarr; {formatKr(item.estimatedValue)} kr</p>
-                                <p className="text-sm font-bold text-green-600">
-                                  +{formatKr(item.profit ?? item.estimatedValue - item.price)} kr
-                                </p>
-                              </div>
-                            </div>
-                            <div className="mt-3 flex space-x-2">
-                              <button
-                                onClick={() => analyzeItem(item)}
-                                className="px-3 py-1 bg-blue-600 text-white text-sm rounded hover:bg-blue-700"
-                              >
-                                Analysera
-                              </button>
-                              {item.url && (
-                                <a
-                                  href={item.url}
-                                  target="_blank"
-                                  rel="noopener noreferrer"
-                                  className="px-3 py-1 bg-green-600 text-white text-sm rounded hover:bg-green-700 inline-block"
-                                >
-                                  Öppna
-                                </a>
-                              )}
-                              <button
-                                onClick={() => {
-                                  setPortfolio(portfolio.filter((_: any, i: number) => i !== index))
-                                }}
-                                className="px-3 py-1 bg-red-600 text-white text-sm rounded hover:bg-red-700"
-                              >
-                                Ta bort
-                              </button>
-                            </div>
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-                  )}
-
-                  <div className="mt-6 flex justify-end">
-                    <button
-                      onClick={() => setShowPortfolio(false)}
-                      className="px-6 py-3 bg-gray-600 text-white rounded-md hover:bg-gray-700 transition-colors"
-                    >
-                      Stäng
-                    </button>
-                  </div>
+              <div className="space-y-4">
+                <div className="bg-gray-700/40 rounded-xl rounded-tl-sm p-4 max-w-[85%]">
+                  <p className="text-sm text-gray-300 leading-relaxed">
+                    Det här verket har en stark komposition med djupa blåtoner som skulle passa utmärkt mot din ljusa vägg. Jag rekommenderar storlek 50×70 cm med en vit ram för bästa effekt.
+                  </p>
+                </div>
+                <div className="bg-purple-600/30 rounded-xl rounded-tr-sm p-4 max-w-[75%] ml-auto">
+                  <p className="text-sm text-purple-200">Vad tror du om den som investering?</p>
+                </div>
+                <div className="bg-gray-700/40 rounded-xl rounded-tl-sm p-4 max-w-[85%]">
+                  <p className="text-sm text-gray-300 leading-relaxed">
+                    Konstnären har en stigande trend. Liknande verk såldes för 40% mer förra året. Jag bedömer risken som låg med god potential.
+                  </p>
                 </div>
               </div>
-            </div>
-          )}
-        </main>
-      )}
 
-      {/* Tab Content: Mina Tavlor */}
-      {activeTab === 'my-artworks' && (
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-          <MyArtworks />
-        </div>
-      )}
-
-      {/* BorisArt AI Chat */}
-      {showBorisChat && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-          <div className="bg-white rounded-lg shadow-xl max-w-2xl w-full max-h-[80vh] flex flex-col">
-            <div className="p-4 border-b">
-              <div className="flex items-center justify-between">
-                <h2 className="text-xl font-bold text-gray-900">BorisArt AI</h2>
-                <button
-                  onClick={() => setShowBorisChat(false)}
-                  className="text-gray-400 hover:text-gray-600 text-2xl"
-                >
-                  &times;
+              <div className="mt-6 flex items-center gap-2">
+                <div className="flex-1 bg-gray-700/30 border border-gray-600/30 rounded-xl px-4 py-3 text-sm text-gray-500">
+                  Fråga Boris om konst...
+                </div>
+                <button className="w-10 h-10 rounded-xl bg-purple-600 flex items-center justify-center hover:bg-purple-500 transition-colors">
+                  <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" />
+                  </svg>
                 </button>
               </div>
             </div>
-            <div className="flex-1 p-4">
-              <BorisArtChat
-                artworks={portfolio}
-                selectedArtwork={selectedItem}
-                scannedItems={results}
-                portfolio={portfolio}
-              />
+          </div>
+        </div>
+      </section>
+
+      {/* ─── Prova på vägg showcase ─── */}
+      <section className="py-20 sm:py-28">
+        <div className="max-w-7xl mx-auto px-6">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
+            {/* Mockup illustration */}
+            <div className="relative">
+              <div className="aspect-[4/3] bg-gradient-to-br from-gray-100 to-gray-200 rounded-2xl overflow-hidden relative">
+                {/* Room mockup */}
+                <div className="absolute inset-0 bg-gradient-to-b from-[#E8E0D8] to-[#D4CBC2]" />
+                {/* Wall */}
+                <div className="absolute top-0 left-0 right-0 h-[70%] bg-gradient-to-b from-[#F5F0EB] to-[#EDE8E3]" />
+                {/* Floor */}
+                <div className="absolute bottom-0 left-0 right-0 h-[30%] bg-gradient-to-b from-[#C4B8AC] to-[#B8A99A]" />
+                {/* Poster frame */}
+                <div className="absolute top-[15%] left-1/2 -translate-x-1/2 w-[35%] aspect-[2/3] bg-white shadow-2xl rounded-sm p-2">
+                  <div className="w-full h-full bg-gradient-to-br from-emerald-200 via-teal-300 to-cyan-400 rounded-sm" />
+                </div>
+                {/* Sofa hint */}
+                <div className="absolute bottom-[25%] left-1/2 -translate-x-1/2 w-[60%] h-[15%] bg-[#8B7D6B]/30 rounded-t-[100px]" />
+              </div>
+
+              {/* Floating badge */}
+              <div className="absolute -bottom-4 -right-4 bg-white rounded-xl shadow-lg border border-gray-100 px-4 py-3 flex items-center gap-3">
+                <div className="w-10 h-10 rounded-lg bg-emerald-100 flex items-center justify-center">
+                  <svg className="w-5 h-5 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                  </svg>
+                </div>
+                <div>
+                  <p className="text-sm font-medium text-gray-900">Perfekt passform!</p>
+                  <p className="text-xs text-gray-500">50×70 cm — vit ram</p>
+                </div>
+              </div>
+            </div>
+
+            <div>
+              <h2 className="text-3xl sm:text-4xl font-light tracking-tight text-gray-900 leading-tight">
+                Se tavlan på din vägg
+                <br />
+                <span className="text-gray-400">innan du köper</span>
+              </h2>
+
+              <p className="mt-6 text-gray-500 leading-relaxed max-w-lg">
+                Ladda upp ett foto av ditt rum, markera väggen och se direkt hur konstverket
+                tar sig. Dra, zooma och byt ram i realtid. Boris ger dig dessutom sin
+                expertkommentar om hur tavlan passar i rummet.
+              </p>
+
+              <div className="mt-8 grid grid-cols-2 gap-4">
+                <div className="bg-white rounded-xl border border-gray-200/60 p-4">
+                  <p className="text-2xl font-light text-gray-900">Realtid</p>
+                  <p className="text-sm text-gray-500 mt-1">Dra & zooma live</p>
+                </div>
+                <div className="bg-white rounded-xl border border-gray-200/60 p-4">
+                  <p className="text-2xl font-light text-gray-900">5+</p>
+                  <p className="text-sm text-gray-500 mt-1">Ramval att välja</p>
+                </div>
+                <div className="bg-white rounded-xl border border-gray-200/60 p-4">
+                  <p className="text-2xl font-light text-gray-900">cm-exakt</p>
+                  <p className="text-sm text-gray-500 mt-1">Verklig storlek</p>
+                </div>
+                <div className="bg-white rounded-xl border border-gray-200/60 p-4">
+                  <p className="text-2xl font-light text-gray-900">Boris</p>
+                  <p className="text-sm text-gray-500 mt-1">AI-kommentar</p>
+                </div>
+              </div>
+
+              <a
+                href="/wallcraft/studio"
+                className="mt-8 inline-flex items-center gap-2 bg-gray-900 text-white px-6 py-3 rounded-xl text-sm font-medium hover:bg-gray-800 transition-all"
+              >
+                Prova nu
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" />
+                </svg>
+              </a>
             </div>
           </div>
         </div>
-      )}
+      </section>
+
+      {/* ─── Konstnärer CTA ─── */}
+      <section className="py-20 sm:py-28 bg-gradient-to-br from-rose-50 via-pink-50 to-fuchsia-50">
+        <div className="max-w-4xl mx-auto px-6 text-center">
+          <h2 className="text-3xl sm:text-4xl font-light tracking-tight text-gray-900">
+            Är du konstnär eller fotograf?
+          </h2>
+          <p className="mt-6 text-gray-500 max-w-2xl mx-auto leading-relaxed">
+            Ladda upp dina verk till Art Market och nå nya köpare. Vi hanterar tryck, ram och leverans.
+            Du sätter priset — vi delar vinsten 50/50.
+          </p>
+
+          <div className="mt-10 flex flex-wrap justify-center gap-4">
+            <a
+              href="/market/artist"
+              className="inline-flex items-center gap-2 bg-gray-900 text-white px-8 py-4 rounded-xl text-base font-medium hover:bg-gray-800 transition-all hover:shadow-lg"
+            >
+              Registrera dig som konstnär
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" />
+              </svg>
+            </a>
+            <a
+              href="/market"
+              className="inline-flex items-center gap-2 bg-white text-gray-700 px-8 py-4 rounded-xl text-base font-medium border border-gray-200 hover:border-gray-300 hover:shadow-md transition-all"
+            >
+              Bläddra i galleriet
+            </a>
+          </div>
+
+          <div className="mt-12 grid grid-cols-1 sm:grid-cols-3 gap-6 max-w-2xl mx-auto">
+            <div>
+              <p className="text-3xl font-light text-gray-900">50/50</p>
+              <p className="text-sm text-gray-500 mt-1">Vinstdelning</p>
+            </div>
+            <div>
+              <p className="text-3xl font-light text-gray-900">0 kr</p>
+              <p className="text-sm text-gray-500 mt-1">Att komma igång</p>
+            </div>
+            <div>
+              <p className="text-3xl font-light text-gray-900">Hela Sverige</p>
+              <p className="text-sm text-gray-500 mt-1">Leverans & tryck</p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* ─── Skapa konto CTA ─── */}
+      <section id="skapa-konto" className="py-20 sm:py-28 bg-gray-900 text-white">
+        <div className="max-w-3xl mx-auto px-6 text-center">
+          <h2 className="text-3xl sm:text-4xl font-light tracking-tight">
+            Redo att börja?
+          </h2>
+          <p className="mt-4 text-gray-400 max-w-xl mx-auto">
+            Skapa ett gratis konto och få tillgång till alla verktyg. Ingen bindningstid, inget kort.
+          </p>
+
+          <div className="mt-10 max-w-md mx-auto">
+            <div className="bg-gray-800/50 backdrop-blur-sm border border-gray-700/50 rounded-2xl p-8">
+              <div className="space-y-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-300 mb-2 text-left">E-post</label>
+                  <input
+                    type="email"
+                    placeholder="din@email.se"
+                    className="w-full px-4 py-3 bg-gray-700/50 border border-gray-600/50 rounded-xl text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-emerald-500/50 focus:border-emerald-500/50 transition-all"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-300 mb-2 text-left">Lösenord</label>
+                  <input
+                    type="password"
+                    placeholder="Minst 8 tecken"
+                    className="w-full px-4 py-3 bg-gray-700/50 border border-gray-600/50 rounded-xl text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-emerald-500/50 focus:border-emerald-500/50 transition-all"
+                  />
+                </div>
+                <button
+                  className="w-full bg-gradient-to-r from-emerald-500 to-teal-600 text-white px-6 py-3.5 rounded-xl font-medium hover:from-emerald-600 hover:to-teal-700 transition-all hover:shadow-lg hover:shadow-emerald-500/20"
+                >
+                  Skapa konto
+                </button>
+              </div>
+              <p className="mt-4 text-xs text-gray-500 text-center">
+                Genom att registrera dig godkänner du våra <a href="#" className="text-gray-400 underline">villkor</a>.
+              </p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* ─── Footer ─── */}
+      <footer className="bg-[#FAFAF8] border-t border-gray-200/60 py-16">
+        <div className="max-w-7xl mx-auto px-6">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
+            <div className="col-span-2 md:col-span-1">
+              <span className="text-lg font-semibold tracking-[0.2em] uppercase text-gray-900">Artboris</span>
+              <p className="mt-3 text-sm text-gray-500 leading-relaxed">
+                Din kreativa plattform för väggkonst. Skapa, upptäck och beställ.
+              </p>
+            </div>
+            <div>
+              <h4 className="text-sm font-semibold text-gray-900 mb-4">Verktyg</h4>
+              <div className="space-y-2">
+                <a href="/wallcraft/studio" className="block text-sm text-gray-500 hover:text-gray-900 transition-colors">Wallcraft Studio</a>
+                <a href="/market" className="block text-sm text-gray-500 hover:text-gray-900 transition-colors">Art Market</a>
+                <a href="/wallcraft/print-your-own" className="block text-sm text-gray-500 hover:text-gray-900 transition-colors">Print Your Own</a>
+                <a href="/scanner" className="block text-sm text-gray-500 hover:text-gray-900 transition-colors">Art Scanner</a>
+              </div>
+            </div>
+            <div>
+              <h4 className="text-sm font-semibold text-gray-900 mb-4">Kreativa verktyg</h4>
+              <div className="space-y-2">
+                <a href="/wallcraft/mandala" className="block text-sm text-gray-500 hover:text-gray-900 transition-colors">Mandala Maker</a>
+                <a href="/wallcraft/pattern" className="block text-sm text-gray-500 hover:text-gray-900 transition-colors">Pattern Studio</a>
+                <a href="/wallcraft/abstract" className="block text-sm text-gray-500 hover:text-gray-900 transition-colors">Abstract Painter</a>
+                <a href="/wallcraft/colorfield" className="block text-sm text-gray-500 hover:text-gray-900 transition-colors">Color Field Studio</a>
+              </div>
+            </div>
+            <div>
+              <h4 className="text-sm font-semibold text-gray-900 mb-4">För konstnärer</h4>
+              <div className="space-y-2">
+                <a href="/market/artist" className="block text-sm text-gray-500 hover:text-gray-900 transition-colors">Konstnärsportal</a>
+                <a href="/market" className="block text-sm text-gray-500 hover:text-gray-900 transition-colors">Galleri</a>
+              </div>
+            </div>
+          </div>
+
+          <div className="mt-12 pt-8 border-t border-gray-200/60 flex flex-col sm:flex-row items-center justify-between gap-4">
+            <p className="text-sm text-gray-400">&copy; {new Date().getFullYear()} Artboris. Alla rättigheter förbehållna.</p>
+            <div className="flex items-center gap-6">
+              <a href="#" className="text-sm text-gray-400 hover:text-gray-600 transition-colors">Integritetspolicy</a>
+              <a href="#" className="text-sm text-gray-400 hover:text-gray-600 transition-colors">Villkor</a>
+            </div>
+          </div>
+        </div>
+      </footer>
     </div>
   )
 }
