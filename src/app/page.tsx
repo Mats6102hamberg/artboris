@@ -9,6 +9,9 @@ const ALL_SOURCES = [
   { id: 'barnebys', label: 'Barnebys' },
   { id: 'auctionet', label: 'Auctionet' },
   { id: 'tradera', label: 'Tradera' },
+  { id: 'lauritz', label: 'Lauritz' },
+  { id: 'stockholms', label: 'Stockholms Aukt.' },
+  { id: 'catawiki', label: 'Catawiki' },
 ]
 
 export default function Home() {
@@ -25,7 +28,7 @@ export default function Home() {
   const [borisAnalysis, setBorisAnalysis] = useState<string | null>(null)
   const [loadingBoris, setLoadingBoris] = useState(false)
   const [activeTab, setActiveTab] = useState<'scanner' | 'my-artworks'>('scanner')
-  const [selectedSources, setSelectedSources] = useState<string[]>(['bukowskis', 'barnebys', 'auctionet', 'tradera'])
+  const [selectedSources, setSelectedSources] = useState<string[]>(['bukowskis', 'barnebys', 'auctionet', 'tradera', 'lauritz', 'stockholms', 'catawiki'])
   const [sortBy, setSortBy] = useState('profit')
   const [filters, setFilters] = useState({
     minPrice: 0,

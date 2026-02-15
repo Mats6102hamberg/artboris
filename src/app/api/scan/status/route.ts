@@ -12,8 +12,12 @@ export async function GET(request: NextRequest) {
       environment: process.env.NODE_ENV,
       scrapingCapabilities: {
         bukowskis: 'enabled',
-        lauritz: 'enabled', 
-        barnebys: 'enabled'
+        barnebys: 'enabled',
+        auctionet: 'enabled',
+        tradera: 'enabled',
+        lauritz: 'enabled',
+        stockholms: 'enabled',
+        catawiki: 'enabled',
       }
     })
   } catch (error) {

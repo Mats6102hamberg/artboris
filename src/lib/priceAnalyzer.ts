@@ -197,6 +197,10 @@ export class PriceAnalyzer {
       'Bukowskis': 1.1,
       'Lauritz': 0.95,
       'Barnebys': 1.05,
+      'Auctionet': 1.0,
+      'Tradera': 0.85,
+      'Stockholms Auktionsverk': 1.08,
+      'Catawiki': 0.92,
       'Kunstkompaniet': 0.9,
       'Uppsala Auktionskammare': 1.0
     }
@@ -222,7 +226,7 @@ export class PriceAnalyzer {
     confidence -= artistData.volatility * 0.3
     
     // Öka confidence för kända källor
-    if (['Bukowskis', 'Barnebys'].includes(item.source)) confidence += 0.1
+    if (['Bukowskis', 'Barnebys', 'Stockholms Auktionsverk'].includes(item.source)) confidence += 0.1
     
     return Math.max(0.3, Math.min(0.95, confidence))
   }
