@@ -102,6 +102,8 @@ export default function MockupPreview({
   const handleDragStart = useCallback((e: React.MouseEvent | React.TouchEvent) => {
     if (!onPositionChange || !containerRef.current) return
     if ('touches' in e && e.touches.length >= 2) return
+    // Only drag with left mouse button
+    if ('button' in e && e.button !== 0) return
     e.preventDefault()
     stopMomentum()
     const clientX = 'touches' in e ? e.touches[0].clientX : e.clientX
@@ -329,7 +331,7 @@ export default function MockupPreview({
 
       {/* Poster — draggable with generous touch area */}
       <div
-        className={`absolute ${isInteractive ? 'cursor-pointer' : ''}`}
+        className="absolute"
         style={{
           left: `calc(${placement.left * 100}% - ${hitPad}px)`,
           top: `calc(${placement.top * 100}% - ${hitPad}px)`,
@@ -337,16 +339,19 @@ export default function MockupPreview({
           height: `calc(${placement.height * 100}% + ${hitPad * 2}px)`,
           zIndex: 10,
           touchAction: 'none',
+          cursor: isInteractive ? (isDragging ? 'grabbing' : 'grab') : 'default',
+          background: 'transparent', // ensure click target always captures events
         }}
         onMouseDown={handleDragStart}
         onTouchStart={(e) => { handleDragStart(e); handleTouchStart(e) }}
         onTouchMove={handleTouchMove}
         onTouchEnd={handleTouchEnd}
         onWheel={handleWheel}
+        onContextMenu={(e) => e.preventDefault()}
       >
         {/* Visual poster — positioned exactly at placement coordinates */}
         <div
-          className="absolute overflow-hidden"
+          className="absolute overflow-hidden pointer-events-none"
           style={{
             left: `${hitPad}px`,
             top: `${hitPad}px`,
