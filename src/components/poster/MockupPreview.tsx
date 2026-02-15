@@ -85,7 +85,7 @@ export default function MockupPreview({
     return calculatePosterPlacement(wallCorners, positionX, positionY, scale, posterAspect, posterWidthCm, posterHeightCm)
   }, [wallCorners, positionX, positionY, scale, posterAspect, posterWidthCm, posterHeightCm])
 
-  const frameWidthPx = frame && frame.id !== 'none' ? frame.width * 0.4 : 0
+  const frameWidthPx = frame && frame.id !== 'none' ? frame.width * 0.15 : 0
 
   // --- Drag to move with momentum/inertia ---
   const velocityRef = useRef({ vx: 0, vy: 0 })
