@@ -12,6 +12,7 @@
   "dependencies": {
     "@prisma/client": "^6.19.2",
     "@react-email/components": "^1.0.7",
+    "@sparticuz/chromium": "^143.0.4",
     "@types/cheerio": "^0.22.35",
     "@types/puppeteer": "^5.4.7",
     "@vercel/blob": "^2.2.0",
@@ -22,6 +23,7 @@
     "prisma": "^6.19.2",
     "proxy-chain": "^2.7.1",
     "puppeteer": "^24.36.1",
+    "puppeteer-core": "^24.37.3",
     "puppeteer-extra": "^3.3.6",
     "puppeteer-extra-plugin-stealth": "^2.11.2",
     "react": "19.2.3",

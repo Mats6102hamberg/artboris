@@ -3,12 +3,13 @@ import type { Browser, Page } from 'puppeteer'
 let browserInstance: Browser | null = null
 let stealthApplied = false
 
+const IS_VERCEL = !!process.env.VERCEL || !!process.env.AWS_LAMBDA_FUNCTION_NAME
+
 async function getBrowser(): Promise<Browser> {
   if (browserInstance && browserInstance.connected) {
     return browserInstance
   }
 
-  // Dynamic imports to avoid Next.js bundler issues
   const puppeteerExtra = (await import('puppeteer-extra')).default
   if (!stealthApplied) {
     const StealthPlugin = (await import('puppeteer-extra-plugin-stealth')).default
@@ -16,16 +17,30 @@ async function getBrowser(): Promise<Browser> {
     stealthApplied = true
   }
 
-  browserInstance = await puppeteerExtra.launch({
-    headless: true,
-    args: [
-      '--no-sandbox',
-      '--disable-setuid-sandbox',
-      '--disable-dev-shm-usage',
-      '--disable-gpu',
-      '--window-size=1920,1080',
-    ],
-  })
+  if (IS_VERCEL) {
+    // Serverless: use @sparticuz/chromium which bundles a Lambda-compatible binary
+    // eslint-disable-next-line @typescript-eslint/no-require-imports
+    const chromium = require('@sparticuz/chromium')
+
+    browserInstance = await puppeteerExtra.launch({
+      args: chromium.args,
+      defaultViewport: chromium.defaultViewport,
+      executablePath: await chromium.executablePath(),
+      headless: chromium.headless ?? true,
+    })
+  } else {
+    // Local dev: use system Puppeteer with bundled Chromium
+    browserInstance = await puppeteerExtra.launch({
+      headless: true,
+      args: [
+        '--no-sandbox',
+        '--disable-setuid-sandbox',
+        '--disable-dev-shm-usage',
+        '--disable-gpu',
+        '--window-size=1920,1080',
+      ],
+    })
+  }
 
   return browserInstance
 }
