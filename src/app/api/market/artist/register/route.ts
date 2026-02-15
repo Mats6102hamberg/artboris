@@ -4,10 +4,31 @@ import { prisma } from '@/lib/prisma'
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json()
-    const { email, displayName, bio, website, instagram, phone, bankAccount, orgNumber } = body
+    const { email, displayName, bio, website, instagram, phone, bankAccount, orgNumber, inviteCode } = body
 
     if (!email || !displayName) {
       return NextResponse.json({ error: 'E-post och visningsnamn krävs.' }, { status: 400 })
+    }
+
+    if (!inviteCode) {
+      return NextResponse.json({ error: 'Inbjudningskod krävs för registrering.' }, { status: 400 })
+    }
+
+    // Validate invite code
+    const invite = await prisma.inviteCode.findUnique({
+      where: { code: inviteCode.toUpperCase() },
+    })
+
+    if (!invite) {
+      return NextResponse.json({ error: 'Ogiltig inbjudningskod.' }, { status: 400 })
+    }
+
+    if (invite.expiresAt && invite.expiresAt < new Date()) {
+      return NextResponse.json({ error: 'Inbjudningskoden har gått ut.' }, { status: 400 })
+    }
+
+    if (invite.usedCount >= invite.maxUses) {
+      return NextResponse.json({ error: 'Inbjudningskoden har redan använts.' }, { status: 400 })
     }
 
     // Check if artist already exists
@@ -19,19 +40,34 @@ export async function POST(request: NextRequest) {
       }, { status: 409 })
     }
 
-    const artist = await prisma.artistProfile.create({
-      data: {
-        email,
-        displayName,
-        bio: bio || '',
-        website: website || '',
-        instagram: instagram || '',
-        phone: phone || '',
-        bankAccount: bankAccount || '',
-        orgNumber: orgNumber || '',
-        acceptedTermsAt: new Date(),
-        isApproved: true, // Auto-approve for now
-      },
+    // Create artist + redeem invite in transaction
+    const artist = await prisma.$transaction(async (tx) => {
+      const newArtist = await tx.artistProfile.create({
+        data: {
+          email,
+          displayName,
+          bio: bio || '',
+          website: website || '',
+          instagram: instagram || '',
+          phone: phone || '',
+          bankAccount: bankAccount || '',
+          orgNumber: orgNumber || '',
+          acceptedTermsAt: new Date(),
+          isApproved: true,
+        },
+      })
+
+      // Mark invite as used
+      await tx.inviteCode.update({
+        where: { id: invite.id },
+        data: {
+          usedCount: { increment: 1 },
+          redeemedById: newArtist.id,
+          redeemedAt: new Date(),
+        },
+      })
+
+      return newArtist
     })
 
     return NextResponse.json({

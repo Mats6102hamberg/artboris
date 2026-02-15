@@ -49,7 +49,11 @@ export default function ArtistPage() {
     phone: '',
     bankAccount: '',
     orgNumber: '',
+    inviteCode: '',
   })
+  const [inviteValid, setInviteValid] = useState<boolean | null>(null)
+  const [inviteChecking, setInviteChecking] = useState(false)
+  const [inviteType, setInviteType] = useState<string | null>(null)
 
   // Login form
   const [loginEmail, setLoginEmail] = useState('')
@@ -118,7 +122,7 @@ export default function ArtistPage() {
       const res = await fetch('/api/market/artist/register', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(regForm),
+        body: JSON.stringify({ ...regForm, inviteCode: regForm.inviteCode.toUpperCase() }),
       })
       const data = await res.json()
       if (data.success) {
@@ -319,6 +323,55 @@ export default function ArtistPage() {
           </div>
 
           <form onSubmit={handleRegister} className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 space-y-4">
+            {/* Invite code */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Inbjudningskod *</label>
+              <div className="flex gap-2">
+                <input
+                  type="text"
+                  required
+                  value={regForm.inviteCode}
+                  onChange={e => {
+                    const val = e.target.value.toUpperCase()
+                    setRegForm({ ...regForm, inviteCode: val })
+                    setInviteValid(null)
+                    setInviteType(null)
+                  }}
+                  className="flex-1 px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-gray-900 text-gray-900 font-mono tracking-wider"
+                  placeholder="ARTIST-XXXXXX"
+                />
+                <button
+                  type="button"
+                  disabled={!regForm.inviteCode || inviteChecking}
+                  onClick={async () => {
+                    setInviteChecking(true)
+                    try {
+                      const res = await fetch(`/api/invites/${regForm.inviteCode}`)
+                      const data = await res.json()
+                      setInviteValid(data.valid === true)
+                      setInviteType(data.type || null)
+                    } catch {
+                      setInviteValid(false)
+                    } finally {
+                      setInviteChecking(false)
+                    }
+                  }}
+                  className="px-4 py-3 bg-gray-100 text-gray-700 rounded-xl hover:bg-gray-200 transition-colors disabled:opacity-50 text-sm font-medium"
+                >
+                  {inviteChecking ? '...' : 'Verifiera'}
+                </button>
+              </div>
+              {inviteValid === true && (
+                <p className="text-sm text-emerald-600 mt-1 flex items-center gap-1">
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" /></svg>
+                  Giltig kod{inviteType ? ` (${inviteType === 'PHOTOGRAPHER' ? 'Fotograf' : 'Konstnär'})` : ''}
+                </p>
+              )}
+              {inviteValid === false && (
+                <p className="text-sm text-red-600 mt-1">Ogiltig eller förbrukad kod.</p>
+              )}
+            </div>
+
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div className="sm:col-span-2">
                 <label className="block text-sm font-medium text-gray-700 mb-1">Visningsnamn *</label>

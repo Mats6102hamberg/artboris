@@ -461,6 +461,31 @@ enum ReviewStatus {
   REJECTED      // Not allowed
 }
 
+model InviteCode {
+  id            String   @id @default(cuid())
+  code          String   @unique  // e.g. "ARTIST-AB3K9X"
+  type          InviteType
+  note          String   @default("")  // Admin note, e.g. "Till Anna Lindström"
+
+  maxUses       Int      @default(1)   // How many times this code can be used
+  usedCount     Int      @default(0)
+
+  // Who used it
+  redeemedById  String?  // ArtistProfile.id of who redeemed
+  redeemedAt    DateTime?
+
+  expiresAt     DateTime?  // null = never expires
+  createdAt     DateTime @default(now())
+
+  @@index([code])
+  @@index([type])
+}
+
+enum InviteType {
+  ARTIST
+  PHOTOGRAPHER
+}
+
 enum MarketOrderStatus {
   PENDING
   PAID
