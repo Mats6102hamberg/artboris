@@ -88,6 +88,19 @@ export default function MockupPreview({
   // Frame width as fraction of poster width — scales proportionally with the motif
   const frameFraction = frame && frame.id !== 'none' ? frame.width / 1000 : 0
 
+  // Drag scale: ensures 1:1 mapping between cursor movement and poster movement
+  const dragScale = useMemo(() => {
+    if (wallCorners.length !== 4) return { x: 1, y: 1 }
+    const [tl, tr, , bl] = wallCorners
+    const wallW = Math.abs(tr.x - tl.x)
+    const wallH = Math.abs(bl.y - tl.y)
+    const rangeX = Math.max(0.01, wallW - placement.width)
+    const rangeY = Math.max(0.01, wallH - placement.height)
+    return { x: 1 / rangeX, y: 1 / rangeY }
+  }, [wallCorners, placement.width, placement.height])
+  const dragScaleRef = useRef(dragScale)
+  dragScaleRef.current = dragScale
+
   // --- Drag to move with momentum/inertia ---
   const velocityRef = useRef({ vx: 0, vy: 0 })
   const lastMoveRef = useRef({ x: 0, y: 0, t: 0 })
@@ -123,8 +136,9 @@ export default function MockupPreview({
         const cx = 'touches' in ev ? (ev as TouchEvent).touches[0].clientX : (ev as MouseEvent).clientX
         const cy = 'touches' in ev ? (ev as TouchEvent).touches[0].clientY : (ev as MouseEvent).clientY
         const rect = containerRef.current.getBoundingClientRect()
-        const dx = (cx - dragStart.current.x) / rect.width
-        const dy = (cy - dragStart.current.y) / rect.height
+        const ds = dragScaleRef.current
+        const dx = (cx - dragStart.current.x) / rect.width * ds.x
+        const dy = (cy - dragStart.current.y) / rect.height * ds.y
         const newX = Math.max(-0.5, Math.min(1.5, dragStart.current.posX + dx))
         const newY = Math.max(-0.5, Math.min(1.5, dragStart.current.posY + dy))
         onPositionChange(newX, newY)
@@ -133,8 +147,8 @@ export default function MockupPreview({
         const now = performance.now()
         const dt = now - lastMoveRef.current.t
         if (dt > 0) {
-          const mvx = (cx - lastMoveRef.current.x) / rect.width / (dt / 1000)
-          const mvy = (cy - lastMoveRef.current.y) / rect.height / (dt / 1000)
+          const mvx = (cx - lastMoveRef.current.x) / rect.width * ds.x / (dt / 1000)
+          const mvy = (cy - lastMoveRef.current.y) / rect.height * ds.y / (dt / 1000)
           // Smooth velocity with exponential moving average
           velocityRef.current = {
             vx: velocityRef.current.vx * 0.6 + mvx * 0.4,
