@@ -33,15 +33,16 @@ interface ShippingInput {
 }
 
 export async function POST(req: Request) {
+  let step = 'init'
   try {
+    step = 'parse-body'
     const anonId = await getOrCreateAnonId()
     const body = await req.json()
 
     const { items, shipping, returnPath } = body as {
       items?: CheckoutItem[]
       shipping?: ShippingInput
-      returnPath?: string // e.g. '/wallcraft' or '/poster-lab'
-      // Legacy single-item fields
+      returnPath?: string
       designId?: string
       productType?: string
       sizeCode?: string
@@ -51,7 +52,6 @@ export async function POST(req: Request) {
       unitPriceCents?: number
     }
 
-    // Support both multi-item (cart) and legacy single-item
     const orderItems: CheckoutItem[] = items && items.length > 0
       ? items
       : body.designId
@@ -67,41 +67,34 @@ export async function POST(req: Request) {
         : []
 
     if (orderItems.length === 0) {
-      return NextResponse.json(
-        { error: 'Inga artiklar att beställa.' },
-        { status: 400 }
-      )
+      return NextResponse.json({ error: 'Inga artiklar att beställa.' }, { status: 400 })
     }
 
-    // Validate items
     for (const item of orderItems) {
       if (!item.designId || !item.productType || !item.sizeCode || item.unitPriceCents == null) {
         return NextResponse.json(
-          { error: 'Varje artikel kräver designId, productType, sizeCode, unitPriceCents.' },
+          { error: `Artikel saknar fält: designId=${item.designId}, productType=${item.productType}, sizeCode=${item.sizeCode}, unitPriceCents=${item.unitPriceCents}` },
           { status: 400 }
         )
       }
     }
 
-    // Validate shipping
     if (!shipping || !shipping.firstName || !shipping.lastName || !shipping.email || !shipping.address || !shipping.postalCode || !shipping.city) {
-      return NextResponse.json(
-        { error: 'Leveransuppgifter krävs (namn, e-post, adress, postnummer, stad).' },
-        { status: 400 }
-      )
+      return NextResponse.json({ error: 'Leveransuppgifter krävs.' }, { status: 400 })
     }
 
-    // Calculate totals
-    const subtotalCents = orderItems.reduce((sum, item) => {
-      const qty = item.quantity || 1
-      return sum + item.unitPriceCents * qty
-    }, 0)
+    step = 'calculate-totals'
+    const subtotalCents = orderItems.reduce((sum, item) => sum + item.unitPriceCents * (item.quantity || 1), 0)
     const shippingCents = SHIPPING_CENTS
-    const totalBeforeVat = subtotalCents + shippingCents
-    const taxCents = Math.round(totalBeforeVat * VAT_RATE)
-    const totalCents = totalBeforeVat + taxCents
+    const taxCents = Math.round((subtotalCents + shippingCents) * VAT_RATE)
+    const totalCents = subtotalCents + shippingCents + taxCents
 
-    // Create order + items + shipping + payment in one transaction
+    step = 'create-order'
+    console.log('[checkout] Creating order with items:', JSON.stringify(orderItems.map(i => ({
+      designId: i.designId, productType: i.productType, sizeCode: i.sizeCode,
+      frameColor: i.frameColor, unitPriceCents: i.unitPriceCents,
+    }))))
+
     const order = await prisma.order.create({
       data: {
         anonId,
@@ -145,10 +138,9 @@ export async function POST(req: Request) {
       include: { payment: true, items: true },
     })
 
+    step = 'create-stripe-session'
     const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'
-    const successBase = returnPath || '/order'
 
-    // Build Stripe line items
     const stripeLineItems: Stripe.Checkout.SessionCreateParams.LineItem[] = orderItems.map(item => ({
       quantity: item.quantity || 1,
       price_data: {
@@ -161,7 +153,6 @@ export async function POST(req: Request) {
       },
     }))
 
-    // Add shipping as line item
     stripeLineItems.push({
       quantity: 1,
       price_data: {
@@ -188,6 +179,7 @@ export async function POST(req: Request) {
       },
     })
 
+    step = 'update-payment'
     await prisma.payment.update({
       where: { orderId: order.id },
       data: { stripeCheckoutSessionId: session.id },
@@ -195,10 +187,10 @@ export async function POST(req: Request) {
 
     return NextResponse.json({ url: session.url, orderId: order.id })
   } catch (err: any) {
-    console.error('[checkout] Error:', err)
+    console.error(`[checkout] Error at step "${step}":`, err)
     const message = err?.message || 'Okänt fel'
     return NextResponse.json(
-      { error: `Kunde inte skapa checkout-session: ${message}` },
+      { error: `Checkout-fel (${step}): ${message}` },
       { status: 500 }
     )
   }
