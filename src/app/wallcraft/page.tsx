@@ -54,6 +54,7 @@ export default function WallcraftLanding() {
               <a href="/wallcraft/pattern" className="block px-4 py-2.5 text-sm text-gray-600 hover:bg-gray-50 hover:text-gray-900">Pattern Studio</a>
               <a href="/wallcraft/abstract" className="block px-4 py-2.5 text-sm text-gray-600 hover:bg-gray-50 hover:text-gray-900">Abstract Painter</a>
               <a href="/wallcraft/colorfield" className="block px-4 py-2.5 text-sm text-gray-600 hover:bg-gray-50 hover:text-gray-900">Color Field Studio</a>
+              <a href="/wallcraft/photo-transform" className="block px-4 py-2.5 text-sm text-gray-600 hover:bg-gray-50 hover:text-gray-900">Photo Transform</a>
               <hr className="my-1 border-gray-100" />
               <a href="/wallcraft/print-your-own" className="block px-4 py-2.5 text-sm text-gray-600 hover:bg-gray-50 hover:text-gray-900">Print Your Own</a>
             </div>
@@ -85,6 +86,7 @@ export default function WallcraftLanding() {
           <a href="/wallcraft/pattern" className="block text-base font-medium text-gray-700 py-2">Pattern Studio</a>
           <a href="/wallcraft/abstract" className="block text-base font-medium text-gray-700 py-2">Abstract Painter</a>
           <a href="/wallcraft/colorfield" className="block text-base font-medium text-gray-700 py-2">Color Field Studio</a>
+          <a href="/wallcraft/photo-transform" className="block text-base font-medium text-gray-700 py-2">Photo Transform</a>
           <a href="/wallcraft/print-your-own" className="block text-base font-medium text-gray-700 py-2">Print Your Own</a>
           <a href="/wallcraft/studio" className="block text-base font-medium text-white bg-gray-900 text-center py-3 rounded-lg mt-2">{t('nav.studio')}</a>
         </div>
@@ -269,6 +271,21 @@ export default function WallcraftLanding() {
                 <h3 className="text-lg font-semibold text-gray-900">Color Field Studio</h3>
                 <p className="text-sm text-gray-500 mt-1">Compose minimalist color field art inspired by Rothko and Albers. Choose palettes, layouts, textures, and edges.</p>
                 <span className="inline-flex items-center gap-1 mt-3 text-sm font-medium text-gray-900 group-hover:gap-2 transition-all">Start creating <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" /></svg></span>
+              </div>
+            </div>
+
+            {/* Photo Transform */}
+            <div onClick={() => router.push('/wallcraft/photo-transform')} className="group cursor-pointer bg-white rounded-2xl overflow-hidden border border-gray-200/60 hover:shadow-xl transition-all duration-300">
+              <div className="aspect-[16/9] bg-gradient-to-br from-indigo-100 via-violet-50 to-fuchsia-50 flex items-center justify-center relative overflow-hidden">
+                <div className="absolute inset-0 opacity-10">
+                  <div className="absolute inset-0" style={{ background: 'conic-gradient(from 0deg, #818cf8, #c084fc, #f472b6, #818cf8)', filter: 'blur(40px)' }} />
+                </div>
+                <div className="text-6xl group-hover:scale-110 transition-transform duration-500">📸</div>
+              </div>
+              <div className="p-5">
+                <h3 className="text-lg font-semibold text-gray-900">Photo Transform</h3>
+                <p className="text-sm text-gray-500 mt-1">Upload your photo and let AI transform it into unique art. Control style, mood, and transformation strength.</p>
+                <span className="inline-flex items-center gap-1 mt-3 text-sm font-medium text-gray-900 group-hover:gap-2 transition-all">Transform a photo <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" /></svg></span>
               </div>
             </div>
 

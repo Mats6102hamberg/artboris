@@ -11,7 +11,7 @@
 
 Artboris is a Next.js 16 app with multiple products:
 
-1. **Wallcraft** (main product) — Create unique art for your walls. Includes 4 interactive creative tools, AI-powered design studio, Print Your Own (upload photo), room mockup preview, and print ordering via Stripe.
+1. **Wallcraft** (main product) — Create unique art for your walls. Includes 5 interactive creative tools, AI-powered design studio, Photo Transform (AI img2img), Print Your Own (upload photo), room mockup preview, and print ordering via Stripe.
 2. **Art Market** — Marketplace for artists/photographers. Invite-only registration, AI review, Stripe Connect 50/50 payouts.
 3. **Art Scanner** — Scans auction houses for undervalued artworks with GPT-4 valuation.
 4. **BorisArt AI** — GPT-4 chatbot for art questions.
@@ -69,6 +69,7 @@ stripe listen --forward-to localhost:3000/api/webhook/stripe
 | `/wallcraft/pattern` | Pattern Studio | Seamless tile pattern creator with live repeat preview |
 | `/wallcraft/abstract` | Abstract Painter | Generative flow-field particle painting |
 | `/wallcraft/colorfield` | Color Field Studio | Minimalist color field compositions (Rothko/Albers) |
+| `/wallcraft/photo-transform` | Photo Transform | Upload photo → pick style + strength → AI (Flux Dev img2img) generates 4 variants → editor |
 | `/wallcraft/print-your-own` | Print Your Own | Upload own photo → DPI analysis → room upload → wall mark → editor |
 | `/market` | Art Market | Public gallery of artist listings |
 | `/market/[id]` | Listing Detail | Preview → checkout with shipping form + Stripe Connect |
@@ -93,7 +94,7 @@ Art Market (separate gated flow):
 
 ### Creative Tools — Shared Architecture
 
-All 4 creative tools follow the same pattern:
+All 5 creative tools follow the same pattern (4 canvas tools + Photo Transform):
 
 ```
 Canvas drawing/generation → Refine (local processing) → Compare (before/after slider)
@@ -105,19 +106,28 @@ Canvas drawing/generation → Refine (local processing) → Compare (before/afte
 - Local canvas image processing (no external services)
 - Smoothing (box blur), contrast (S-curve), vibrance boost, radial depth glow
 - Configurable via `RefineSettings` interface
-- Used by all 4 creative tools
+- Used by all canvas-based creative tools
+
+**Photo Transform** uses a different pipeline:
+```
+Upload photo → Pick style (18 styles) + transformation strength (0.2–0.95)
+  → Flux Dev img2img (4 parallel variants, prompt_strength controls transformation)
+  → Design Editor → publish / sell / print
+```
+- Strength presets: Subtle (0.35), Balanced (0.55), Creative (0.75), Reimagine (0.90)
+- Uses `flux-dev` (not `flux-schnell`) because only Dev supports `image` input
 
 ### Navigation
 
-- **Desktop:** "Tools" dropdown in navbar → links to all 4 creative tools
+- **Desktop:** "Tools" dropdown in navbar → links to all 5 creative tools + Print Your Own
 - **Mobile:** Hamburger menu with "Creative Tools" section
-- **Landing page:** Creative Tools section with 5 cards (4 tools + Design Studio)
+- **Landing page:** Creative Tools section with 6 cards (5 tools + Design Studio)
 
 ### Backend Services
 
 | Service | File | Description |
 |---------|------|-------------|
-| generatePreview | `server/services/ai/generatePreview.ts` | Replicate Flux Schnell, 4 parallel variants. Demo mode returns local SVGs. |
+| generatePreview | `server/services/ai/generatePreview.ts` | Replicate Flux Schnell (txt2img) or Flux Dev (img2img), 4 parallel variants. Demo mode returns local SVGs. |
 | refinePreview | `server/services/ai/refinePreview.ts` | New variant based on user feedback |
 | generateFinalPrint | `server/services/ai/generateFinalPrint.ts` | HD render for printing |
 | composeMockup | `server/services/mockup/composeMockup.ts` | CSS-based wall placement |
