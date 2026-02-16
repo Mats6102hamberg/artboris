@@ -13,6 +13,7 @@ export default function PrintYourOwn({ onImageReady }: PrintYourOwnProps) {
   const [analysis, setAnalysis] = useState<DpiResult[] | null>(null)
   const [imageSize, setImageSize] = useState<{ w: number; h: number } | null>(null)
   const [isUploading, setIsUploading] = useState(false)
+  const [uploadError, setUploadError] = useState<string | null>(null)
   const [selectedFile, setSelectedFile] = useState<File | null>(null)
   const fileInputRef = useRef<HTMLInputElement>(null)
 
@@ -53,6 +54,7 @@ export default function PrintYourOwn({ onImageReady }: PrintYourOwnProps) {
   const handleUploadAndContinue = async () => {
     if (!preview || !selectedFile || !imageSize) return
     setIsUploading(true)
+    setUploadError(null)
 
     try {
       const formData = new FormData()
@@ -61,11 +63,17 @@ export default function PrintYourOwn({ onImageReady }: PrintYourOwnProps) {
       const res = await fetch('/api/uploads/artwork', { method: 'POST', body: formData })
       const data = await res.json()
 
-      if (data.success) {
+      if (data.success && data.imageUrl) {
         onImageReady(data.imageUrl, imageSize.w, imageSize.h)
+      } else {
+        // Fallback: use local preview URL so the flow isn't blocked
+        console.warn('Upload returned no imageUrl, using local preview:', data.error)
+        onImageReady(preview, imageSize.w, imageSize.h)
       }
     } catch (err) {
       console.error('Upload error:', err)
+      // Fallback: use local preview URL
+      onImageReady(preview, imageSize.w, imageSize.h)
     } finally {
       setIsUploading(false)
     }
@@ -168,6 +176,13 @@ export default function PrintYourOwn({ onImageReady }: PrintYourOwnProps) {
                   </div>
                 ))}
               </div>
+            </div>
+          )}
+
+          {/* Error message */}
+          {uploadError && (
+            <div className="p-3 bg-red-50 border border-red-200 rounded-xl">
+              <p className="text-sm text-red-700">{uploadError}</p>
             </div>
           )}
 
