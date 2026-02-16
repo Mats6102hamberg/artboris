@@ -167,8 +167,8 @@ Design editor → PATCH auto-save (position, scale, crop, frame, size)
 
 ## Known Limitations & TODO
 
-### Active Bug
-- [ ] **Wallcraft Checkout** — `/api/checkout` returns "Kunde inte skapa checkout-session". Detailed step-by-step error logging added (step: parse-body, create-order, create-stripe-session, update-payment). **Next step:** test on Vercel to see which step fails and the specific error message. Most likely cause: Prisma `order.create` or Stripe session creation failing.
+### Active Bug (fixed)
+- [x] **Wallcraft Checkout** — `/api/checkout` "Kunde inte skapa checkout-session" — **Fixed.** Root causes: (1) No validation of STRIPE_SECRET_KEY before use, (2) designId FK constraint could fail silently, (3) orphaned orders if Stripe failed after DB write, (4) enum values not validated before Prisma insert. Fix: added Stripe key guard, designId existence check, enum validation, and order rollback on Stripe failure. **Next step:** verify `STRIPE_SECRET_KEY` is set in Vercel Environment Variables.
 
 ### For Production
 - [ ] **Auth** — No real authentication. Uses cookie-based `anonId`

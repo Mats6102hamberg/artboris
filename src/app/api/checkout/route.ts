@@ -6,10 +6,16 @@ import { getOrCreateAnonId } from '@/lib/anonId'
 const SHIPPING_CENTS = 9900 // 99 kr
 const VAT_RATE = 0.25
 
+const VALID_PRODUCT_TYPES = ['POSTER', 'CANVAS', 'METAL', 'FRAMED_POSTER'] as const
+const VALID_FRAME_COLORS = ['NONE', 'BLACK', 'WHITE', 'OAK', 'WALNUT', 'GOLD'] as const
+const VALID_PAPER_TYPES = ['DEFAULT', 'MATTE', 'SEMI_GLOSS', 'FINE_ART'] as const
+
 function getStripe() {
-  return new Stripe(process.env.STRIPE_SECRET_KEY!, {
-    apiVersion: '2026-01-28.clover',
-  })
+  const key = process.env.STRIPE_SECRET_KEY
+  if (!key) {
+    throw new Error('STRIPE_SECRET_KEY is not configured')
+  }
+  return new Stripe(key, { apiVersion: '2026-01-28.clover' })
 }
 
 interface CheckoutItem {
@@ -34,12 +40,15 @@ interface ShippingInput {
 
 export async function POST(req: Request) {
   let step = 'init'
+  let orderId: string | null = null
+
   try {
+    // --- Step 1: Parse & validate ---
     step = 'parse-body'
     const anonId = await getOrCreateAnonId()
     const body = await req.json()
 
-    const { items, shipping, returnPath } = body as {
+    const { items, shipping } = body as {
       items?: CheckoutItem[]
       shipping?: ShippingInput
       returnPath?: string
@@ -83,12 +92,64 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: 'Leveransuppgifter krävs.' }, { status: 400 })
     }
 
+    // --- Step 2: Validate enums & design existence ---
+    step = 'validate-data'
+    for (const item of orderItems) {
+      const pt = item.productType.toUpperCase()
+      if (!VALID_PRODUCT_TYPES.includes(pt as any)) {
+        return NextResponse.json(
+          { error: `Ogiltig produkttyp: "${item.productType}". Tillåtna: ${VALID_PRODUCT_TYPES.join(', ')}` },
+          { status: 400 }
+        )
+      }
+      item.productType = pt
+
+      const fc = (item.frameColor ?? 'NONE').toUpperCase()
+      if (!VALID_FRAME_COLORS.includes(fc as any)) {
+        return NextResponse.json(
+          { error: `Ogiltig ramfärg: "${item.frameColor}". Tillåtna: ${VALID_FRAME_COLORS.join(', ')}` },
+          { status: 400 }
+        )
+      }
+      item.frameColor = fc
+
+      const pp = (item.paperType ?? 'DEFAULT').toUpperCase()
+      if (!VALID_PAPER_TYPES.includes(pp as any)) {
+        return NextResponse.json(
+          { error: `Ogiltig papperstyp: "${item.paperType}". Tillåtna: ${VALID_PAPER_TYPES.join(', ')}` },
+          { status: 400 }
+        )
+      }
+      item.paperType = pp
+    }
+
+    // Verify all designIds exist in DB
+    const designIds = [...new Set(orderItems.map(i => i.designId))]
+    const existingDesigns = await prisma.design.findMany({
+      where: { id: { in: designIds } },
+      select: { id: true },
+    })
+    const existingIds = new Set(existingDesigns.map(d => d.id))
+    const missingIds = designIds.filter(id => !existingIds.has(id))
+    if (missingIds.length > 0) {
+      return NextResponse.json(
+        { error: `Design(s) hittades inte i databasen: ${missingIds.join(', ')}. Prova att skapa en ny design.` },
+        { status: 400 }
+      )
+    }
+
+    // --- Step 3: Validate Stripe key before creating order ---
+    step = 'validate-stripe'
+    const stripe = getStripe()
+
+    // --- Step 4: Calculate totals ---
     step = 'calculate-totals'
     const subtotalCents = orderItems.reduce((sum, item) => sum + item.unitPriceCents * (item.quantity || 1), 0)
     const shippingCents = SHIPPING_CENTS
     const taxCents = Math.round((subtotalCents + shippingCents) * VAT_RATE)
     const totalCents = subtotalCents + shippingCents + taxCents
 
+    // --- Step 5: Create order in DB ---
     step = 'create-order'
     console.log('[checkout] Creating order with items:', JSON.stringify(orderItems.map(i => ({
       designId: i.designId, productType: i.productType, sizeCode: i.sizeCode,
@@ -109,8 +170,8 @@ export async function POST(req: Request) {
             designId: item.designId,
             productType: item.productType as any,
             sizeCode: item.sizeCode,
-            frameColor: (item.frameColor ?? 'NONE') as any,
-            paperType: (item.paperType ?? 'DEFAULT') as any,
+            frameColor: item.frameColor as any,
+            paperType: item.paperType as any,
             quantity: item.quantity || 1,
             unitPriceCents: item.unitPriceCents,
             lineTotalCents: item.unitPriceCents * (item.quantity || 1),
@@ -137,7 +198,9 @@ export async function POST(req: Request) {
       },
       include: { payment: true, items: true },
     })
+    orderId = order.id
 
+    // --- Step 6: Create Stripe session ---
     step = 'create-stripe-session'
     const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'
 
@@ -165,7 +228,6 @@ export async function POST(req: Request) {
       },
     })
 
-    const stripe = getStripe()
     const session = await stripe.checkout.sessions.create({
       mode: 'payment',
       currency: 'sek',
@@ -179,6 +241,7 @@ export async function POST(req: Request) {
       },
     })
 
+    // --- Step 7: Update payment with Stripe session ID ---
     step = 'update-payment'
     await prisma.payment.update({
       where: { orderId: order.id },
@@ -188,6 +251,20 @@ export async function POST(req: Request) {
     return NextResponse.json({ url: session.url, orderId: order.id })
   } catch (err: any) {
     console.error(`[checkout] Error at step "${step}":`, err)
+
+    // Rollback: cancel orphaned order if Stripe failed after order creation
+    if (orderId && (step === 'create-stripe-session' || step === 'update-payment')) {
+      try {
+        await prisma.order.update({
+          where: { id: orderId },
+          data: { status: 'CANCELED' },
+        })
+        console.log(`[checkout] Rolled back order ${orderId} to CANCELED`)
+      } catch (rollbackErr) {
+        console.error(`[checkout] Rollback failed for order ${orderId}:`, rollbackErr)
+      }
+    }
+
     const message = err?.message || 'Okänt fel'
     return NextResponse.json(
       { error: `Checkout-fel (${step}): ${message}` },
