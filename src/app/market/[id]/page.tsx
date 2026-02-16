@@ -32,7 +32,7 @@ interface ListingDetail {
   }
 }
 
-type Step = 'details' | 'upload-room' | 'mark-wall' | 'preview'
+type Step = 'details' | 'upload-room' | 'mark-wall' | 'preview' | 'checkout'
 
 export default function ListingDetailPage() {
   const { id } = useParams<{ id: string }>()
@@ -54,6 +54,19 @@ export default function ListingDetailPage() {
   const [scale, setScale] = useState(1.0)
 
   const fileInputRef = useRef<HTMLInputElement>(null)
+
+  // Checkout
+  const [shippingForm, setShippingForm] = useState({
+    firstName: '',
+    lastName: '',
+    email: '',
+    phone: '',
+    address: '',
+    postalCode: '',
+    city: '',
+  })
+  const [isProcessing, setIsProcessing] = useState(false)
+  const [checkoutError, setCheckoutError] = useState<string | null>(null)
 
   useEffect(() => {
     if (!id) return
@@ -119,6 +132,201 @@ export default function ListingDetailPage() {
           <p className="text-gray-500 text-lg">Konstverk hittades inte.</p>
           <a href="/market" className="text-blue-600 hover:underline mt-4 inline-block">← Tillbaka till galleriet</a>
         </div>
+      </div>
+    )
+  }
+
+  // Checkout step — shipping form + Stripe redirect
+  if (step === 'checkout' && listing && pricing) {
+    const isShippingValid = shippingForm.firstName && shippingForm.lastName && shippingForm.email && shippingForm.address && shippingForm.postalCode && shippingForm.city
+
+    const handleMarketCheckout = async () => {
+      if (!isShippingValid) return
+      setIsProcessing(true)
+      setCheckoutError(null)
+
+      try {
+        const res = await fetch('/api/market/checkout', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            listingId: listing.id,
+            sizeCode: sizeId,
+            frameColor: frameId === 'none' ? 'NONE' : frameId.toUpperCase(),
+            shipping: shippingForm,
+          }),
+        })
+
+        const data = await res.json()
+
+        if (data.url) {
+          window.location.href = data.url
+        } else {
+          setCheckoutError(data.error || 'Något gick fel. Försök igen.')
+        }
+      } catch {
+        setCheckoutError('Nätverksfel. Kontrollera din anslutning och försök igen.')
+      } finally {
+        setIsProcessing(false)
+      }
+    }
+
+    const handleShippingChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+      setShippingForm(prev => ({ ...prev, [e.target.name]: e.target.value }))
+    }
+
+    return (
+      <div className="min-h-screen bg-[#FAFAF8]">
+        <nav className="bg-white/80 backdrop-blur-sm border-b border-gray-200/60 sticky top-0 z-30">
+          <div className="max-w-5xl mx-auto px-4 py-4 flex items-center justify-between">
+            <button onClick={() => setStep(roomImageUrl ? 'preview' : 'details')} className="text-gray-400 hover:text-gray-900 transition-colors">
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+              </svg>
+            </button>
+            <span className="text-lg font-semibold tracking-widest uppercase text-gray-900">Kassa</span>
+            <div className="flex items-center gap-2 text-xs text-gray-400">
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+              </svg>
+              Säker betalning
+            </div>
+          </div>
+        </nav>
+
+        <main className="max-w-5xl mx-auto px-4 py-8">
+          <div className="grid grid-cols-1 lg:grid-cols-5 gap-8">
+            {/* Left: Shipping form */}
+            <div className="lg:col-span-3 space-y-6">
+              <div className="bg-white rounded-2xl p-6 border border-gray-200/60">
+                <h2 className="text-base font-semibold text-gray-900 mb-5">Leveransuppgifter</h2>
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-xs font-medium text-gray-500 mb-1.5">Förnamn *</label>
+                    <input name="firstName" value={shippingForm.firstName} onChange={handleShippingChange}
+                      className="w-full px-4 py-3 border border-gray-200 rounded-xl text-gray-900 text-sm focus:outline-none focus:ring-2 focus:ring-gray-900/10 focus:border-gray-400 transition-colors" />
+                  </div>
+                  <div>
+                    <label className="block text-xs font-medium text-gray-500 mb-1.5">Efternamn *</label>
+                    <input name="lastName" value={shippingForm.lastName} onChange={handleShippingChange}
+                      className="w-full px-4 py-3 border border-gray-200 rounded-xl text-gray-900 text-sm focus:outline-none focus:ring-2 focus:ring-gray-900/10 focus:border-gray-400 transition-colors" />
+                  </div>
+                  <div className="col-span-2">
+                    <label className="block text-xs font-medium text-gray-500 mb-1.5">E-post *</label>
+                    <input name="email" value={shippingForm.email} onChange={handleShippingChange} type="email"
+                      className="w-full px-4 py-3 border border-gray-200 rounded-xl text-gray-900 text-sm focus:outline-none focus:ring-2 focus:ring-gray-900/10 focus:border-gray-400 transition-colors" />
+                  </div>
+                  <div className="col-span-2">
+                    <label className="block text-xs font-medium text-gray-500 mb-1.5">Telefon</label>
+                    <input name="phone" value={shippingForm.phone} onChange={handleShippingChange} type="tel"
+                      className="w-full px-4 py-3 border border-gray-200 rounded-xl text-gray-900 text-sm focus:outline-none focus:ring-2 focus:ring-gray-900/10 focus:border-gray-400 transition-colors" />
+                  </div>
+                  <div className="col-span-2">
+                    <label className="block text-xs font-medium text-gray-500 mb-1.5">Adress *</label>
+                    <input name="address" value={shippingForm.address} onChange={handleShippingChange}
+                      className="w-full px-4 py-3 border border-gray-200 rounded-xl text-gray-900 text-sm focus:outline-none focus:ring-2 focus:ring-gray-900/10 focus:border-gray-400 transition-colors" />
+                  </div>
+                  <div>
+                    <label className="block text-xs font-medium text-gray-500 mb-1.5">Postnummer *</label>
+                    <input name="postalCode" value={shippingForm.postalCode} onChange={handleShippingChange}
+                      className="w-full px-4 py-3 border border-gray-200 rounded-xl text-gray-900 text-sm focus:outline-none focus:ring-2 focus:ring-gray-900/10 focus:border-gray-400 transition-colors" />
+                  </div>
+                  <div>
+                    <label className="block text-xs font-medium text-gray-500 mb-1.5">Stad *</label>
+                    <input name="city" value={shippingForm.city} onChange={handleShippingChange}
+                      className="w-full px-4 py-3 border border-gray-200 rounded-xl text-gray-900 text-sm focus:outline-none focus:ring-2 focus:ring-gray-900/10 focus:border-gray-400 transition-colors" />
+                  </div>
+                </div>
+              </div>
+
+              {/* Payment info */}
+              <div className="bg-white rounded-2xl p-6 border border-gray-200/60">
+                <h2 className="text-base font-semibold text-gray-900 mb-5">Betalning</h2>
+                <div className="flex items-center gap-3 p-4 bg-gray-50 rounded-xl">
+                  <div className="w-10 h-10 bg-white rounded-lg flex items-center justify-center border border-gray-200">
+                    <svg className="w-5 h-5 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+                    </svg>
+                  </div>
+                  <div>
+                    <p className="text-sm font-medium text-gray-700">Säker kortbetalning via Stripe</p>
+                    <p className="text-xs text-gray-400">Du skickas till Stripe för att slutföra betalningen</p>
+                  </div>
+                </div>
+                <div className="flex items-center justify-center gap-3 mt-4">
+                  <div className="px-3 py-1.5 bg-gray-50 rounded text-[10px] font-medium text-gray-500 border border-gray-100">VISA</div>
+                  <div className="px-3 py-1.5 bg-gray-50 rounded text-[10px] font-medium text-gray-500 border border-gray-100">Mastercard</div>
+                  <div className="px-3 py-1.5 bg-gray-50 rounded text-[10px] font-medium text-gray-500 border border-gray-100">Klarna</div>
+                </div>
+
+                {checkoutError && (
+                  <div className="mt-4 p-3 bg-red-50 border border-red-200 rounded-xl">
+                    <p className="text-sm text-red-700">{checkoutError}</p>
+                  </div>
+                )}
+              </div>
+            </div>
+
+            {/* Right: Order summary */}
+            <div className="lg:col-span-2">
+              <div className="bg-white rounded-2xl p-6 border border-gray-200/60 lg:sticky lg:top-24">
+                <h2 className="text-base font-semibold text-gray-900 mb-5">Ordersammanfattning</h2>
+
+                <div className="flex gap-3 mb-6">
+                  <div className="w-16 h-20 flex-shrink-0 rounded-lg overflow-hidden bg-gray-50 border border-gray-100">
+                    <img src={listing.imageUrl} alt={listing.title} className="w-full h-full object-cover" />
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm font-medium text-gray-900 truncate">{listing.title}</p>
+                    <p className="text-xs text-gray-500">av {listing.artist.displayName}</p>
+                    <p className="text-xs text-gray-500 mt-1">Storlek: {sizeId} · Ram: {frameId === 'none' ? 'Ingen' : frameId}</p>
+                  </div>
+                </div>
+
+                <div className="border-t border-gray-100 pt-4 space-y-2 text-sm">
+                  <div className="flex justify-between">
+                    <span className="text-gray-500">Konstverk</span>
+                    <span className="text-gray-900">{formatPriceSEK(pricing.artistPriceSEK)}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-gray-500">Tryck + ram</span>
+                    <span className="text-gray-900">{formatPriceSEK(pricing.printCostSEK)}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-gray-500">Frakt</span>
+                    <span className="text-gray-900">{formatPriceSEK(pricing.shippingSEK)}</span>
+                  </div>
+                  <hr className="border-gray-100 !my-3" />
+                  <div className="flex justify-between text-base">
+                    <span className="font-semibold text-gray-900">Totalt</span>
+                    <span className="font-bold text-gray-900">{formatPriceSEK(pricing.totalBuyerSEK)}</span>
+                  </div>
+                </div>
+
+                <button
+                  onClick={handleMarketCheckout}
+                  disabled={!isShippingValid || isProcessing}
+                  className="w-full mt-6 bg-gray-900 text-white py-3.5 rounded-xl font-medium hover:bg-gray-800 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+                >
+                  {isProcessing ? (
+                    <span className="flex items-center justify-center gap-2">
+                      <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                      Bearbetar...
+                    </span>
+                  ) : (
+                    `Slutför köp — ${formatPriceSEK(pricing.totalBuyerSEK)}`
+                  )}
+                </button>
+
+                <p className="text-[10px] text-gray-400 text-center mt-4 leading-relaxed">
+                  50% av konstverkspriset går direkt till konstnären.
+                  <br />
+                  Trycks av <span className="font-medium text-gray-500">Crimson, Stockholm</span>.
+                </p>
+              </div>
+            </div>
+          </div>
+        </main>
       </div>
     )
   }
@@ -229,7 +437,10 @@ export default function ListingDetailPage() {
                       <span>{formatPriceSEK(pricing.totalBuyerSEK)}</span>
                     </div>
                   </div>
-                  <button className="w-full mt-4 bg-white text-gray-900 font-medium py-3 rounded-lg hover:bg-gray-100 transition-colors">
+                  <button
+                    onClick={() => setStep('checkout')}
+                    className="w-full mt-4 bg-white text-gray-900 font-medium py-3 rounded-lg hover:bg-gray-100 transition-colors"
+                  >
                     Köp nu
                   </button>
                   <p className="text-white/40 text-xs text-center mt-2">
@@ -437,6 +648,13 @@ export default function ListingDetailPage() {
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M2.25 15.75l5.159-5.159a2.25 2.25 0 013.182 0l5.159 5.159m-1.5-1.5l1.409-1.409a2.25 2.25 0 013.182 0l2.909 2.909M3.75 21h16.5a1.5 1.5 0 001.5-1.5V6a1.5 1.5 0 00-1.5-1.5H3.75A1.5 1.5 0 002.25 6v13.5A1.5 1.5 0 003.75 21z" />
                 </svg>
                 Prova på min vägg
+              </button>
+
+              <button
+                onClick={() => setStep('checkout')}
+                className="w-full py-3.5 bg-white text-gray-900 text-base font-medium rounded-xl border-2 border-gray-200 hover:border-gray-400 transition-colors"
+              >
+                Köp direkt
               </button>
 
               <div className="bg-gray-50 rounded-xl p-4 text-sm text-gray-500">

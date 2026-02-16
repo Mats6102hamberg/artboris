@@ -64,6 +64,13 @@ export async function POST(req: Request) {
       console.log(`[stripe webhook] Processing order: ${orderId}`)
       await processCheckoutCompleted(orderId, session)
     }
+
+    // ── Market order purchase ──
+    const marketOrderId = session.metadata?.marketOrderId
+    if (marketOrderId) {
+      console.log(`[stripe webhook] Processing market order: ${marketOrderId}`)
+      await processMarketOrderCompleted(marketOrderId, session)
+    }
   }
 
   return NextResponse.json({ received: true })
@@ -205,4 +212,53 @@ async function processCheckoutCompleted(orderId: string, session: Stripe.Checkou
   }
 
   console.log(`[stripe webhook] Order ${orderId} processing complete`)
+}
+
+async function processMarketOrderCompleted(marketOrderId: string, session: Stripe.Checkout.Session) {
+  const marketOrder = await prisma.marketOrder.findUnique({
+    where: { id: marketOrderId },
+    select: { status: true, listingId: true },
+  })
+
+  if (!marketOrder) {
+    console.warn(`[stripe webhook] MarketOrder ${marketOrderId} not found`)
+    return
+  }
+
+  if (marketOrder.status !== 'PENDING') {
+    console.log(`[stripe webhook] MarketOrder ${marketOrderId} already ${marketOrder.status}, skipping`)
+    return
+  }
+
+  // Mark as PAID
+  await prisma.marketOrder.update({
+    where: { id: marketOrderId },
+    data: {
+      status: 'PAID',
+      stripePaymentIntentId: (session.payment_intent as string) ?? session.id,
+      paidAt: new Date(),
+    },
+  })
+
+  console.log(`[stripe webhook] MarketOrder ${marketOrderId} → PAID`)
+
+  // Check if original artwork — mark as sold
+  const listing = await prisma.artworkListing.findUnique({
+    where: { id: marketOrder.listingId },
+    select: { isOriginal: true, printsSold: true },
+  })
+
+  if (listing?.isOriginal) {
+    await prisma.artworkListing.update({
+      where: { id: marketOrder.listingId },
+      data: { isSold: true },
+    })
+    console.log(`[stripe webhook] Listing ${marketOrder.listingId} marked as SOLD (original)`)
+  } else {
+    await prisma.artworkListing.update({
+      where: { id: marketOrder.listingId },
+      data: { printsSold: { increment: 1 } },
+    })
+    console.log(`[stripe webhook] Listing ${marketOrder.listingId} printsSold incremented`)
+  }
 }
