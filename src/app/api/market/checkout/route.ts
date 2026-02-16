@@ -187,10 +187,11 @@ export async function POST(req: Request) {
     })
 
     return NextResponse.json({ url: session.url, marketOrderId: marketOrder.id })
-  } catch (err) {
+  } catch (err: any) {
     console.error('[market/checkout] Error:', err)
+    const message = err?.message || 'Okänt fel'
     return NextResponse.json(
-      { error: 'Kunde inte skapa checkout-session.' },
+      { error: `Kunde inte skapa checkout-session: ${message}` },
       { status: 500 }
     )
   }

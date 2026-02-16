@@ -207,6 +207,7 @@ enum FrameColor {
   WHITE
   OAK
   WALNUT
+  GOLD
 }
 
 enum PaperType {
