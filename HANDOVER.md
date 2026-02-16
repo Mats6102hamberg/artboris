@@ -230,12 +230,14 @@ Design editor → PATCH auto-save (position, scale, crop, frame, size)
 - [x] **publishToGallery duplicates** — created new Design instead of toggling `isPublic`. Fixed: now uses `updateMany`.
 - [x] **MyArtworks status** — `'available'` vs `'tillgänglig'` mismatch. Fixed: aligned to Swedish.
 - [x] **Vercel env vars** — `STRIPE_SECRET_KEY`, `NEXT_PUBLIC_APP_URL`, `NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY` added.
+- [x] **Photo Transform** — New creative tool: upload photo → pick style + strength → AI (Flux Dev img2img) generates 4 variants. Added to landing page + navigation.
+- [x] **Vitest test suite** — 37 tests covering 5 API routes + generatePreview service. All green.
 
 ### For Production
 - [ ] **Auth** — No real authentication. Uses cookie-based `anonId`
 - [ ] **Remaining Swedish** — poster-lab, admin UI, some components still have Swedish strings
 - [ ] **Frame assets** — PNG placeholders, need real frame images
-- [ ] **Tests** — No test suite
+- [x] **Tests** — Vitest testsvit med 37 tester (se Test Suite nedan)
 - [ ] **Art Scanner portfolio** — saved in React state only, not persisted to DB
 
 ### Nice to Have
@@ -245,6 +247,44 @@ Design editor → PATCH auto-save (position, scale, crop, frame, size)
 - [ ] **More creative tools** — Typography tool, collage maker, etc.
 - [ ] **Social sharing** — Share designs to social media
 - [ ] **Connect MyArtworks → Art Market** — "Sell on Market" button that creates ArtworkListing from Artwork
+
+---
+
+## Test Suite
+
+**Framework:** Vitest 4.x · **37 tests, 6 test files** · Runs in ~1 second
+
+```bash
+npm test          # Watch mode
+npm run test:run  # Single run
+npm run test:coverage  # With coverage report
+```
+
+### Test Files
+
+| File | Tests | What it covers |
+|------|-------|----------------|
+| `src/__tests__/api/checkout.test.ts` | 10 | Body validation, enum checks (productType/frameColor/paperType), Stripe key guard, designId DB check, happy path, rollback to CANCELED |
+| `src/__tests__/api/designs-generate.test.ts` | 7 | Quota 429, style validation, txt2img (no image), img2img (inputImageUrl + promptStrength), error handling, usage increment |
+| `src/__tests__/api/gallery-publish.test.ts` | 5 | POST publish, DELETE unpublish, missing designId 400, service error forwarding |
+| `src/__tests__/api/my-artworks.test.ts` | 7 | GET all, POST with status 'tillgänglig', PUT update, DELETE, P2025 → 404, DB error → 500 |
+| `src/__tests__/api/designs-create-upload.test.ts` | 3 | Missing imageUrl 400, happy path (user-upload style + nested variant), DB error 500 |
+| `src/__tests__/services/generatePreview.test.ts` | 5 | Demo mode (no API calls), prompt safety block, flux-schnell for txt2img, flux-dev for img2img, default promptStrength 0.65 |
+
+### Mocking Strategy
+
+All tests mock external dependencies to run without network/DB:
+- `@/lib/prisma` — Prisma client (global setup)
+- `@/lib/anonId` — `getOrCreateAnonId()` returns `'anon_test_123'` (global setup)
+- `stripe` — Class mock with `checkout.sessions.create`
+- `replicate` — Class mock with `run()` method
+- `@vercel/blob` — `put()` mock
+- Services mocked at module level for route tests
+
+### Config
+
+- `vitest.config.ts` — Node environment, `@/` alias resolved via `path.resolve`
+- `src/__tests__/setup.ts` — Global mocks for prisma and anonId
 
 ---
 
