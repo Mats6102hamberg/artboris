@@ -1,10 +1,20 @@
-import { getBorisAIClient, getBorisModelConfig, isBorisAIConfigured } from './boris/aiProvider'
+import { borisChat, isBorisConfigured } from './boris/aiProvider'
+import { BORIS_VOICE, MARKET_ANALYST_PACK } from './boris/personality'
 
 export interface BorisArtResponse {
   message: string
   type: 'story' | 'analysis' | 'trend' | 'opinion'
   timestamp: string
 }
+
+const SCANNER_SYSTEM_PROMPT = `${BORIS_VOICE}
+
+## Expertis (aktiv för denna konversation)
+### ${MARKET_ANALYST_PACK.role}
+${MARKET_ANALYST_PACK.expertise.map(e => `- ${e}`).join('\n')}
+
+## Tonalitet
+${MARKET_ANALYST_PACK.tone}`
 
 export class BorisArtAI {
   private static instance: BorisArtAI
@@ -16,37 +26,27 @@ export class BorisArtAI {
     return BorisArtAI.instance
   }
 
-  private async callOpenAI(prompt: string, systemPrompt: string): Promise<string> {
-    if (!isBorisAIConfigured()) {
+  private async callAI(prompt: string, systemPrompt: string): Promise<string> {
+    if (!isBorisConfigured('text')) {
       console.error('[BorisArt] AI provider is not configured')
-      return "Jag är inte ansluten just nu — min AI-nyckel saknas. Kontakta administratören för att aktivera mig."
+      return 'Jag är inte ansluten just nu — min AI-nyckel saknas. Kontakta administratören för att aktivera mig.'
     }
 
     try {
-      const client = getBorisAIClient()
-      const { model, maxTokens, temperature } = getBorisModelConfig()
-
-      const completion = await client.chat.completions.create({
-        model,
-        messages: [
-          { role: "system", content: systemPrompt },
-          { role: "user", content: prompt }
-        ],
-        max_tokens: maxTokens,
-        temperature,
-      })
-
-      return completion.choices[0]?.message?.content || "Tyvärr kunde jag inte generera ett svar just nu."
+      return await borisChat([
+        { role: 'system', content: systemPrompt },
+        { role: 'user', content: prompt },
+      ], 'text')
     } catch (error: any) {
       console.error('[BorisArt] AI error:', error?.message || error)
       
       if (error?.status === 401) {
-        return "Min API-nyckel verkar vara ogiltig. Kontakta administratören."
+        return 'Min API-nyckel verkar vara ogiltig. Kontakta administratören.'
       }
       if (error?.status === 429) {
-        return "Jag har fått för många förfrågningar just nu. Vänta en stund och försök igen."
+        return 'Jag har fått för många förfrågningar just nu. Vänta en stund och försök igen.'
       }
-      return "Tyvärr kunde jag inte svara just nu. Försök igen om en stund."
+      return 'Tyvärr kunde jag inte svara just nu. Försök igen om en stund.'
     }
   }
 
@@ -69,9 +69,7 @@ export class BorisArtAI {
       Skriv en berättelse som fångar konstverkets själ, historia och känsla. Var poetisk men ändå jordnära. Skriv på svenska.
     `
 
-    const systemPrompt = `Du är BorisArt AI — en av Sveriges skarpaste konstbedömare. Du har 30 års erfarenhet av konstmarknaden, auktionshus och gallerier. Du börjar ALLTID med ett tydligt omdöme (JA/NEJ, KÖP/SÄLJ, BRA/DÅLIGT) och sedan en kort, skarp förklaring. Du är ärlig, direkt och aldrig slirig. Du vågar säga nej. Din ton är kunnig men varm.`
-
-    const message = await this.callOpenAI(prompt, systemPrompt)
+    const message = await this.callAI(prompt, SCANNER_SYSTEM_PROMPT)
 
     return {
       message,
@@ -113,9 +111,7 @@ export class BorisArtAI {
       Ge en professionell analys av samlingens styrkor, potentiella risker och investeringsvärde. Kommentera på konstnärernas kvalitet, prisnivåer och vinstpotential. Ge konkreta rekommendationer. Skriv på svenska.
     `
 
-    const systemPrompt = `Du är BorisArt AI — en av Sveriges skarpaste konstbedömare med 30 års erfarenhet. Du börjar ALLTID med ett tydligt omdöme: "JA, detta är en bra samling" eller "NEJ, det finns problem". Sedan förklarar du varför — kort, konkret, ärligt. Du analyserar med både konstnärligt öga och kommersiell skärpa. Du vågar vara kritisk och säga ifrån. Ge konkreta siffror och rekommendationer.`
-
-    const message = await this.callOpenAI(prompt, systemPrompt)
+    const message = await this.callAI(prompt, SCANNER_SYSTEM_PROMPT)
 
     return {
       message,
@@ -135,9 +131,7 @@ export class BorisArtAI {
       Ge en aktuell, insiktsfull analys av konstvärlden just nu. Skriv på svenska.
     `
 
-    const systemPrompt = `Du är BorisArt AI — en av Sveriges skarpaste konstmarknadsanalytiker med 30 års erfarenhet. Du börjar ALLTID med en tydlig slutsats: "JA, marknaden är stark just nu" eller "NEJ, var försiktig". Sedan förklarar du varför med konkreta exempel och siffror. Du är ärlig, direkt och aldrig vag. Du vågar ta ställning.`
-
-    const message = await this.callOpenAI(prompt, systemPrompt)
+    const message = await this.callAI(prompt, SCANNER_SYSTEM_PROMPT)
 
     return {
       message,
@@ -155,9 +149,7 @@ export class BorisArtAI {
       Skriv på svenska.
     `
 
-    const systemPrompt = `Du är BorisArt AI — en av Sveriges skarpaste konstbedömare med 30 års erfarenhet. Du börjar ALLTID med ett rakt svar: JA eller NEJ, KÖP eller SÄLJ, BRA eller DÅLIGT. Sedan förklarar du varför — kort och konkret. Du är aldrig vag eller diplomatisk utan anledning. Du vågar säga nej och vara kritisk. Din ton är kunnig, ärlig och direkt.`
-
-    const message = await this.callOpenAI(prompt, systemPrompt)
+    const message = await this.callAI(prompt, SCANNER_SYSTEM_PROMPT)
 
     return {
       message,
@@ -194,9 +186,7 @@ export class BorisArtAI {
       Var konkret och ge konkreta råd. Skriv på svenska.
     `
 
-    const systemPrompt = `Du är BorisArt AI — en av Sveriges skarpaste konstbedömare och värderingsexpert med 30 års erfarenhet. Du börjar ALLTID med ett tydligt omdöme: "JA, detta är värt att investera i" eller "NEJ, gå vidare". Sedan ger du en skarp analys med konkreta siffror. Du är ärlig och direkt — aldrig slirig. Du vågar säga nej.`
-
-    const message = await this.callOpenAI(prompt, systemPrompt)
+    const message = await this.callAI(prompt, SCANNER_SYSTEM_PROMPT)
 
     return {
       message,
@@ -232,9 +222,7 @@ export class BorisArtAI {
       Skriv på svenska.
     `
 
-    const systemPrompt = `Du är BorisArt AI — en av Sveriges skarpaste konstbedömare med 30 års erfarenhet av auktionshus, gallerier och konstmarknaden. Du börjar ALLTID med ett tydligt, rakt svar — JA eller NEJ, KÖP eller SÄLJ, BRA eller DÅLIGT. Sedan förklarar du varför, kort och konkret. Du är ärlig, direkt och vågar vara kritisk. Du har koll på konsthistoria, trender, tekniker och investeringsvärde. Du strävar efter att hjälpa användaren fatta kloka beslut — inte att vara artig.`
-
-    const aiMessage = await this.callOpenAI(prompt, systemPrompt)
+    const aiMessage = await this.callAI(prompt, SCANNER_SYSTEM_PROMPT)
 
     return {
       message: aiMessage,

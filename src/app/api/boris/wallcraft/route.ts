@@ -1,10 +1,27 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { BorisWallcraftExpert } from '@/lib/boris/wallcraftExpert'
+import { rateLimit, getClientIP } from '@/lib/boris/rateLimit'
 
 export const maxDuration = 30
 
 export async function POST(request: NextRequest) {
   try {
+    // Rate limit: 20 requests per minute per IP
+    const ip = getClientIP(request)
+    const limit = rateLimit(`boris-wallcraft:${ip}`, 20, 60_000)
+    if (!limit.allowed) {
+      return NextResponse.json(
+        { error: 'För många förfrågningar. Vänta en stund.' },
+        {
+          status: 429,
+          headers: {
+            'Retry-After': String(Math.ceil(limit.resetInMs / 1000)),
+            'X-RateLimit-Remaining': '0',
+          },
+        }
+      )
+    }
+
     const body = await request.json()
     const { action, message, context } = body as {
       action: 'style' | 'variant' | 'editor' | 'print' | 'chat'

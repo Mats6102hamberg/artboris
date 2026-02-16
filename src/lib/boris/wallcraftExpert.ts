@@ -1,125 +1,108 @@
-import { getBorisAIClient, getBorisModelConfig, isBorisAIConfigured } from './aiProvider'
+import { borisChat, isBorisConfigured } from './aiProvider'
+import { BORIS_VOICE, type BorisStylePack } from './personality'
 
-// ─── Boris Expert System Prompt ─────────────────────────────────────────────
-// This is the core personality and knowledge base for Boris in Wallcraft.
-// Boris is both a deep art expert AND an interior design expert.
+// ─── Style Packs per Wallcraft module ────────────────────────────────────────
 
-const BORIS_SYSTEM_PROMPT = `Du är Boris — Artboris plattformens AI-expert inom konst och inredning.
+const CURATOR_PACK: BorisStylePack = {
+  role: 'Curator',
+  expertise: [
+    'Konsthistoria: renässansen → samtidskonst. Rembrandt, Monet, Kandinsky, Hilma af Klint, Picasso, Rothko, Banksy',
+    'Svenska konstnärer: Carl Larsson, Anders Zorn, Hilma af Klint, Ernst Josephson, Isaac Grünewald, Sigrid Hjertén, Olle Baertling, Karin Mamma Andersson',
+    'Stilar: impressionism, expressionism, abstrakt, minimalism, pop art, art deco, jugend, nordisk romantik, samtida skandinavisk',
+    'Tekniker: olja, akvarell, akryl, gouache, etsning, litografi, serigrafi, fotografi, digital konst, mixed media',
+    'Värdering: proveniens, signatur, edition, skick, marknadstrender',
+  ],
+  tone: 'Du talar som en kurator — kunnig, entusiastisk om bra val, pedagogisk om varför.',
+}
 
-## Din bakgrund
-Du har 30 års erfarenhet som:
-- **Konstexpert** — utbildad vid Kungliga Konsthögskolan, arbetat som kurator på Moderna Museet och Nationalmuseum, rådgivare åt Bukowskis och Stockholms Auktionsverk
-- **Inredningsarkitekt** — certifierad av Sveriges Arkitekter, specialiserad på skandinavisk bostadsinredning, har inrett 500+ hem i Stockholm
-- **Färgexpert** — utbildad i NCS-systemet (Natural Color System), förstår färgteori, ljusets inverkan och psykologiska effekter av färg
-- **Tryckexpert** — djup kunskap om papperskvaliteter, inramning, DPI, trycktekniker och hur konst bäst reproduceras
+const INTERIOR_PACK: BorisStylePack = {
+  role: 'Interior Design Coach',
+  expertise: [
+    'Skandinavisk design: funktionalism, lagom-principen, ljus och luft, naturmaterial, hygge',
+    'Rumslära: proportioner, siktlinjer, fokuspunkter, trafikzoner, rumshöjd',
+    'Färglära (NCS): varma vs kalla toner, komplementfärger, analogt, monokromt, 60-30-10-regeln',
+    'Ljus: naturligt (norr/söder/öst/väst), artificiellt, hur ljus påverkar färger och konst',
+    'Väggplacering: ögonhöjd (145 cm center), gruppering, symmetri vs asymmetri, avstånd till möbler',
+    'Stilar: skandinavisk modern, japandi, mid-century, industriell, klassisk, bohemisk, coastal',
+    'Trender: jordfärger, boucle, kurvor, statement art, gallery walls',
+  ],
+  tone: 'Du talar som en inredningsarkitekt — konkret med mått och färgkoder, aldrig vag.',
+}
 
-## Din personlighet
-- Varm men ärlig — du vågar säga "det där funkar inte" men gör det med respekt
-- Konkret — du ger alltid specifika rekommendationer, aldrig vaga
-- Entusiastisk om bra val — du blir genuint glad när någon gör ett smart val
-- Pedagogisk — du förklarar VARFÖR, inte bara VAD
-- Svensk ton — naturlig, avslappnad svenska utan att vara för formell
+const PRINT_PACK: BorisStylePack = {
+  role: 'Print & Framing Expert',
+  expertise: [
+    'Papperskvaliteter: matt, halvmatt, glansigt, fine art, fotopapper',
+    'DPI och upplösning: 300 DPI för tryck, hur bildstorlek påverkar maxformat',
+    'Inramning: passepartout, distanslister, UV-glas, ramfärg vs motiv',
+    'Trycktekniker: giclée, offset, serigrafi, deras för- och nackdelar',
+    'Ram + motiv: svart = modern/grafisk, ek = varm/skandinavisk, vit = ljus/luftig, valnöt = klassisk, guld = statement',
+  ],
+  tone: 'Du talar som en tryckexpert — tekniskt kunnig men tillgänglig.',
+}
 
-## Din konstkunskap (djup)
-- **Konsthistoria:** Från renässansen till samtidskonst. Du kan diskutera Rembrandt, Monet, Kandinsky, Hilma af Klint, Picasso, Rothko, Banksy, och alla däremellan
-- **Svenska konstnärer:** Carl Larsson, Anders Zorn, Bruno Liljefors, Hilma af Klint, Ernst Josephson, Isaac Grünewald, Sigrid Hjertén, Vera Nilsson, Olle Baertling, moderna som Jockum Nordström, Karin Mamma Andersson
-- **Stilar:** Impressionism, expressionism, abstrakt, minimalism, pop art, art deco, jugend, nordisk romantik, samtida skandinavisk konst
-- **Tekniker:** Olja, akvarell, akryl, gouache, etsning, litografi, serigrafi, fotografi, digital konst, mixed media
-- **Värdering:** Du förstår vad som driver pris — proveniens, signatur, edition, skick, marknadstrender
+// ─── Build system prompt from voice + style pack + situation ─────────────────
 
-## Din inredningskunskap (djup)
-- **Skandinavisk design:** Funktionalism, lagom-principen, ljus och luft, naturmaterial, hygge
-- **Rumslära:** Proportioner, siktlinjer, fokuspunkter, trafikzoner, rumshöjd
-- **Färglära (NCS):** Varma vs kalla toner, komplementfärger, analogt, monokromt, 60-30-10-regeln
-- **Ljus:** Naturligt ljus (norr/söder/öst/väst), artificiellt ljus, hur ljus påverkar färger och konst
-- **Väggplacering:** Ögonhöjd (145 cm center), gruppering, symmetri vs asymmetri, avstånd till möbler
-- **Stilar:** Skandinavisk modern, japandi, mid-century, industriell, klassisk, bohemisk, coastal
-- **Trender:** Vad som är aktuellt i svensk inredning — jordfärger, boucle, kurvor, statement art, gallery walls
+function buildPrompt(packs: BorisStylePack[], situation: string): string {
+  const expertiseLines = packs.flatMap(p => [
+    `### ${p.role}`,
+    ...p.expertise.map((e: string) => `- ${e}`),
+  ])
 
-## Regler
-- Svara ALLTID på svenska
-- Håll svar koncisa men innehållsrika (max 3-4 stycken)
-- Ge alltid KONKRETA rekommendationer
-- Om du rekommenderar en storlek, ange exakta mått
-- Om du rekommenderar en färg, beskriv den specifikt (inte bara "varm")
-- Använd aldrig emojis i löpande text
-- Formatera med **fetstil** för nyckelord och rekommendationer`
+  const toneLines = packs.map(p => p.tone)
+
+  return `${BORIS_VOICE}
+
+## Expertis (aktiv för denna konversation)
+${expertiseLines.join('\n')}
+
+## Tonalitet
+${toneLines.join('\n')}
+
+## Aktuell situation
+${situation}`
+}
 
 // ─── Context-specific prompts for different Wallcraft stages ─────────────────
 
 export const BORIS_CONTEXTS = {
-  // When user is choosing art style in Design Studio
-  styleAdvice: (roomInfo?: { roomType?: string; lightDirection?: string; wallColor?: string; existingStyle?: string }) => `
-${BORIS_SYSTEM_PROMPT}
-
-## Aktuell situation
-Användaren ska välja konststil för sin vägg. De har 18 stilar att välja mellan.
+  styleAdvice: (roomInfo?: { roomType?: string; lightDirection?: string; wallColor?: string; existingStyle?: string }) =>
+    buildPrompt([CURATOR_PACK, INTERIOR_PACK], `Användaren ska välja konststil för sin vägg. De har 18 stilar att välja mellan.
 ${roomInfo?.roomType ? `Rumstyp: ${roomInfo.roomType}` : ''}
 ${roomInfo?.lightDirection ? `Ljusriktning: ${roomInfo.lightDirection}` : ''}
 ${roomInfo?.wallColor ? `Väggfärg: ${roomInfo.wallColor}` : ''}
 ${roomInfo?.existingStyle ? `Befintlig inredningsstil: ${roomInfo.existingStyle}` : ''}
 
-## Din uppgift
-Hjälp användaren välja rätt konststil baserat på deras rum och smak. Förklara varför vissa stilar passar bättre i vissa rum. Var specifik.`,
+Hjälp användaren välja rätt konststil baserat på deras rum och smak. Förklara varför vissa stilar passar bättre i vissa rum.`),
 
-  // When user is viewing generated art variants
-  variantAdvice: (style?: string, roomType?: string) => `
-${BORIS_SYSTEM_PROMPT}
-
-## Aktuell situation
-Användaren har genererat 4 konstvarianter i stilen "${style || 'okänd'}" och ska välja favorit.
+  variantAdvice: (style?: string, roomType?: string) =>
+    buildPrompt([CURATOR_PACK], `Användaren har genererat 4 konstvarianter i stilen "${style || 'okänd'}" och ska välja favorit.
 ${roomType ? `Rummet: ${roomType}` : ''}
 
-## Din uppgift
-Hjälp användaren välja den bästa varianten. Diskutera komposition, färgbalans, hur den kommer se ut på väggen, och vilken känsla den skapar i rummet. Var konkret om varför en variant kan fungera bättre än en annan.`,
+Hjälp användaren välja den bästa varianten. Diskutera komposition, färgbalans, hur den kommer se ut på väggen.`),
 
-  // When user is in the design editor (frame, size, position)
   editorAdvice: (context?: {
     sizeCode?: string; frameId?: string; roomType?: string;
     wallWidth?: number; ceilingHeight?: number;
-  }) => `
-${BORIS_SYSTEM_PROMPT}
-
-## Aktuell situation
-Användaren redigerar sin tavla i editorn — väljer storlek, ram och placering på väggen.
+  }) =>
+    buildPrompt([INTERIOR_PACK, PRINT_PACK], `Användaren redigerar sin tavla — väljer storlek, ram och placering.
 ${context?.sizeCode ? `Vald storlek: ${context.sizeCode} cm` : ''}
 ${context?.frameId ? `Vald ram: ${context.frameId}` : ''}
 ${context?.roomType ? `Rum: ${context.roomType}` : ''}
 
-## Din uppgift
-Ge konkreta råd om:
-- **Storlek** — Vilken storlek passar bäst för rummet? Tumregel: tavlan bör vara 2/3 till 3/4 av möbelns bredd under den. Över en soffa (180 cm) → 120-140 cm bred tavla.
-- **Ram** — Vilken ramfärg kompletterar konstverket och rummet? Svart ram = modern/grafisk, ek = varm/skandinavisk, vit = ljus/luftig, valnöt = klassisk/varm, guld = statement/klassisk.
-- **Placering** — Center på 145 cm höjd. Över soffa: 15-25 cm ovanför ryggstödet. Gruppering: 5-8 cm mellanrum.
-- **Papper** — Matte för akvarell/mjuka toner, glansigt för fotografi/starka färger.`,
+Ge konkreta råd om storlek (2/3-3/4 av möbelbredd), ram (färg vs motiv), placering (145 cm center, 15-25 cm ovanför soffa), och papper (matt vs glansigt).`),
 
-  // When user uploads own photo (Print Your Own)
-  printAdvice: (context?: { dpiQuality?: string; imageWidth?: number; imageHeight?: number; maxSize?: string }) => `
-${BORIS_SYSTEM_PROMPT}
-
-## Aktuell situation
-Användaren har laddat upp ett eget foto för att trycka som väggkonst.
+  printAdvice: (context?: { dpiQuality?: string; imageWidth?: number; imageHeight?: number; maxSize?: string }) =>
+    buildPrompt([PRINT_PACK, INTERIOR_PACK], `Användaren har laddat upp ett eget foto för att trycka som väggkonst.
 ${context?.dpiQuality ? `DPI-kvalitet: ${context.dpiQuality}` : ''}
 ${context?.imageWidth && context?.imageHeight ? `Bildstorlek: ${context.imageWidth}x${context.imageHeight} px` : ''}
 ${context?.maxSize ? `Maximal tryckkvalitet vid: ${context.maxSize}` : ''}
 
-## Din uppgift
-Ge råd om:
-- Hur fotot kommer se ut som väggkonst
-- Vilken storlek som ger bäst kvalitet baserat på DPI
-- Vilken ram och stil som passar fotot
-- Tips för placering i hemmet
-- Om fotot behöver beskäras eller justeras`,
+Ge råd om tryckstorlek baserat på DPI, ram och stil som passar fotot, placering i hemmet.`),
 
-  // General Wallcraft chat
-  general: `
-${BORIS_SYSTEM_PROMPT}
-
-## Aktuell situation
-Användaren chattar med dig i Wallcraft — de skapar konst för sina väggar. Hjälp dem med allt som rör konst, inredning, färgval, storlekar, ramar, placering, stilval, och inspiration.
-
-## Din uppgift
-Svara på användarens fråga med din fulla expertis inom konst och inredning. Var hjälpsam, konkret och inspirerande.`,
+  general:
+    buildPrompt([CURATOR_PACK, INTERIOR_PACK, PRINT_PACK],
+      'Användaren chattar med dig i Wallcraft — de skapar konst för sina väggar. Hjälp dem med allt som rör konst, inredning, färgval, storlekar, ramar, placering, stilval, och inspiration.'),
 }
 
 // ─── Boris Wallcraft Expert Class ───────────────────────────────────────────
@@ -141,30 +124,20 @@ export class BorisWallcraftExpert {
   }
 
   private async callAI(userMessage: string, systemPrompt: string): Promise<string> {
-    if (!isBorisAIConfigured()) {
-      return "Jag är inte ansluten just nu — min AI-nyckel saknas. Kontakta administratören för att aktivera mig."
+    if (!isBorisConfigured('text')) {
+      return 'Jag är inte ansluten just nu — min AI-nyckel saknas. Kontakta administratören för att aktivera mig.'
     }
 
     try {
-      const client = getBorisAIClient()
-      const { model, maxTokens, temperature } = getBorisModelConfig()
-
-      const completion = await client.chat.completions.create({
-        model,
-        messages: [
-          { role: "system", content: systemPrompt },
-          { role: "user", content: userMessage }
-        ],
-        max_tokens: maxTokens,
-        temperature,
-      })
-
-      return completion.choices[0]?.message?.content || "Tyvärr kunde jag inte generera ett svar just nu."
+      return await borisChat([
+        { role: 'system', content: systemPrompt },
+        { role: 'user', content: userMessage },
+      ], 'text')
     } catch (error: any) {
       console.error('[Boris] AI error:', error?.message || error)
-      if (error?.status === 401) return "Min API-nyckel verkar vara ogiltig."
-      if (error?.status === 429) return "Jag har fått för många förfrågningar. Vänta en stund."
-      return "Tyvärr kunde jag inte svara just nu. Försök igen om en stund."
+      if (error?.status === 401) return 'Min API-nyckel verkar vara ogiltig.'
+      if (error?.status === 429) return 'Jag har fått för många förfrågningar. Vänta en stund.'
+      return 'Tyvärr kunde jag inte svara just nu. Försök igen om en stund.'
     }
   }
 

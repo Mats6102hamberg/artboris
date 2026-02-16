@@ -1,8 +1,25 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { BorisArtAI } from '@/lib/borisArtAI'
+import { rateLimit, getClientIP } from '@/lib/boris/rateLimit'
 
 export async function POST(request: NextRequest) {
   try {
+    // Rate limit: 20 requests per minute per IP
+    const ip = getClientIP(request)
+    const limit = rateLimit(`boris-ai:${ip}`, 20, 60_000)
+    if (!limit.allowed) {
+      return NextResponse.json(
+        { error: 'För många förfrågningar. Vänta en stund.' },
+        {
+          status: 429,
+          headers: {
+            'Retry-After': String(Math.ceil(limit.resetInMs / 1000)),
+            'X-RateLimit-Remaining': '0',
+          },
+        }
+      )
+    }
+
     const { action, data } = await request.json()
     
     if (!action) {
