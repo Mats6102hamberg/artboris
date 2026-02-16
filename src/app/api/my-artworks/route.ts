@@ -34,7 +34,7 @@ export async function POST(request: NextRequest) {
         imageUrl: body.imageUrl ?? '',
         category: body.category ?? 'painting',
         year: body.year,
-        status: 'available',
+        status: 'tillgänglig',
         views: 0,
       },
     })

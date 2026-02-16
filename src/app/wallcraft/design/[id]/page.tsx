@@ -37,6 +37,7 @@ interface DesignData {
   scale: number
   frameId: string
   sizeId: string
+  isPublic: boolean
   variants: DesignVariantData[]
 }
 
@@ -145,6 +146,7 @@ export default function WallcraftDesignPage() {
           setScale(d.scale)
           setFrameId(d.frameId)
           setSizeId(d.sizeId)
+          setWantPublish(d.isPublic ?? false)
           if (d.selectedVariantId && d.variants.length > 0) {
             const idx = d.variants.findIndex((v) => v.id === d.selectedVariantId)
             setSelectedVariantIndex(idx >= 0 ? idx : 0)
@@ -291,6 +293,20 @@ export default function WallcraftDesignPage() {
   }))
 
   const { addItem, setIsOpen } = useCart()
+
+  const handlePublishToggle = async (publish: boolean) => {
+    setWantPublish(publish)
+    try {
+      await fetch('/api/gallery/publish', {
+        method: publish ? 'POST' : 'DELETE',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ designId: id }),
+      })
+    } catch (err) {
+      console.error('Publish toggle failed:', err)
+      setWantPublish(!publish)
+    }
+  }
 
   const handleCheckout = () => {
     if (!design || !selectedVariant) return
@@ -530,8 +546,23 @@ export default function WallcraftDesignPage() {
             </div>
 
             <div className="bg-white rounded-2xl p-5 border border-gray-200/60">
-              <PublishToggle isPublished={wantPublish} onToggle={setWantPublish} />
+              <PublishToggle isPublished={wantPublish} onToggle={handlePublishToggle} />
             </div>
+
+            {wantPublish && (
+              <div className="bg-gradient-to-r from-amber-50 to-orange-50 rounded-2xl p-5 border border-amber-200/60">
+                <p className="text-sm text-amber-900 font-medium">Vill du tjäna pengar på din konst?</p>
+                <p className="text-xs text-amber-700 mt-1">
+                  Registrera dig på Art Market för att sälja tryck av dina verk.
+                </p>
+                <button
+                  onClick={() => router.push('/market/artist')}
+                  className="mt-3 text-xs font-medium text-amber-900 underline underline-offset-4 hover:text-amber-700"
+                >
+                  Bli konstnär på Artboris →
+                </button>
+              </div>
+            )}
 
             {/* Realistic Mode Toggle */}
             <div className="bg-white rounded-2xl p-5 border border-gray-200/60">

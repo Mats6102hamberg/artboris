@@ -298,11 +298,11 @@ export default function MyArtworks() {
               <div className="mt-4 flex items-center justify-between">
                 <span className="text-xl font-bold text-green-600">{artwork.price.toLocaleString()} kr</span>
                 <span className={`px-2 py-1 text-xs rounded-full ${
-                  artwork.status === 'tillgänglig' 
-                    ? 'bg-green-100 text-green-800' 
+                  artwork.status === 'tillgänglig' || artwork.status === 'available'
+                    ? 'bg-green-100 text-green-800'
                     : 'bg-gray-100 text-gray-800'
                 }`}>
-                  {artwork.status}
+                  {artwork.status === 'available' ? 'tillgänglig' : artwork.status}
                 </span>
               </div>
               <div className="mt-4 flex space-x-2">

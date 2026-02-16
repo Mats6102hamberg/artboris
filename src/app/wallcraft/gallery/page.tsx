@@ -131,6 +131,28 @@ export default function GalleryPage() {
         )}
       </div>
 
+      {/* Sell your art CTA */}
+      <div className="max-w-7xl mx-auto px-6 mt-16 mb-8">
+        <div className="bg-white rounded-2xl border border-gray-200/60 p-8 sm:p-10 flex flex-col sm:flex-row items-center justify-between gap-6">
+          <div>
+            <h2 className="text-xl font-medium text-gray-900">
+              Vill du sälja din konst?
+            </h2>
+            <p className="text-gray-500 mt-1 max-w-md">
+              Registrera dig som konstnär på Artboris Art Market.
+              Gör det möjligt för köpare att prova ditt verk på sin vägg innan de köper.
+            </p>
+          </div>
+          <Button
+            variant="secondary"
+            onClick={() => router.push('/market/artist')}
+            className="flex-shrink-0"
+          >
+            Bli konstnär
+          </Button>
+        </div>
+      </div>
+
       <footer className="border-t border-gray-200/60 py-8 mt-12">
         <div className="max-w-7xl mx-auto px-6 flex items-center justify-between">
           <span className="text-xs text-gray-400">© {new Date().getFullYear()} Wallcraft by Artboris</span>

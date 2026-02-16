@@ -1,29 +1,21 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { publishToGallery, unpublishFromGallery } from '@/server/services/gallery/publish'
+import { getOrCreateAnonId } from '@/lib/anonId'
 
 export async function POST(request: NextRequest) {
   try {
+    const userId = await getOrCreateAnonId()
     const body = await request.json()
-    const { userId, title, description, imageUrl, mockupUrl, style, roomType, colorMood } = body
+    const { designId } = body
 
-    if (!userId || !title || !imageUrl) {
+    if (!designId) {
       return NextResponse.json(
-        { error: 'userId, title and imageUrl are required.' },
+        { error: 'designId krävs.' },
         { status: 400 }
       )
     }
 
-    const result = await publishToGallery({
-      userId,
-      title,
-      description: description || '',
-      imageUrl,
-      mockupUrl: mockupUrl || '',
-      style: style || 'minimal',
-      roomType,
-      colorMood,
-    })
-
+    const result = await publishToGallery({ designId, userId })
     return NextResponse.json(result)
   } catch (error) {
     console.error('[gallery/publish] Error:', error)
@@ -36,22 +28,23 @@ export async function POST(request: NextRequest) {
 
 export async function DELETE(request: NextRequest) {
   try {
+    const userId = await getOrCreateAnonId()
     const body = await request.json()
-    const { galleryItemId, userId } = body
+    const { designId } = body
 
-    if (!galleryItemId || !userId) {
+    if (!designId) {
       return NextResponse.json(
-        { error: 'galleryItemId and userId are required.' },
+        { error: 'designId krävs.' },
         { status: 400 }
       )
     }
 
-    const result = await unpublishFromGallery(galleryItemId, userId)
+    const result = await unpublishFromGallery(designId, userId)
     return NextResponse.json(result)
   } catch (error) {
     console.error('[gallery/publish DELETE] Error:', error)
     return NextResponse.json(
-      { error: 'Unpublish failed.' },
+      { error: 'Avpublicering misslyckades.' },
       { status: 500 }
     )
   }
