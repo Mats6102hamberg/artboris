@@ -573,9 +573,9 @@ export default function ArtistPage() {
           {stripeStatus === null ? (
             <div className="bg-white rounded-xl border border-gray-100 p-4 animate-pulse h-20" />
           ) : stripeStatus.onboardingDone ? (
-            <div className="bg-emerald-50 border border-emerald-200 rounded-xl p-5 flex items-center justify-between">
+            <div className="bg-emerald-50 border border-emerald-200 rounded-xl p-5 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
               <div className="flex items-center gap-3">
-                <div className="w-10 h-10 bg-emerald-100 rounded-full flex items-center justify-center">
+                <div className="w-10 h-10 bg-emerald-100 rounded-full flex items-center justify-center flex-shrink-0">
                   <svg className="w-5 h-5 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
                   </svg>
@@ -588,15 +588,15 @@ export default function ArtistPage() {
               <button
                 onClick={handleStripeOnboard}
                 disabled={stripeLoading}
-                className="text-sm text-emerald-700 hover:text-emerald-900 underline underline-offset-4"
+                className="text-sm text-emerald-700 hover:text-emerald-900 underline underline-offset-4 sm:flex-shrink-0"
               >
                 Stripe Dashboard →
               </button>
             </div>
           ) : stripeStatus.connected ? (
-            <div className="bg-amber-50 border border-amber-200 rounded-xl p-5 flex items-center justify-between">
+            <div className="bg-amber-50 border border-amber-200 rounded-xl p-5 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
               <div className="flex items-center gap-3">
-                <div className="w-10 h-10 bg-amber-100 rounded-full flex items-center justify-center">
+                <div className="w-10 h-10 bg-amber-100 rounded-full flex items-center justify-center flex-shrink-0">
                   <svg className="w-5 h-5 text-amber-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L4.082 16.5c-.77.833.192 2.5 1.732 2.5z" />
                   </svg>
@@ -609,15 +609,15 @@ export default function ArtistPage() {
               <button
                 onClick={handleStripeOnboard}
                 disabled={stripeLoading}
-                className="px-4 py-2 bg-amber-600 text-white rounded-lg hover:bg-amber-700 transition-colors disabled:opacity-50 text-sm font-medium"
+                className="w-full sm:w-auto px-4 py-2.5 bg-amber-600 text-white rounded-lg hover:bg-amber-700 transition-colors disabled:opacity-50 text-sm font-medium"
               >
                 {stripeLoading ? 'Laddar...' : 'Slutför registrering'}
               </button>
             </div>
           ) : (
-            <div className="bg-white border border-gray-200 rounded-xl p-5 flex items-center justify-between">
+            <div className="bg-white border border-gray-200 rounded-xl p-5 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
               <div className="flex items-center gap-3">
-                <div className="w-10 h-10 bg-gray-100 rounded-full flex items-center justify-center">
+                <div className="w-10 h-10 bg-gray-100 rounded-full flex items-center justify-center flex-shrink-0">
                   <svg className="w-5 h-5 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" />
                   </svg>
@@ -630,7 +630,7 @@ export default function ArtistPage() {
               <button
                 onClick={handleStripeOnboard}
                 disabled={stripeLoading}
-                className="px-4 py-2 bg-gray-900 text-white rounded-lg hover:bg-gray-800 transition-colors disabled:opacity-50 text-sm font-medium"
+                className="w-full sm:w-auto px-4 py-2.5 bg-gray-900 text-white rounded-lg hover:bg-gray-800 transition-colors disabled:opacity-50 text-sm font-medium"
               >
                 {stripeLoading ? 'Laddar...' : 'Koppla Stripe'}
               </button>

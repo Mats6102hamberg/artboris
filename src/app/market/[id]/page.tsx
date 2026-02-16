@@ -194,7 +194,7 @@ export default function ListingDetailPage() {
           </div>
         </nav>
 
-        <main className="max-w-5xl mx-auto px-4 py-8">
+        <main className="max-w-5xl mx-auto px-4 py-8 pb-28 lg:pb-8">
           <div className="grid grid-cols-1 lg:grid-cols-5 gap-8">
             {/* Left: Shipping form */}
             <div className="lg:col-span-3 space-y-6">
@@ -327,6 +327,24 @@ export default function ListingDetailPage() {
             </div>
           </div>
         </main>
+
+        {/* Sticky mobile checkout bar */}
+        <div className="lg:hidden fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 p-4 z-40 safe-area-bottom">
+          <button
+            onClick={handleMarketCheckout}
+            disabled={!isShippingValid || isProcessing}
+            className="w-full bg-gray-900 text-white py-3.5 rounded-xl font-medium hover:bg-gray-800 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+          >
+            {isProcessing ? (
+              <span className="flex items-center justify-center gap-2">
+                <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                Bearbetar...
+              </span>
+            ) : (
+              `Slutför köp — ${formatPriceSEK(pricing.totalBuyerSEK)}`
+            )}
+          </button>
+        </div>
       </div>
     )
   }
@@ -345,7 +363,7 @@ export default function ListingDetailPage() {
           </div>
         </nav>
 
-        <div className="max-w-6xl mx-auto px-4 py-6">
+        <div className="max-w-6xl mx-auto px-4 py-6 pb-28 lg:pb-6">
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
             {/* Mockup preview */}
             <div className="lg:col-span-2">
@@ -451,6 +469,22 @@ export default function ListingDetailPage() {
             </div>
           </div>
         </div>
+
+        {/* Sticky mobile buy bar for preview */}
+        {pricing && (
+          <div className="lg:hidden fixed bottom-0 left-0 right-0 bg-gray-900/95 backdrop-blur-sm border-t border-white/10 p-4 z-40">
+            <div className="flex items-center justify-between mb-2">
+              <span className="text-white/70 text-sm">Totalt</span>
+              <span className="text-white font-semibold">{formatPriceSEK(pricing.totalBuyerSEK)}</span>
+            </div>
+            <button
+              onClick={() => setStep('checkout')}
+              className="w-full bg-white text-gray-900 font-medium py-3 rounded-xl hover:bg-gray-100 transition-colors"
+            >
+              Köp nu
+            </button>
+          </div>
+        )}
       </div>
     )
   }
