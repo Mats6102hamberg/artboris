@@ -4,6 +4,7 @@ import { useState, useRef, useEffect, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
 import Button from '@/components/ui/Button'
 import CreditBadge from '@/components/poster/CreditBadge'
+import BorisButton from '@/components/boris/BorisButton'
 import { refineArtwork } from '@/lib/mandala/refineArtwork'
 
 // ─── Types ───
@@ -746,6 +747,16 @@ export default function PatternPage() {
           </div>
         </div>
       )}
+
+      {/* Boris AI Advisor */}
+      <BorisButton
+        action="chat"
+        suggestions={[
+          'Vilka mönster passar i ett kök?',
+          'Hur skapar jag ett harmoniskt upprepande mönster?',
+          'Tips för färgval i mönsterdesign',
+        ]}
+      />
     </div>
   )
 }

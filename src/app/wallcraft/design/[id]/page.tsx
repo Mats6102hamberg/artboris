@@ -14,6 +14,7 @@ import { calculatePrintPrice, formatSEK, getFrameById as getFrame, FRAME_OPTIONS
 import { getSizeById } from '@/lib/image/resize'
 import { useCart } from '@/lib/cart/CartContext'
 import BorisVoice from '@/components/boris/BorisVoice'
+import BorisButton from '@/components/boris/BorisButton'
 import { getBorisComment } from '@/lib/boris/curatorVoice'
 
 interface DesignVariantData {
@@ -582,6 +583,21 @@ export default function WallcraftDesignPage() {
                   }`} />
                 </button>
               </div>
+            </div>
+
+            {/* Boris AI Advisor */}
+            <div className="bg-white rounded-2xl p-5 border border-gray-200/60">
+              <BorisButton
+                action="editor"
+                variant="inline"
+                label="Fråga Boris om råd"
+                context={{ sizeCode: sizeId, frameId, style: design?.style }}
+                suggestions={[
+                  'Vilken ram passar bäst här?',
+                  'Är storleken rätt för mitt rum?',
+                  'Tips för placering över soffa',
+                ]}
+              />
             </div>
 
             <Button

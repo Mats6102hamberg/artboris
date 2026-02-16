@@ -26,12 +26,14 @@ export async function POST(request: NextRequest) {
     }
 
     const body = await request.json()
-    const { style, controls, userDescription, roomImageUrl, wallCorners } = body as {
+    const { style, controls, userDescription, roomImageUrl, wallCorners, inputImageUrl, promptStrength } = body as {
       style: StylePreset
       controls: DesignControls
       userDescription?: string
       roomImageUrl?: string
       wallCorners?: string
+      inputImageUrl?: string
+      promptStrength?: number
     }
 
     if (!style) {
@@ -65,6 +67,8 @@ export async function POST(request: NextRequest) {
       anonId,
       roomImageUrl,
       wallCorners,
+      inputImageUrl,
+      promptStrength,
     })
 
     if (!result.success) {

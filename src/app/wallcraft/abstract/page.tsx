@@ -4,6 +4,7 @@ import { useState, useRef, useEffect, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
 import Button from '@/components/ui/Button'
 import CreditBadge from '@/components/poster/CreditBadge'
+import BorisButton from '@/components/boris/BorisButton'
 import { refineArtwork } from '@/lib/mandala/refineArtwork'
 
 // ─── Types ───
@@ -612,6 +613,16 @@ export default function AbstractPage() {
           </div>
         </div>
       )}
+
+      {/* Boris AI Advisor */}
+      <BorisButton
+        action="chat"
+        suggestions={[
+          'Vilka färger skapar lugn i abstrakt konst?',
+          'Hur använder jag flödesfmältar effektivt?',
+          'Tips för att skapa djup i abstrakt måleri',
+        ]}
+      />
     </div>
   )
 }

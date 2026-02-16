@@ -8,6 +8,7 @@ import RoomUpload from '@/components/poster/RoomUpload'
 import WallMarker from '@/components/poster/WallMarker'
 import StylePicker from '@/components/poster/StylePicker'
 import CreditBadge from '@/components/poster/CreditBadge'
+import BorisButton from '@/components/boris/BorisButton'
 import { type StylePreset } from '@/types/design'
 
 const DEMO_ROOM_IMAGE = '/assets/demo/room-sample.svg'
@@ -158,6 +159,18 @@ export default function StudioPage() {
               <p className="text-gray-500 mt-2">{t('studio.style.description')}</p>
             </div>
             <StylePicker selectedStyle={selectedStyle} onSelect={setSelectedStyle} />
+            <div className="flex justify-center">
+              <BorisButton
+                action="style"
+                variant="inline"
+                label="Fråga Boris om stilval"
+                suggestions={[
+                  'Vilken stil passar ett vardagsrum?',
+                  'Vad är skillnaden mellan Nordic och Minimal?',
+                  'Jag har vita väggar och ek-möbler',
+                ]}
+              />
+            </div>
             <textarea
               value={userDescription}
               onChange={(e) => setUserDescription(e.target.value)}

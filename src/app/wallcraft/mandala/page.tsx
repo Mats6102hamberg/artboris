@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation'
 import { useTranslation } from '@/lib/i18n/context'
 import Button from '@/components/ui/Button'
 import CreditBadge from '@/components/poster/CreditBadge'
+import BorisButton from '@/components/boris/BorisButton'
 import { refineArtwork } from '@/lib/mandala/refineArtwork'
 
 // ─── Types ───
@@ -817,6 +818,16 @@ export default function MandalaPage() {
           </div>
         </div>
       )}
+
+      {/* Boris AI Advisor */}
+      <BorisButton
+        action="chat"
+        suggestions={[
+          'Vilka färger passar i ett mandala-mönster?',
+          'Hur använder jag symmetri effektivt?',
+          'Tips för att skapa balans i mitt mönster',
+        ]}
+      />
     </div>
   )
 }

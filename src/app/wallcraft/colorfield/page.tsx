@@ -4,6 +4,7 @@ import { useState, useRef, useEffect, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
 import Button from '@/components/ui/Button'
 import CreditBadge from '@/components/poster/CreditBadge'
+import BorisButton from '@/components/boris/BorisButton'
 import { refineArtwork } from '@/lib/mandala/refineArtwork'
 
 // ─── Types ───
@@ -648,6 +649,16 @@ export default function ColorFieldPage() {
           </div>
         </div>
       )}
+
+      {/* Boris AI Advisor */}
+      <BorisButton
+        action="chat"
+        suggestions={[
+          'Vilka färgkombinationer skapar harmoni?',
+          'Hur använder jag Rothko-stil effektivt?',
+          'Tips för minimalistisk färgkomposition',
+        ]}
+      />
     </div>
   )
 }

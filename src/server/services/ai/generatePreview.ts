@@ -18,6 +18,8 @@ export interface GeneratePreviewInput {
   anonId?: string
   roomImageUrl?: string
   wallCorners?: string
+  inputImageUrl?: string
+  promptStrength?: number
 }
 
 export interface GeneratePreviewResult {
@@ -29,7 +31,7 @@ export interface GeneratePreviewResult {
 }
 
 export async function generatePreview(input: GeneratePreviewInput): Promise<GeneratePreviewResult> {
-  const { style, controls, userDescription, count = 4 } = input
+  const { style, controls, userDescription, count = 4, inputImageUrl, promptStrength } = input
 
   const prompt = buildGeneratePrompt(style, controls, userDescription)
 
@@ -60,7 +62,7 @@ export async function generatePreview(input: GeneratePreviewInput): Promise<Gene
     try {
       // Generate variants in parallel
       const promises = Array.from({ length: count }, (_, i) =>
-        generateSingleVariant(prompt, i)
+        generateSingleVariant(prompt, i, inputImageUrl, promptStrength)
       )
 
       const results = await Promise.allSettled(promises)
@@ -127,23 +129,36 @@ export async function generatePreview(input: GeneratePreviewInput): Promise<Gene
 
 async function generateSingleVariant(
   prompt: string,
-  index: number
+  index: number,
+  inputImageUrl?: string,
+  promptStrength?: number
 ): Promise<Omit<DesignVariant, 'designId'> | null> {
   try {
     const seed = Math.floor(Math.random() * 999999)
 
+    // Use flux-dev for img2img (supports image input), flux-schnell for txt2img
+    const model = inputImageUrl
+      ? 'black-forest-labs/flux-dev'
+      : 'black-forest-labs/flux-schnell'
+
+    const baseInput: Record<string, unknown> = {
+      prompt,
+      num_outputs: 1,
+      aspect_ratio: '2:3',
+      output_format: 'webp',
+      output_quality: 90,
+      seed,
+    }
+
+    if (inputImageUrl) {
+      baseInput.image = inputImageUrl
+      baseInput.prompt_strength = promptStrength ?? 0.65
+      baseInput.num_inference_steps = 28
+    }
+
     const output = await replicate.run(
-      'black-forest-labs/flux-schnell',
-      {
-        input: {
-          prompt,
-          num_outputs: 1,
-          aspect_ratio: '2:3', // Portrait
-          output_format: 'webp',
-          output_quality: 90,
-          seed,
-        },
-      }
+      model as `${string}/${string}`,
+      { input: baseInput }
     )
 
     // Flux returns FileOutput[] — use String() to get the URL
