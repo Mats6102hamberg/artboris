@@ -61,18 +61,20 @@ export default function PrintYourOwn({ onImageReady }: PrintYourOwnProps) {
       formData.append('file', selectedFile)
 
       const res = await fetch('/api/uploads/artwork', { method: 'POST', body: formData })
-      const data = await res.json()
 
-      if (data.success && data.imageUrl) {
-        onImageReady(data.imageUrl, imageSize.w, imageSize.h)
-      } else {
-        // Fallback: use local preview URL so the flow isn't blocked
-        console.warn('Upload returned no imageUrl, using local preview:', data.error)
-        onImageReady(preview, imageSize.w, imageSize.h)
+      let imageUrl = preview
+      try {
+        const data = await res.json()
+        if (data.success && data.imageUrl) {
+          imageUrl = data.imageUrl
+        }
+      } catch {
+        // Response wasn't JSON — use local preview
       }
+
+      onImageReady(imageUrl, imageSize.w, imageSize.h)
     } catch (err) {
       console.error('Upload error:', err)
-      // Fallback: use local preview URL
       onImageReady(preview, imageSize.w, imageSize.h)
     } finally {
       setIsUploading(false)

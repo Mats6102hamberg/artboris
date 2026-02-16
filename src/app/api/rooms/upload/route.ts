@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { writeFile, mkdir } from 'fs/promises'
-import path from 'path'
+import { put } from '@vercel/blob'
 
 export async function POST(request: NextRequest) {
   try {
@@ -19,26 +18,20 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Image is too large (max 10 MB).' }, { status: 400 })
     }
 
-    const bytes = await file.arrayBuffer()
-    const buffer = Buffer.from(bytes)
-
-    const uploadDir = path.join(process.cwd(), 'public', 'uploads', 'rooms')
-    await mkdir(uploadDir, { recursive: true })
-
     const ext = file.name.split('.').pop() || 'jpg'
     const filename = `room_${Date.now()}_${Math.random().toString(36).slice(2, 8)}.${ext}`
-    const filepath = path.join(uploadDir, filename)
 
-    await writeFile(filepath, buffer)
-
-    const imageUrl = `/uploads/rooms/${filename}`
+    const blob = await put(`uploads/rooms/${filename}`, file, {
+      access: 'public',
+      contentType: file.type,
+    })
 
     return NextResponse.json({
       success: true,
       room: {
         id: `room_${Date.now()}`,
-        imageUrl,
-        thumbnailUrl: imageUrl,
+        imageUrl: blob.url,
+        thumbnailUrl: blob.url,
         width: 0,
         height: 0,
         wallCorners: [],
