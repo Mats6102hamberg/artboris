@@ -1,4 +1,4 @@
-import OpenAI from 'openai'
+import { getBorisAIClient, getBorisModelConfig, isBorisAIConfigured } from './aiProvider'
 
 // ─── Boris Expert System Prompt ─────────────────────────────────────────────
 // This is the core personality and knowledge base for Boris in Wallcraft.
@@ -132,7 +132,6 @@ export interface BorisWallcraftResponse {
 
 export class BorisWallcraftExpert {
   private static instance: BorisWallcraftExpert
-  private openai: OpenAI
 
   static getInstance(): BorisWallcraftExpert {
     if (!BorisWallcraftExpert.instance) {
@@ -141,32 +140,28 @@ export class BorisWallcraftExpert {
     return BorisWallcraftExpert.instance
   }
 
-  constructor() {
-    this.openai = new OpenAI({
-      apiKey: process.env.OPENAI_API_KEY || 'sk-mock-key'
-    })
-  }
-
-  private async callGPT(userMessage: string, systemPrompt: string): Promise<string> {
-    const apiKey = process.env.OPENAI_API_KEY
-    if (!apiKey || apiKey === 'sk-mock-key') {
+  private async callAI(userMessage: string, systemPrompt: string): Promise<string> {
+    if (!isBorisAIConfigured()) {
       return "Jag är inte ansluten just nu — min AI-nyckel saknas. Kontakta administratören för att aktivera mig."
     }
 
     try {
-      const completion = await this.openai.chat.completions.create({
-        model: "gpt-4o",
+      const client = getBorisAIClient()
+      const { model, maxTokens, temperature } = getBorisModelConfig()
+
+      const completion = await client.chat.completions.create({
+        model,
         messages: [
           { role: "system", content: systemPrompt },
           { role: "user", content: userMessage }
         ],
-        max_tokens: 1000,
-        temperature: 0.7,
+        max_tokens: maxTokens,
+        temperature,
       })
 
       return completion.choices[0]?.message?.content || "Tyvärr kunde jag inte generera ett svar just nu."
     } catch (error: any) {
-      console.error('[Boris] OpenAI error:', error?.message || error)
+      console.error('[Boris] AI error:', error?.message || error)
       if (error?.status === 401) return "Min API-nyckel verkar vara ogiltig."
       if (error?.status === 429) return "Jag har fått för många förfrågningar. Vänta en stund."
       return "Tyvärr kunde jag inte svara just nu. Försök igen om en stund."
@@ -177,7 +172,7 @@ export class BorisWallcraftExpert {
     userMessage: string,
     roomInfo?: { roomType?: string; lightDirection?: string; wallColor?: string; existingStyle?: string }
   ): Promise<BorisWallcraftResponse> {
-    const message = await this.callGPT(userMessage, BORIS_CONTEXTS.styleAdvice(roomInfo))
+    const message = await this.callAI(userMessage, BORIS_CONTEXTS.styleAdvice(roomInfo))
     return { message, type: 'style', timestamp: new Date().toISOString() }
   }
 
@@ -186,7 +181,7 @@ export class BorisWallcraftExpert {
     style?: string,
     roomType?: string
   ): Promise<BorisWallcraftResponse> {
-    const message = await this.callGPT(userMessage, BORIS_CONTEXTS.variantAdvice(style, roomType))
+    const message = await this.callAI(userMessage, BORIS_CONTEXTS.variantAdvice(style, roomType))
     return { message, type: 'style', timestamp: new Date().toISOString() }
   }
 
@@ -194,7 +189,7 @@ export class BorisWallcraftExpert {
     userMessage: string,
     context?: { sizeCode?: string; frameId?: string; roomType?: string; wallWidth?: number; ceilingHeight?: number }
   ): Promise<BorisWallcraftResponse> {
-    const message = await this.callGPT(userMessage, BORIS_CONTEXTS.editorAdvice(context))
+    const message = await this.callAI(userMessage, BORIS_CONTEXTS.editorAdvice(context))
     return { message, type: 'editor', timestamp: new Date().toISOString() }
   }
 
@@ -202,12 +197,12 @@ export class BorisWallcraftExpert {
     userMessage: string,
     context?: { dpiQuality?: string; imageWidth?: number; imageHeight?: number; maxSize?: string }
   ): Promise<BorisWallcraftResponse> {
-    const message = await this.callGPT(userMessage, BORIS_CONTEXTS.printAdvice(context))
+    const message = await this.callAI(userMessage, BORIS_CONTEXTS.printAdvice(context))
     return { message, type: 'print', timestamp: new Date().toISOString() }
   }
 
   async chat(userMessage: string): Promise<BorisWallcraftResponse> {
-    const message = await this.callGPT(userMessage, BORIS_CONTEXTS.general)
+    const message = await this.callAI(userMessage, BORIS_CONTEXTS.general)
     return { message, type: 'general', timestamp: new Date().toISOString() }
   }
 }

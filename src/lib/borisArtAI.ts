@@ -1,4 +1,4 @@
-import OpenAI from 'openai'
+import { getBorisAIClient, getBorisModelConfig, isBorisAIConfigured } from './boris/aiProvider'
 
 export interface BorisArtResponse {
   message: string
@@ -8,7 +8,6 @@ export interface BorisArtResponse {
 
 export class BorisArtAI {
   private static instance: BorisArtAI
-  private openai: OpenAI
   
   static getInstance(): BorisArtAI {
     if (!BorisArtAI.instance) {
@@ -17,33 +16,29 @@ export class BorisArtAI {
     return BorisArtAI.instance
   }
 
-  constructor() {
-    this.openai = new OpenAI({
-      apiKey: process.env.OPENAI_API_KEY || 'sk-mock-key'
-    })
-  }
-
   private async callOpenAI(prompt: string, systemPrompt: string): Promise<string> {
-    const apiKey = process.env.OPENAI_API_KEY
-    if (!apiKey || apiKey === 'sk-mock-key') {
-      console.error('[BorisArt] OPENAI_API_KEY is missing or invalid')
+    if (!isBorisAIConfigured()) {
+      console.error('[BorisArt] AI provider is not configured')
       return "Jag är inte ansluten just nu — min AI-nyckel saknas. Kontakta administratören för att aktivera mig."
     }
 
     try {
-      const completion = await this.openai.chat.completions.create({
-        model: "gpt-4o",
+      const client = getBorisAIClient()
+      const { model, maxTokens, temperature } = getBorisModelConfig()
+
+      const completion = await client.chat.completions.create({
+        model,
         messages: [
           { role: "system", content: systemPrompt },
           { role: "user", content: prompt }
         ],
-        max_tokens: 800,
-        temperature: 0.8,
+        max_tokens: maxTokens,
+        temperature,
       })
 
       return completion.choices[0]?.message?.content || "Tyvärr kunde jag inte generera ett svar just nu."
     } catch (error: any) {
-      console.error('[BorisArt] OpenAI API error:', error?.message || error)
+      console.error('[BorisArt] AI error:', error?.message || error)
       
       if (error?.status === 401) {
         return "Min API-nyckel verkar vara ogiltig. Kontakta administratören."
