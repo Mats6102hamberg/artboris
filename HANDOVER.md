@@ -35,12 +35,20 @@ Works in **demo mode** without any API keys. Open http://localhost:3000.
 DATABASE_URL=postgresql://...
 OPENAI_API_KEY=sk-...
 STRIPE_SECRET_KEY=sk_...
+NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY=pk_...
+NEXT_PUBLIC_APP_URL=http://localhost:3000
 STRIPE_WEBHOOK_SECRET=whsec_...
 BLOB_READ_WRITE_TOKEN=vercel_blob_...
 REPLICATE_API_TOKEN=r8_...
 
 # Run migrations
 npx prisma migrate dev
+```
+
+**Stripe CLI (installed):**
+```bash
+stripe login                    # Already authenticated
+stripe listen --forward-to localhost:3000/api/webhook/stripe
 ```
 
 ---
@@ -54,9 +62,9 @@ npx prisma migrate dev
 | `/wallcraft` | Landing | Hero, creative tools grid, featured designs, CTA, footer |
 | `/wallcraft/studio` | Design Studio | Upload room → mark wall → pick style → AI generates 4 variants |
 | `/wallcraft/result` | Results | Variant selection (redirects to design editor) |
-| `/wallcraft/design/[id]` | Design Editor | Position on wall, pick frame & size, auto-saves state |
-| `/wallcraft/gallery` | Gallery | Public inspiration gallery with filter, sort, likes |
-| `/wallcraft/checkout` | Checkout | Stripe checkout flow |
+| `/wallcraft/design/[id]` | Design Editor | Position on wall, pick frame & size, publish toggle, auto-saves state |
+| `/wallcraft/gallery` | Gallery | Public inspiration gallery with filter, sort, likes + "Sell your art" CTA |
+| `/wallcraft/checkout` | Checkout | Stripe checkout flow (Apple Pay, Klarna, cards) |
 | `/wallcraft/mandala` | Mandala Maker | Radial symmetry drawing tool (4–16 fold) |
 | `/wallcraft/pattern` | Pattern Studio | Seamless tile pattern creator with live repeat preview |
 | `/wallcraft/abstract` | Abstract Painter | Generative flow-field particle painting |
@@ -66,6 +74,22 @@ npx prisma migrate dev
 | `/market/[id]` | Listing Detail | Preview → checkout with shipping form + Stripe Connect |
 | `/market/artist` | Artist Portal | Register (invite code), upload, manage listings, Stripe Connect |
 | `/admin/invites` | Invite Admin | Create and manage invite codes |
+
+### User Flow: Create → Publish → Sell
+
+```
+WallCraft Studio / Creative Tools
+  → AI generates design variants
+  → Design Editor: pick frame, size, position on wall
+  → Toggle "Dela i galleriet" → publishes to /wallcraft/gallery (live API call)
+  → CTA: "Vill du sälja? Bli konstnär →" → /market/artist
+  → "Add to cart" → /wallcraft/checkout → Stripe
+
+Art Market (separate gated flow):
+  → Register with invite code → Stripe Connect onboarding
+  → Upload artwork → Sharp optimization → AI review
+  → Listed in /market when approved
+```
 
 ### Creative Tools — Shared Architecture
 
@@ -98,7 +122,8 @@ Canvas drawing/generation → Refine (local processing) → Compare (before/afte
 | generateFinalPrint | `server/services/ai/generateFinalPrint.ts` | HD render for printing |
 | composeMockup | `server/services/mockup/composeMockup.ts` | CSS-based wall placement |
 | canSpend / spend | `server/services/credits/` | Credit check and transactions |
-| publish / list / like | `server/services/gallery/` | Gallery CRUD + anonymous likes |
+| publishToGallery | `server/services/gallery/publish.ts` | Toggles `isPublic` on existing Design (update, not create) |
+| listGallery / like | `server/services/gallery/` | Gallery listing + anonymous likes |
 | createOrder | `server/services/orders/createOrder.ts` | Order + credit deduction in transaction |
 | generatePrintAsset | `server/services/print/generatePrintAsset.ts` | Sharp-based print file generation |
 | sendEmail | `server/services/email/sendEmail.ts` | Order confirmation emails |
@@ -115,6 +140,7 @@ Canvas drawing/generation → Refine (local processing) → Compare (before/afte
 | WallMarker | `components/poster/WallMarker.tsx` | Click 4 corners, drag to adjust |
 | StylePicker | `components/poster/StylePicker.tsx` | 18 styles with color preview |
 | MockupPreview | `components/poster/MockupPreview.tsx` | CSS-based wall placement |
+| PublishToggle | `components/poster/PublishToggle.tsx` | Gallery publish toggle (calls API on toggle) |
 | CreditBadge | `components/poster/CreditBadge.tsx` | Credit balance display |
 
 ### i18n System
@@ -127,7 +153,7 @@ Canvas drawing/generation → Refine (local processing) → Compare (before/afte
 ### Database Models (Prisma)
 
 **Design & Gallery:**
-- `Design` — style, roomType, colorMood, likesCount, position/scale/frame/size state
+- `Design` — style, roomType, colorMood, likesCount, isPublic, position/scale/frame/size state
 - `DesignVariant` — individual generated variants
 - `DesignAsset` — print files (roles: PREVIEW/PRINT/THUMB) with DPI, size, URL
 - `Like` — anonymous likes with anonId, `@@unique([designId, anonId])`
@@ -145,6 +171,12 @@ Canvas drawing/generation → Refine (local processing) → Compare (before/afte
 - `Fulfillment` — print status per item: partner, tracking, timestamps
 - `PrintPartner` — seeded: Crimson (crimson.se, Stockholm)
 
+**Art Market:**
+- `ArtistProfile` — email, displayName, Stripe Connect, invite-gated
+- `ArtworkListing` — full listing with Sharp-processed images, AI review, pricing
+- `MarketOrder` — separate order system with 50/50 split
+- `InviteCode` — artist/photographer invite codes
+
 ### Print Pipeline
 
 ```
@@ -153,6 +185,20 @@ Design editor → PATCH auto-save (position, scale, crop, frame, size)
   → GENERATE_PRINT_FINAL triggered (non-blocking)
   → renderFinalPrint.ts: fetch design + crop from DB → Sharp processing → Blob upload → DesignAsset
   → Admin UI: shows READY/MISSING for PRINT_FINAL with download link
+```
+
+### Checkout Pipeline
+
+```
+/api/checkout (POST):
+  1. parse-body — validate items, shipping
+  2. validate-data — check enums (productType, frameColor, paperType) + verify designIds exist in DB
+  3. validate-stripe — ensure STRIPE_SECRET_KEY is set
+  4. calculate-totals — subtotal + shipping (99 kr) + tax (25%)
+  5. create-order — Prisma order with items, shipping, payment
+  6. create-stripe-session — Stripe Checkout with line items
+  7. update-payment — save Stripe session ID
+  On error: rollback order to CANCELED if Stripe fails after DB write
 ```
 
 ### Brand Style
@@ -167,15 +213,20 @@ Design editor → PATCH auto-save (position, scale, crop, frame, size)
 
 ## Known Limitations & TODO
 
-### Active Bug (fixed)
-- [x] **Wallcraft Checkout** — `/api/checkout` "Kunde inte skapa checkout-session" — **Fixed.** Root causes: (1) No validation of STRIPE_SECRET_KEY before use, (2) designId FK constraint could fail silently, (3) orphaned orders if Stripe failed after DB write, (4) enum values not validated before Prisma insert. Fix: added Stripe key guard, designId existence check, enum validation, and order rollback on Stripe failure. **Next step:** verify `STRIPE_SECRET_KEY` is set in Vercel Environment Variables.
+### Fixed Bugs
+- [x] **Checkout** — `STRIPE_SECRET_KEY` missing, no validation, orphaned orders. Fixed with key guard, designId check, enum validation, rollback.
+- [x] **Cart size display** — showed 277×396 cm instead of 70×100 cm (preview scale multiplied with physical size). Fixed.
+- [x] **PublishToggle dead code** — toggle in editor never called API. Fixed: now calls `/api/gallery/publish` directly.
+- [x] **publishToGallery duplicates** — created new Design instead of toggling `isPublic`. Fixed: now uses `updateMany`.
+- [x] **MyArtworks status** — `'available'` vs `'tillgänglig'` mismatch. Fixed: aligned to Swedish.
+- [x] **Vercel env vars** — `STRIPE_SECRET_KEY`, `NEXT_PUBLIC_APP_URL`, `NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY` added.
 
 ### For Production
 - [ ] **Auth** — No real authentication. Uses cookie-based `anonId`
 - [ ] **Remaining Swedish** — poster-lab, admin UI, some components still have Swedish strings
 - [ ] **Frame assets** — PNG placeholders, need real frame images
 - [ ] **Tests** — No test suite
-- [ ] **Verify env vars on Vercel** — Ensure STRIPE_SECRET_KEY, BLOB_READ_WRITE_TOKEN, NEXT_PUBLIC_APP_URL are set
+- [ ] **Art Scanner portfolio** — saved in React state only, not persisted to DB
 
 ### Nice to Have
 - [ ] **SEO** — Meta tags, OG images for Wallcraft pages
@@ -183,6 +234,7 @@ Design editor → PATCH auto-save (position, scale, crop, frame, size)
 - [ ] **Gallery seeding** — Pre-populate with example designs
 - [ ] **More creative tools** — Typography tool, collage maker, etc.
 - [ ] **Social sharing** — Share designs to social media
+- [ ] **Connect MyArtworks → Art Market** — "Sell on Market" button that creates ArtworkListing from Artwork
 
 ---
 
@@ -196,4 +248,4 @@ Push: `git push origin main`
 
 ---
 
-*Last updated: 2026-02-16 · Built with Cascade AI*
+*Last updated: 2026-02-16 · Built with Claude Code*
