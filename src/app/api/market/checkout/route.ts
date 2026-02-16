@@ -49,7 +49,7 @@ export async function POST(req: Request) {
       )
     }
 
-    // Fetch listing
+    // Fetch listing + artist Stripe info
     const listing = await prisma.artworkListing.findUnique({
       where: { id: listingId },
       select: {
@@ -61,6 +61,12 @@ export async function POST(req: Request) {
         isSold: true,
         isPublic: true,
         imageUrl: true,
+        artist: {
+          select: {
+            stripeAccountId: true,
+            stripeOnboardingDone: true,
+          },
+        },
       },
     })
 
@@ -143,7 +149,9 @@ export async function POST(req: Request) {
     ]
 
     const stripe = getStripe()
-    const session = await stripe.checkout.sessions.create({
+
+    // Build session params
+    const sessionParams: Stripe.Checkout.SessionCreateParams = {
       mode: 'payment',
       currency: 'sek',
       line_items: stripeLineItems,
@@ -154,7 +162,23 @@ export async function POST(req: Request) {
         marketOrderId: marketOrder.id,
         listingId: listing.id,
       },
-    })
+    }
+
+    // If artist has Stripe Connect — automatically transfer their share
+    if (listing.artist.stripeAccountId && listing.artist.stripeOnboardingDone) {
+      const artistTransferCents = pricing.artistShareSEK * 100
+      sessionParams.payment_intent_data = {
+        transfer_data: {
+          destination: listing.artist.stripeAccountId,
+          amount: artistTransferCents,
+        },
+      }
+      console.log(`[market/checkout] Stripe Connect transfer: ${artistTransferCents} öre → ${listing.artist.stripeAccountId}`)
+    } else {
+      console.log(`[market/checkout] Artist ${listing.artistId} has no Stripe Connect — payout must be manual`)
+    }
+
+    const session = await stripe.checkout.sessions.create(sessionParams)
 
     // Save Stripe session reference
     await prisma.marketOrder.update({

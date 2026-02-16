@@ -380,6 +380,11 @@ model ArtistProfile {
   bankAccount   String   @default("")  // For payouts
   orgNumber     String   @default("")  // Org/personnummer
 
+  // Stripe Connect — automatic payouts
+  stripeAccountId       String?   @unique  // acct_xxx from Stripe Connect
+  stripeOnboardingDone  Boolean   @default(false)  // true when charges_enabled
+  stripePayoutsEnabled  Boolean   @default(false)  // true when payouts_enabled
+
   // Terms
   acceptedTermsAt DateTime?  // When they accepted 50/50 split terms
   isApproved      Boolean  @default(false)  // Admin approval
