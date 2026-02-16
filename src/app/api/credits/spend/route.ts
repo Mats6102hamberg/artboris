@@ -1,35 +1,28 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { spendCredits, addCredits } from '@/server/services/credits/spend'
+import { spendCredits } from '@/server/services/credits/spend'
+import { getOrCreateAnonId } from '@/lib/anonId'
 
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json()
-    const { action, userId, amount, packageId, description } = body as {
-      action: 'spend' | 'purchase'
-      userId: string
+    const { userId, amount, description } = body as {
+      userId?: string
       amount: number
-      packageId?: string
       description?: string
     }
 
-    if (!userId || !amount) {
+    // Use provided userId or fall back to anonId from cookie
+    const resolvedUserId = userId || await getOrCreateAnonId()
+
+    if (!resolvedUserId || !amount || amount <= 0) {
       return NextResponse.json(
-        { error: 'userId and amount are required.' },
+        { error: 'userId and positive amount are required.' },
         { status: 400 }
       )
     }
 
-    if (action === 'purchase') {
-      const result = await addCredits(
-        userId,
-        amount,
-        description || `Purchase: ${packageId || 'credits'}`
-      )
-      return NextResponse.json(result)
-    }
-
     const result = await spendCredits(
-      userId,
+      resolvedUserId,
       amount,
       description || 'Credit spend'
     )
