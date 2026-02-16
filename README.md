@@ -13,7 +13,7 @@
 |-------|-----------|
 | Frontend | Next.js 16, React 19, TailwindCSS 4 |
 | Backend | Next.js API Routes (App Router) |
-| AI | OpenAI GPT-4 (valuation, chatbot), DALL-E 3 (image generation) |
+| AI | OpenAI GPT-4 (valuation, chatbot), Replicate Flux Schnell (image generation) |
 | Database | PostgreSQL + Prisma ORM |
 | Storage | Vercel Blob (persistent image storage) |
 | Payments | Stripe (checkout + webhooks) |
@@ -32,13 +32,14 @@ The main product. A complete pipeline from creation to print delivery.
 
 #### Creative Tools
 
-| Tool | Route | Description |
+| Tool | Route | Page | Description |
 |------|-------|-------------|
 | **Mandala Maker** | `/wallcraft/mandala` | Draw symmetric mandala patterns with 4–16 fold radial symmetry. Brush, eraser, color palettes, undo/redo. |
 | **Pattern Studio** | `/wallcraft/pattern` | Create seamless repeating tile patterns. 4 repeat modes (grid, brick, mirror, diagonal). Shape tools (line, circle, rect). Live preview. Exports 1024px tiled image. |
 | **Abstract Painter** | `/wallcraft/abstract` | Generative flow-field particle painting. 5 flow styles (smooth, turbulent, spiral, waves, organic). Real-time animation with controls for particles, speed, trail, size, complexity. |
 | **Color Field Studio** | `/wallcraft/colorfield` | Minimalist color field compositions inspired by Rothko and Albers. 12 preset palettes, 5 layouts, 5 textures, 4 edge modes. Adjustable padding, gap, and corner radius. |
-| **Design Studio** | `/wallcraft/studio` | Upload room photo → mark wall → pick style → AI generates 4 variants (DALL-E 3) → edit in room mockup → order print. |
+| **Design Studio** | `/wallcraft/studio` | Upload room photo → mark wall → pick style → AI generates 4 variants → edit in room mockup → order print. |
+| **Print Your Own** | `/wallcraft/print-your-own` | Upload own photo → DPI quality analysis → upload room → mark wall → create design → editor → checkout. |
 
 All creative tools share:
 - **Refine** — Local canvas image processing (smoothing, contrast, vibrance, depth glow) with before/after slider comparison
@@ -67,6 +68,18 @@ Nordic · Retro · Minimal · Abstract · Botanical · Geometric · Watercolor �
 Public inspiration gallery with filtering by style, sorting, anonymous likes (cookie-based anonId), and "Create similar" CTA.
 
 ---
+
+### Art Market — Buy & Sell Art
+
+**URL:** `/market`
+
+Marketplace for artists and photographers to sell prints. Features:
+- **Artist Portal** (`/market/artist`) — Register with invite code, upload artworks, manage listings
+- **AI Review** — Boris AI reviews uploads (face detection, safety, quality)
+- **Review Status** — PROCESSING → NEEDS_REVIEW → APPROVED / REJECTED
+- **Listing Detail** (`/market/[id]`) — Preview step → checkout step with shipping form
+- **Stripe Connect** — Artists connect Stripe Express accounts for automatic 50/50 payouts
+- **Invite System** — Invite codes required for artist registration (`/admin/invites`)
 
 ### Art Scanner
 
@@ -103,14 +116,19 @@ src/
 │   ├── admin/orders/page.tsx           # Admin order management
 │   ├── order/[id]/page.tsx             # Order confirmation
 │   ├── poster-lab/                     # Legacy poster lab (original version)
-│   └── api/
+│   ├── api/
 │       ├── designs/generate/           # AI generation (4 variants)
 │       ├── designs/[id]/               # GET/PATCH design + print-final
-│       ├── rooms/upload/               # Room photo upload
-│       ├── credits/                    # Balance + spend
+│       ├── designs/create-from-upload/ # Create design from user photo
+│       ├── uploads/artwork/            # Artwork upload to Vercel Blob
+│       ├── rooms/upload/               # Room photo upload to Vercel Blob
+│       ├── credits/                    # Balance + spend + checkout
 │       ├── gallery/                    # List, like, publish
-│       ├── orders/create/              # Create order
-│       ├── checkout/                   # Stripe checkout session
+│       ├── checkout/                   # Wallcraft Stripe checkout session
+│       ├── market/checkout/            # Market Stripe checkout (with Connect)
+│       ├── market/listings/            # Market listings CRUD
+│       ├── market/artist/              # Artist register, stripe onboard/status
+│       ├── invites/                    # Invite code management
 │       ├── webhook/stripe/             # Stripe webhook handler
 │       ├── admin/orders/               # Admin CRUD
 │       └── renders/final/              # Print-ready render
@@ -164,7 +182,8 @@ npx prisma migrate dev
 | `OPENAI_API_KEY` | OpenAI API key (GPT-4 + DALL-E 3) | No (demo mode) |
 | `STRIPE_SECRET_KEY` | Stripe secret key | Yes, for payments |
 | `STRIPE_WEBHOOK_SECRET` | Stripe webhook signing secret | Yes, for webhooks |
-| `REPLICATE_API_TOKEN` | Replicate API token for upscaling | Yes, for print |
+| `REPLICATE_API_TOKEN` | Replicate Flux Schnell for image generation | Yes, for AI gen |
+| `ADMIN_SECRET` | Admin key for invite management | Yes, for admin |
 | `BLOB_READ_WRITE_TOKEN` | Vercel Blob token for image storage | Yes, for print |
 | `NEXT_PUBLIC_APP_URL` | App URL for redirects | No |
 
@@ -173,6 +192,7 @@ npx prisma migrate dev
 **Design & Gallery:** Design, DesignVariant, DesignAsset, Like, RoomMeta
 **Credits:** CreditAccount, CreditTransaction
 **Orders:** Order, OrderItem, Payment, ShippingAddress, Fulfillment, PrintPartner
+**Market:** ArtistProfile, ArtworkListing, MarketOrder, InviteCode
 
 ## Credits System
 
@@ -201,18 +221,24 @@ npx prisma migrate dev
 | Pattern Studio | ✅ Done |
 | Abstract Painter | ✅ Done |
 | Color Field Studio | ✅ Done |
+| Print Your Own (upload photo → DPI → room → editor) | ✅ Done |
 | Design Editor (frame, size, position) | ✅ Done |
 | Demo mode (no API key needed) | ✅ Done |
 | i18n (EN/SV) | ✅ Done |
 | Gallery (filter, sort, likes) | ✅ Done |
-| Stripe Checkout | ✅ Done |
+| Stripe Checkout (Wallcraft) | ✅ Done |
+| Art Market (artist portal, listings, buy) | ✅ Done |
+| Stripe Connect (artist payouts 50/50) | ✅ Done |
+| Market Checkout (with Connect transfer) | ✅ Done |
+| Invite System (artist registration) | ✅ Done |
 | Admin Order Management | ✅ Done |
 | Print Pipeline (Sharp + Blob) | ✅ Done |
 | PrintPartner (Crimson) | ✅ Seeded |
 | Mobile responsive | ✅ Done |
 | Art Scanner | ✅ Done |
 | BorisArt AI Chatbot | ✅ Done |
+| Wallcraft Checkout | 🔧 Bug: "Kunde inte skapa checkout-session" — debugging |
 
 ---
 
-*Built with Cascade AI · February 2026*
+*Built with Cascade AI · February 2026 · Last updated: 2026-02-16*

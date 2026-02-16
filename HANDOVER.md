@@ -3,7 +3,7 @@
 **GitHub:** https://github.com/Mats6102hamberg/artboris
 **Vercel:** https://artboris.vercel.app/
 **Local path:** `/Users/matshamberg/CascadeProjects/Artboris`
-**Last updated:** 2026-02-13
+**Last updated:** 2026-02-16
 
 ---
 
@@ -11,10 +11,11 @@
 
 Artboris is a Next.js 16 app with multiple products:
 
-1. **Wallcraft** (main product) — Create unique art for your walls. Includes 4 interactive creative tools, AI-powered design studio, room mockup preview, and print ordering via Stripe.
-2. **Art Scanner** — Scans auction houses for undervalued artworks with GPT-4 valuation.
-3. **BorisArt AI** — GPT-4 chatbot for art questions.
-4. **My Artworks** — Personal art collection manager.
+1. **Wallcraft** (main product) — Create unique art for your walls. Includes 4 interactive creative tools, AI-powered design studio, Print Your Own (upload photo), room mockup preview, and print ordering via Stripe.
+2. **Art Market** — Marketplace for artists/photographers. Invite-only registration, AI review, Stripe Connect 50/50 payouts.
+3. **Art Scanner** — Scans auction houses for undervalued artworks with GPT-4 valuation.
+4. **BorisArt AI** — GPT-4 chatbot for art questions.
+5. **My Artworks** — Personal art collection manager.
 
 ---
 
@@ -60,6 +61,11 @@ npx prisma migrate dev
 | `/wallcraft/pattern` | Pattern Studio | Seamless tile pattern creator with live repeat preview |
 | `/wallcraft/abstract` | Abstract Painter | Generative flow-field particle painting |
 | `/wallcraft/colorfield` | Color Field Studio | Minimalist color field compositions (Rothko/Albers) |
+| `/wallcraft/print-your-own` | Print Your Own | Upload own photo → DPI analysis → room upload → wall mark → editor |
+| `/market` | Art Market | Public gallery of artist listings |
+| `/market/[id]` | Listing Detail | Preview → checkout with shipping form + Stripe Connect |
+| `/market/artist` | Artist Portal | Register (invite code), upload, manage listings, Stripe Connect |
+| `/admin/invites` | Invite Admin | Create and manage invite codes |
 
 ### Creative Tools — Shared Architecture
 
@@ -87,7 +93,7 @@ Canvas drawing/generation → Refine (local processing) → Compare (before/afte
 
 | Service | File | Description |
 |---------|------|-------------|
-| generatePreview | `server/services/ai/generatePreview.ts` | DALL-E 3, 4 parallel variants. Demo mode returns local SVGs. |
+| generatePreview | `server/services/ai/generatePreview.ts` | Replicate Flux Schnell, 4 parallel variants. Demo mode returns local SVGs. |
 | refinePreview | `server/services/ai/refinePreview.ts` | New variant based on user feedback |
 | generateFinalPrint | `server/services/ai/generateFinalPrint.ts` | HD render for printing |
 | composeMockup | `server/services/mockup/composeMockup.ts` | CSS-based wall placement |
@@ -104,7 +110,8 @@ Canvas drawing/generation → Refine (local processing) → Compare (before/afte
 | Button | `components/ui/Button.tsx` | Variants: primary/secondary/ghost/outline, sizes: sm/md/lg |
 | Card | `components/ui/Card.tsx` | Variants: default/elevated/bordered |
 | LanguageSwitcher | `components/ui/LanguageSwitcher.tsx` | EN/SV toggle |
-| RoomUpload | `components/poster/RoomUpload.tsx` | Drag-drop image upload |
+| RoomUpload | `components/poster/RoomUpload.tsx` | Drag-drop image upload (Vercel Blob) |
+| PrintYourOwn | `components/poster/PrintYourOwn.tsx` | Photo upload + DPI quality analysis |
 | WallMarker | `components/poster/WallMarker.tsx` | Click 4 corners, drag to adjust |
 | StylePicker | `components/poster/StylePicker.tsx` | 18 styles with color preview |
 | MockupPreview | `components/poster/MockupPreview.tsx` | CSS-based wall placement |
@@ -160,11 +167,15 @@ Design editor → PATCH auto-save (position, scale, crop, frame, size)
 
 ## Known Limitations & TODO
 
+### Active Bug
+- [ ] **Wallcraft Checkout** — `/api/checkout` returns "Kunde inte skapa checkout-session". Detailed step-by-step error logging added (step: parse-body, create-order, create-stripe-session, update-payment). **Next step:** test on Vercel to see which step fails and the specific error message. Most likely cause: Prisma `order.create` or Stripe session creation failing.
+
 ### For Production
 - [ ] **Auth** — No real authentication. Uses cookie-based `anonId`
 - [ ] **Remaining Swedish** — poster-lab, admin UI, some components still have Swedish strings
 - [ ] **Frame assets** — PNG placeholders, need real frame images
 - [ ] **Tests** — No test suite
+- [ ] **Verify env vars on Vercel** — Ensure STRIPE_SECRET_KEY, BLOB_READ_WRITE_TOKEN, NEXT_PUBLIC_APP_URL are set
 
 ### Nice to Have
 - [ ] **SEO** — Meta tags, OG images for Wallcraft pages
@@ -185,4 +196,4 @@ Push: `git push origin main`
 
 ---
 
-*Last updated: 2026-02-13 · Built with Cascade AI*
+*Last updated: 2026-02-16 · Built with Cascade AI*
