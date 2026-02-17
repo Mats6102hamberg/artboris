@@ -77,6 +77,64 @@ export async function sendOrderConfirmation(orderId: string) {
   }
 }
 
+// ── Order Confirmation to specific email (from success page) ──
+
+export async function sendOrderConfirmationTo(orderId: string, toEmail: string) {
+  const order = await prisma.order.findUnique({
+    where: { id: orderId },
+    include: {
+      shippingAddress: true,
+      items: {
+        include: {
+          design: { select: { title: true, imageUrl: true } },
+        },
+      },
+    },
+  })
+
+  if (!order || !order.shippingAddress) {
+    throw new Error(`Order ${orderId} or shipping address not found`)
+  }
+
+  const customerName = order.shippingAddress.fullName
+
+  const { data, error } = await getResend().emails.send({
+    from: getFromEmail(),
+    to: toEmail,
+    subject: `Order Confirmation — Artboris #${orderId.slice(0, 8)}`,
+    react: OrderConfirmation({
+      customerName,
+      orderId,
+      items: order.items.map(item => ({
+        title: item.design.title,
+        imageUrl: item.design.imageUrl,
+        sizeCode: item.sizeCode,
+        productType: item.productType,
+        frameColor: item.frameColor,
+        quantity: item.quantity,
+        lineTotalCents: item.lineTotalCents,
+      })),
+      subtotalCents: order.subtotalCents,
+      shippingCents: order.shippingCents,
+      totalCents: order.totalCents,
+      currency: order.currency,
+      shippingAddress: {
+        address1: order.shippingAddress.address1,
+        address2: order.shippingAddress.address2,
+        postalCode: order.shippingAddress.postalCode,
+        city: order.shippingAddress.city,
+        countryCode: order.shippingAddress.countryCode,
+      },
+    }),
+  })
+
+  if (error) {
+    throw new Error(`Email send failed: ${JSON.stringify(error)}`)
+  }
+
+  console.log(`[email] Order confirmation sent to ${toEmail} (id: ${data?.id})`)
+}
+
 // ── Shipped Notification ──
 
 export async function sendShippedEmail(
