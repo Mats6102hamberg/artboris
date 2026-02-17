@@ -3,9 +3,8 @@ export async function register() {
     await import('../sentry.server.config')
   }
 
-  if (process.env.NEXT_RUNTIME === 'edge') {
-    await import('../sentry.edge.config')
-  }
+  // Edge runtime skipped — middleware is a simple auth check
+  // and Sentry SDK exceeds Vercel's 1MB edge function limit
 }
 
 export const onRequestError = async (
