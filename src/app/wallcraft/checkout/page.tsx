@@ -337,11 +337,17 @@ export default function CheckoutPage() {
                 </p>
               </div>
 
+              {/* AI terms notice (Nivå 4) */}
+              <p className="text-[10px] text-gray-400 text-center mt-5 leading-relaxed">
+                AI-motiv säljs som tryck för privat bruk enligt våra{' '}
+                <a href="/terms" target="_blank" className="underline underline-offset-2 hover:text-gray-500">villkor</a>.
+              </p>
+
               {/* Place order button */}
               <button
                 onClick={handlePlaceOrder}
                 disabled={!isFormValid || isProcessing}
-                className="w-full mt-6 bg-gray-900 text-white py-3.5 rounded-xl font-medium hover:bg-gray-800 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+                className="w-full mt-3 bg-gray-900 text-white py-3.5 rounded-xl font-medium hover:bg-gray-800 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
               >
                 {isProcessing ? (
                   <span className="flex items-center justify-center gap-2">

@@ -1,10 +1,13 @@
 'use client'
 
-import { useState, useRef, useEffect, useCallback } from 'react'
+import { useState, useRef, useEffect, useCallback, Suspense } from 'react'
 import { useRouter } from 'next/navigation'
 import Button from '@/components/ui/Button'
 import CreditBadge from '@/components/poster/CreditBadge'
 import BorisButton from '@/components/boris/BorisButton'
+import RemixMenu, { RemixBanner } from '@/components/wallcraft/RemixMenu'
+import { useSourceImage } from '@/hooks/useSourceImage'
+import { RENDER_SCALE, exportHiResPng } from '@/lib/wallcraft/hiResExport'
 import { refineArtwork } from '@/lib/mandala/refineArtwork'
 
 // ─── Types ───
@@ -41,7 +44,7 @@ const BACKGROUNDS = [
   { name: 'Warm Gray', value: '#E8E4DF' },
 ]
 
-export default function AbstractPage() {
+function AbstractContent() {
   const router = useRouter()
 
   const canvasRef = useRef<HTMLCanvasElement>(null)
@@ -62,6 +65,7 @@ export default function AbstractPage() {
   const [canvasSize, setCanvasSize] = useState(600)
   const [isRunning, setIsRunning] = useState(false)
   const [isSaving, setIsSaving] = useState(false)
+  const [canvasReady, setCanvasReady] = useState(false)
   const [history, setHistory] = useState<ImageData[]>([])
 
   // Refine state
@@ -87,22 +91,29 @@ export default function AbstractPage() {
     return () => window.removeEventListener('resize', updateSize)
   }, [])
 
-  // Init canvas
+  // Init canvas — internal resolution = displaySize * RENDER_SCALE for print quality
+  const internalSize = canvasSize * RENDER_SCALE
+
   useEffect(() => {
     const canvas = canvasRef.current
     if (!canvas) return
-    canvas.width = canvasSize
-    canvas.height = canvasSize
+    canvas.width = internalSize
+    canvas.height = internalSize
     const ctx = canvas.getContext('2d')
     if (!ctx) return
     ctx.fillStyle = bgColor
-    ctx.fillRect(0, 0, canvasSize, canvasSize)
-  }, [canvasSize])
+    ctx.fillRect(0, 0, internalSize, internalSize)
+    setCanvasReady(true)
+  }, [internalSize])
+
+  // Remix: load source image from another tool (waits for canvasReady)
+  const { remixFrom, remixDesignId } = useSourceImage({ canvasRef, canvasSize, canvasReady })
 
   // Generate flow field
+  const cellSize = 20 * RENDER_SCALE
   const generateFlowField = useCallback(() => {
-    const cols = Math.ceil(canvasSize / 20)
-    const rows = Math.ceil(canvasSize / 20)
+    const cols = Math.ceil(internalSize / cellSize)
+    const rows = Math.ceil(internalSize / cellSize)
     const field: number[] = []
     const seed = Math.random() * 1000
 
@@ -142,7 +153,7 @@ export default function AbstractPage() {
     }
 
     flowFieldRef.current = field
-  }, [canvasSize, flowStyle, complexity])
+  }, [internalSize, flowStyle, complexity])
 
   // Spawn particles
   const spawnParticles = useCallback(() => {
@@ -151,19 +162,19 @@ export default function AbstractPage() {
 
     for (let i = 0; i < particleCount; i++) {
       particles.push({
-        x: Math.random() * canvasSize,
-        y: Math.random() * canvasSize,
+        x: Math.random() * internalSize,
+        y: Math.random() * internalSize,
         vx: 0,
         vy: 0,
         color: palette.colors[Math.floor(Math.random() * palette.colors.length)],
         life: 0,
         maxLife: 100 + Math.random() * 200,
-        size: particleSize * (0.5 + Math.random()),
+        size: particleSize * RENDER_SCALE * (0.5 + Math.random()),
       })
     }
 
     particlesRef.current = particles
-  }, [activePalette, particleCount, canvasSize, particleSize])
+  }, [activePalette, particleCount, internalSize, particleSize])
 
   // Animation loop
   const animate = useCallback(() => {
@@ -174,12 +185,12 @@ export default function AbstractPage() {
     const ctx = canvas.getContext('2d')
     if (!ctx) return
 
-    const cols = Math.ceil(canvasSize / 20)
+    const cols = Math.ceil(internalSize / cellSize)
 
     // Fade trail
     ctx.fillStyle = bgColor
     ctx.globalAlpha = 1 - trailLength
-    ctx.fillRect(0, 0, canvasSize, canvasSize)
+    ctx.fillRect(0, 0, internalSize, internalSize)
     ctx.globalAlpha = 1
 
     const field = flowFieldRef.current
@@ -191,8 +202,8 @@ export default function AbstractPage() {
       p.life++
 
       if (p.life > p.maxLife) {
-        p.x = Math.random() * canvasSize
-        p.y = Math.random() * canvasSize
+        p.x = Math.random() * internalSize
+        p.y = Math.random() * internalSize
         p.life = 0
         p.maxLife = 100 + Math.random() * 200
         p.color = palette.colors[Math.floor(Math.random() * palette.colors.length)]
@@ -201,8 +212,8 @@ export default function AbstractPage() {
         continue
       }
 
-      const col = Math.floor(p.x / 20)
-      const row = Math.floor(p.y / 20)
+      const col = Math.floor(p.x / cellSize)
+      const row = Math.floor(p.y / cellSize)
       const idx = row * cols + col
 
       if (idx >= 0 && idx < field.length) {
@@ -217,10 +228,10 @@ export default function AbstractPage() {
       p.y += p.vy
 
       // Wrap around
-      if (p.x < 0) p.x = canvasSize
-      if (p.x > canvasSize) p.x = 0
-      if (p.y < 0) p.y = canvasSize
-      if (p.y > canvasSize) p.y = 0
+      if (p.x < 0) p.x = internalSize
+      if (p.x > internalSize) p.x = 0
+      if (p.y < 0) p.y = internalSize
+      if (p.y > internalSize) p.y = 0
 
       // Draw
       const lifeRatio = p.life / p.maxLife
@@ -234,7 +245,7 @@ export default function AbstractPage() {
     }
 
     animFrameRef.current = requestAnimationFrame(animate)
-  }, [canvasSize, bgColor, trailLength, speed, activePalette])
+  }, [internalSize, bgColor, trailLength, speed, activePalette])
 
   const startGeneration = () => {
     const canvas = canvasRef.current
@@ -247,7 +258,7 @@ export default function AbstractPage() {
 
     // Clear canvas
     ctx.fillStyle = bgColor
-    ctx.fillRect(0, 0, canvasSize, canvasSize)
+    ctx.fillRect(0, 0, internalSize, internalSize)
 
     generateFlowField()
     spawnParticles()
@@ -294,7 +305,7 @@ export default function AbstractPage() {
     const ctx = canvas.getContext('2d')
     if (!ctx) return
     ctx.fillStyle = bgColor
-    ctx.fillRect(0, 0, canvasSize, canvasSize)
+    ctx.fillRect(0, 0, internalSize, internalSize)
   }
 
   // Cleanup
@@ -364,10 +375,9 @@ export default function AbstractPage() {
     try {
       const canvas = canvasRef.current
       if (!canvas) throw new Error('No canvas')
-      const blob = await new Promise<Blob | null>((resolve) => canvas.toBlob(resolve, 'image/png', 1.0))
-      if (!blob) throw new Error('Canvas export failed')
+      const blob = await exportHiResPng(canvas)
       const formData = new FormData()
-      formData.append('file', blob, 'abstract.png')
+      formData.append('file', blob, 'abstract.jpg')
       const uploadRes = await fetch('/api/rooms/upload', { method: 'POST', body: formData })
       const uploadData = await uploadRes.json()
       if (!uploadData.success) throw new Error('Upload failed')
@@ -427,7 +437,8 @@ export default function AbstractPage() {
       </header>
 
       <main className="max-w-7xl mx-auto px-4 py-5 sm:py-8">
-        <div className="flex flex-col lg:flex-row gap-6">
+        <RemixBanner remixFrom={remixFrom} remixDesignId={remixDesignId} />
+        <div className="flex flex-col lg:flex-row gap-6 mt-3">
           {/* Canvas */}
           <div className="flex-1 flex flex-col items-center">
             <div
@@ -561,6 +572,8 @@ export default function AbstractPage() {
                 {isSaving ? (<><div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" /> Saving...</>) : '🖼️ Use as Wall Art'}
               </Button>
               <Button variant="secondary" onClick={downloadPng} className="w-full">↓ Download PNG</Button>
+              <div className="h-px bg-gray-100 my-1" />
+              <RemixMenu currentTool="abstract" canvasRef={canvasRef} />
             </div>
           </div>
         </div>
@@ -624,5 +637,13 @@ export default function AbstractPage() {
         ]}
       />
     </div>
+  )
+}
+
+export default function AbstractPage() {
+  return (
+    <Suspense>
+      <AbstractContent />
+    </Suspense>
   )
 }

@@ -61,11 +61,21 @@ export async function reportError(incident: CrashCatcherIncident): Promise<void>
 
 /**
  * Convenience: report an Error object from an API route.
+ * Reports to both Sentry and CrashCatcher.
  */
 export function reportApiError(route: string, error: unknown, severity: CrashCatcherIncident['severity'] = 'HIGH'): void {
   const message = error instanceof Error ? error.message : String(error)
   const stack = error instanceof Error ? error.stack : undefined
 
+  // Sentry (primary)
+  import('@sentry/nextjs').then(Sentry => {
+    Sentry.captureException(error, {
+      tags: { route },
+      extra: { severity },
+    })
+  }).catch(() => {})
+
+  // CrashCatcher (optional, if configured)
   reportError({
     title: `API error: ${route}`,
     description: stack || message,

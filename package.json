@@ -16,6 +16,7 @@
     "@auth/prisma-adapter": "^2.11.1",
     "@prisma/client": "^6.19.2",
     "@react-email/components": "^1.0.7",
+    "@sentry/nextjs": "^10.39.0",
     "@sparticuz/chromium": "^143.0.4",
     "@types/cheerio": "^0.22.35",
     "@types/puppeteer": "^5.4.7",

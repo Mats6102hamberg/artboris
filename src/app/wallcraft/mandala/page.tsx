@@ -1,11 +1,14 @@
 'use client'
 
-import { useState, useRef, useEffect, useCallback } from 'react'
+import { useState, useRef, useEffect, useCallback, Suspense } from 'react'
 import { useRouter } from 'next/navigation'
 import { useTranslation } from '@/lib/i18n/context'
 import Button from '@/components/ui/Button'
 import CreditBadge from '@/components/poster/CreditBadge'
 import BorisButton from '@/components/boris/BorisButton'
+import RemixMenu, { RemixBanner } from '@/components/wallcraft/RemixMenu'
+import { useSourceImage } from '@/hooks/useSourceImage'
+import { RENDER_SCALE, exportHiResPng } from '@/lib/wallcraft/hiResExport'
 import { refineArtwork } from '@/lib/mandala/refineArtwork'
 
 // ─── Types ───
@@ -38,7 +41,7 @@ const BACKGROUNDS = [
 
 const BRUSH_SIZES = [2, 4, 8, 14, 22, 36]
 
-export default function MandalaPage() {
+function MandalaContent() {
   const { t } = useTranslation()
   const router = useRouter()
 
@@ -59,6 +62,7 @@ export default function MandalaPage() {
   const [historyIndex, setHistoryIndex] = useState(-1)
   const [isSaving, setIsSaving] = useState(false)
   const [canvasSize, setCanvasSize] = useState(600)
+  const [canvasReady, setCanvasReady] = useState(false)
 
   // Refine state
   const [isRefining, setIsRefining] = useState(false)
@@ -84,18 +88,29 @@ export default function MandalaPage() {
     return () => window.removeEventListener('resize', updateSize)
   }, [])
 
-  // Init canvas
+  // Init canvas — internal resolution = displaySize * RENDER_SCALE for print quality
+  const internalSize = canvasSize * RENDER_SCALE
+
   useEffect(() => {
     const canvas = canvasRef.current
     if (!canvas) return
-    canvas.width = canvasSize
-    canvas.height = canvasSize
+    canvas.width = internalSize
+    canvas.height = internalSize
     const ctx = canvas.getContext('2d')
     if (!ctx) return
     ctx.fillStyle = bgColor
-    ctx.fillRect(0, 0, canvasSize, canvasSize)
+    ctx.fillRect(0, 0, internalSize, internalSize)
     saveHistory()
-  }, [canvasSize])
+    setCanvasReady(true)
+  }, [internalSize])
+
+  // Remix: load source image from another tool (waits for canvasReady)
+  const { remixFrom, remixDesignId } = useSourceImage({
+    canvasRef,
+    canvasSize,
+    canvasReady,
+    onLoaded: () => saveHistory(),
+  })
 
   // Draw guide lines on overlay
   useEffect(() => {
@@ -125,7 +140,7 @@ export default function MandalaPage() {
       ctx.stroke()
     }
 
-    // Concentric circles
+    // Concentric circles (overlay uses display size, not internal)
     const circles = [0.15, 0.3, 0.5, 0.7, 0.9]
     circles.forEach((ratio) => {
       ctx.beginPath()
@@ -239,7 +254,7 @@ export default function MandalaPage() {
     ctx.moveTo(x1, y1)
     ctx.lineTo(x2, y2)
     ctx.strokeStyle = tool === 'eraser' ? bgColor : color
-    ctx.lineWidth = brushSize
+    ctx.lineWidth = brushSize * RENDER_SCALE
     ctx.lineCap = 'round'
     ctx.lineJoin = 'round'
     ctx.globalAlpha = tool === 'eraser' ? 1 : opacity
@@ -319,15 +334,12 @@ export default function MandalaPage() {
     setIsSaving(true)
 
     try {
-      // Export canvas as blob
-      const blob = await new Promise<Blob | null>((resolve) =>
-        canvas.toBlob(resolve, 'image/png', 1.0)
-      )
-      if (!blob) throw new Error('Canvas export failed')
+      // Export canvas as high-res PNG for print quality
+      const blob = await exportHiResPng(canvas)
 
       // Upload to room upload endpoint (reuse existing upload infra)
       const formData = new FormData()
-      formData.append('file', blob, 'mandala.png')
+      formData.append('file', blob, 'mandala.jpg')
 
       // Upload the mandala image
       const uploadRes = await fetch('/api/rooms/upload', { method: 'POST', body: formData })
@@ -471,7 +483,8 @@ export default function MandalaPage() {
       </header>
 
       <main className="max-w-7xl mx-auto px-4 py-5 sm:py-8">
-        <div className="flex flex-col lg:flex-row gap-6">
+        <RemixBanner remixFrom={remixFrom} remixDesignId={remixDesignId} />
+        <div className="flex flex-col lg:flex-row gap-6 mt-3">
           {/* Canvas area */}
           <div className="flex-1 flex flex-col items-center">
             <div
@@ -718,6 +731,8 @@ export default function MandalaPage() {
               >
                 ↓ Download PNG
               </Button>
+              <div className="h-px bg-gray-100 my-1" />
+              <RemixMenu currentTool="mandala" canvasRef={canvasRef} />
             </div>
           </div>
         </div>
@@ -829,5 +844,13 @@ export default function MandalaPage() {
         ]}
       />
     </div>
+  )
+}
+
+export default function MandalaPage() {
+  return (
+    <Suspense>
+      <MandalaContent />
+    </Suspense>
   )
 }

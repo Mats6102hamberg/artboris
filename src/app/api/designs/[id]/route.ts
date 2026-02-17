@@ -59,6 +59,7 @@ export async function PATCH(
     if (body.cropMode !== undefined) allowedFields.cropMode = body.cropMode
     if (body.cropOffsetX !== undefined) allowedFields.cropOffsetX = body.cropOffsetX
     if (body.cropOffsetY !== undefined) allowedFields.cropOffsetY = body.cropOffsetY
+    if (body.isAiGenerated !== undefined) allowedFields.isAiGenerated = body.isAiGenerated
 
     const design = await prisma.design.update({
       where: { id },

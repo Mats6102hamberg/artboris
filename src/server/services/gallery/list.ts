@@ -5,6 +5,7 @@ export interface GalleryListOptions {
   limit?: number
   offset?: number
   sortBy?: 'recent' | 'popular'
+  aiOnly?: boolean
 }
 
 export async function listGallery(options: GalleryListOptions = {}) {
@@ -12,6 +13,7 @@ export async function listGallery(options: GalleryListOptions = {}) {
 
   const where: any = { isPublic: true }
   if (style) where.style = style
+  if (options.aiOnly) where.isAiGenerated = true
 
   const orderBy = sortBy === 'popular'
     ? { likesCount: 'desc' as const }
@@ -23,6 +25,16 @@ export async function listGallery(options: GalleryListOptions = {}) {
       orderBy,
       take: limit,
       skip: offset,
+      select: {
+        id: true,
+        title: true,
+        description: true,
+        imageUrl: true,
+        style: true,
+        likesCount: true,
+        isAiGenerated: true,
+        createdAt: true,
+      },
     }),
     prisma.design.count({ where }),
   ])

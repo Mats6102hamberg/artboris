@@ -127,8 +127,23 @@ async function processCheckoutCompleted(orderId: string, session: Stripe.Checkou
   // ── Fetch OrderItems ──
   const items = await prisma.orderItem.findMany({
     where: { orderId },
-    include: { design: { select: { imageUrl: true } } },
+    include: { design: { select: { imageUrl: true, isAiGenerated: true } } },
   })
+
+  // ── Auto-publish AI-generated designs to Gallery ──
+  for (const item of items) {
+    if (item.design.isAiGenerated) {
+      try {
+        await prisma.design.update({
+          where: { id: item.designId },
+          data: { isPublic: true },
+        })
+        console.log(`[stripe webhook] Design ${item.designId} auto-published to Gallery (AI-generated)`)
+      } catch (pubErr) {
+        console.error(`[stripe webhook] Failed to auto-publish design ${item.designId}:`, pubErr)
+      }
+    }
+  }
 
   console.log(`[stripe webhook] Order ${orderId}: ${items.length} item(s) to process`)
 

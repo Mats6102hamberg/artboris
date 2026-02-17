@@ -1,10 +1,13 @@
 'use client'
 
-import { useState, useRef, useEffect, useCallback } from 'react'
+import { useState, useRef, useEffect, useCallback, Suspense } from 'react'
 import { useRouter } from 'next/navigation'
 import Button from '@/components/ui/Button'
 import CreditBadge from '@/components/poster/CreditBadge'
 import BorisButton from '@/components/boris/BorisButton'
+import RemixMenu, { RemixBanner } from '@/components/wallcraft/RemixMenu'
+import { useSourceImage } from '@/hooks/useSourceImage'
+import { HIRES_EXPORT_SIZE } from '@/lib/wallcraft/hiResExport'
 import { refineArtwork } from '@/lib/mandala/refineArtwork'
 
 // ─── Types ───
@@ -38,7 +41,7 @@ const BACKGROUNDS = [
 const BRUSH_SIZES = [1, 2, 4, 8, 14, 22]
 const TILE_SIZES = [64, 96, 128, 192, 256]
 
-export default function PatternPage() {
+function PatternContent() {
   const router = useRouter()
 
   // Canvas refs
@@ -61,6 +64,7 @@ export default function PatternPage() {
   const [history, setHistory] = useState<HistoryEntry[]>([])
   const [historyIndex, setHistoryIndex] = useState(-1)
   const [isSaving, setIsSaving] = useState(false)
+  const [canvasReady, setCanvasReady] = useState(false)
   const [previewSize, setPreviewSize] = useState(400)
 
   // Refine state
@@ -99,7 +103,16 @@ export default function PatternPage() {
     ctx.fillRect(0, 0, tileSize, tileSize)
     saveHistory()
     updatePreview()
+    setCanvasReady(true)
   }, [tileSize])
+
+  // Remix: load source image from another tool onto tile canvas (waits for canvasReady)
+  const { remixFrom, remixDesignId } = useSourceImage({
+    canvasRef: tileCanvasRef,
+    canvasSize: tileSize,
+    canvasReady,
+    onLoaded: () => { saveHistory(); updatePreview() },
+  })
 
   // Update preview when tile changes
   const updatePreview = useCallback(() => {
@@ -386,40 +399,55 @@ export default function PatternPage() {
   }
 
   // ─── Export ───
-  const exportFullPattern = (): HTMLCanvasElement => {
+  const exportFullPattern = (outputSize?: number): HTMLCanvasElement => {
     const tile = tileCanvasRef.current!
-    const size = 1024
+    const size = outputSize || 1024
+
+    // Upscale tile for high-res output
+    const scaleFactor = Math.max(1, Math.ceil(size / (tileSize * 8)))
+    const hiTileSize = tileSize * scaleFactor
+    let hiTile: HTMLCanvasElement | HTMLCanvasElement = tile
+    if (scaleFactor > 1) {
+      hiTile = document.createElement('canvas')
+      hiTile.width = hiTileSize
+      hiTile.height = hiTileSize
+      const tCtx = hiTile.getContext('2d')!
+      tCtx.imageSmoothingEnabled = true
+      tCtx.imageSmoothingQuality = 'high'
+      tCtx.drawImage(tile, 0, 0, hiTileSize, hiTileSize)
+    }
+
     const exportCanvas = document.createElement('canvas')
     exportCanvas.width = size
     exportCanvas.height = size
     const ctx = exportCanvas.getContext('2d')!
-    const cols = Math.ceil(size / tileSize) + 1
-    const rows = Math.ceil(size / tileSize) + 1
+    const cols = Math.ceil(size / hiTileSize) + 1
+    const rows = Math.ceil(size / hiTileSize) + 1
     for (let row = 0; row < rows; row++) {
       for (let col = 0; col < cols; col++) {
-        let x = col * tileSize
-        let y = row * tileSize
+        let x = col * hiTileSize
+        let y = row * hiTileSize
         ctx.save()
         if (repeatMode === 'brick') {
-          if (row % 2 === 1) x += tileSize / 2
+          if (row % 2 === 1) x += hiTileSize / 2
         } else if (repeatMode === 'mirror') {
           const flipH = col % 2 === 1
           const flipV = row % 2 === 1
-          ctx.translate(x + (flipH ? tileSize : 0), y + (flipV ? tileSize : 0))
+          ctx.translate(x + (flipH ? hiTileSize : 0), y + (flipV ? hiTileSize : 0))
           ctx.scale(flipH ? -1 : 1, flipV ? -1 : 1)
-          ctx.drawImage(tile, 0, 0)
+          ctx.drawImage(hiTile, 0, 0)
           ctx.restore()
           continue
         } else if (repeatMode === 'diagonal') {
           if ((row + col) % 2 === 1) {
-            ctx.translate(x + tileSize, y)
+            ctx.translate(x + hiTileSize, y)
             ctx.scale(-1, 1)
-            ctx.drawImage(tile, 0, 0)
+            ctx.drawImage(hiTile, 0, 0)
             ctx.restore()
             continue
           }
         }
-        ctx.drawImage(tile, x, y)
+        ctx.drawImage(hiTile, x, y)
         ctx.restore()
       }
     }
@@ -429,11 +457,19 @@ export default function PatternPage() {
   const handleSaveAsDesign = async () => {
     setIsSaving(true)
     try {
-      const exportCanvas = exportFullPattern()
-      const blob = await new Promise<Blob | null>((resolve) => exportCanvas.toBlob(resolve, 'image/png', 1.0))
+      const exportCanvas = exportFullPattern(HIRES_EXPORT_SIZE)
+      // White background for JPEG (no transparency)
+      const finalCanvas = document.createElement('canvas')
+      finalCanvas.width = exportCanvas.width
+      finalCanvas.height = exportCanvas.height
+      const fCtx = finalCanvas.getContext('2d')!
+      fCtx.fillStyle = '#FFFFFF'
+      fCtx.fillRect(0, 0, finalCanvas.width, finalCanvas.height)
+      fCtx.drawImage(exportCanvas, 0, 0)
+      const blob = await new Promise<Blob | null>((resolve) => finalCanvas.toBlob(resolve, 'image/jpeg', 0.95))
       if (!blob) throw new Error('Canvas export failed')
       const formData = new FormData()
-      formData.append('file', blob, 'pattern.png')
+      formData.append('file', blob, 'pattern.jpg')
       const uploadRes = await fetch('/api/rooms/upload', { method: 'POST', body: formData })
       const uploadData = await uploadRes.json()
       if (!uploadData.success) throw new Error('Upload failed')
@@ -501,7 +537,8 @@ export default function PatternPage() {
       </header>
 
       <main className="max-w-7xl mx-auto px-4 py-5 sm:py-8">
-        <div className="flex flex-col lg:flex-row gap-6">
+        <RemixBanner remixFrom={remixFrom} remixDesignId={remixDesignId} />
+        <div className="flex flex-col lg:flex-row gap-6 mt-3">
           {/* Left: Tile editor + Preview */}
           <div className="flex-1 flex flex-col items-center gap-6">
             {/* Tile editor */}
@@ -695,6 +732,8 @@ export default function PatternPage() {
                 {isSaving ? (<><div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" /> Saving...</>) : '🖼️ Use as Wall Art'}
               </Button>
               <Button variant="secondary" onClick={downloadPng} className="w-full">↓ Download PNG</Button>
+              <div className="h-px bg-gray-100 my-1" />
+              <RemixMenu currentTool="pattern" canvasRef={tileCanvasRef} exportCanvas={exportFullPattern} />
             </div>
           </div>
         </div>
@@ -758,5 +797,13 @@ export default function PatternPage() {
         ]}
       />
     </div>
+  )
+}
+
+export default function PatternPage() {
+  return (
+    <Suspense>
+      <PatternContent />
+    </Suspense>
   )
 }

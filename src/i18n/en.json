@@ -109,5 +109,12 @@
   },
   "frames": {
     "chooseFrame": "Choose frame"
+  },
+  "legal": {
+    "studioNotice": "AI-generated designs are created within the ArtBoris studio and are sold as physical prints for personal use. ArtBoris may display these designs in its gallery.",
+    "studioConsent": "By generating a design you agree to our terms.",
+    "galleryNotice": "AI-generated works created in the studio may be displayed in the ArtBoris Gallery.",
+    "checkoutNotice": "AI-generated designs are sold as physical prints for personal use according to our terms.",
+    "termsCheckbox": "I agree to the Terms of Service and Privacy Policy"
   }
 }

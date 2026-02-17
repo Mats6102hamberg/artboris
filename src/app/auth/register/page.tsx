@@ -11,6 +11,7 @@ export default function RegisterPage() {
   const [password, setPassword] = useState('')
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
+  const [acceptedTerms, setAcceptedTerms] = useState(false)
 
   const handleRegister = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -130,9 +131,29 @@ export default function RegisterPage() {
               <p className="text-red-600 text-sm">{error}</p>
             )}
 
+            {/* Terms checkbox */}
+            <label className="flex items-start gap-3 cursor-pointer">
+              <input
+                type="checkbox"
+                checked={acceptedTerms}
+                onChange={(e) => setAcceptedTerms(e.target.checked)}
+                className="w-4 h-4 mt-0.5 accent-gray-900 rounded"
+              />
+              <span className="text-sm text-gray-600 leading-snug">
+                Jag godkänner{' '}
+                <a href="/terms" target="_blank" className="text-gray-900 font-medium underline underline-offset-2 hover:text-gray-700">
+                  användarvillkoren
+                </a>{' '}
+                och{' '}
+                <a href="/terms#privacy" target="_blank" className="text-gray-900 font-medium underline underline-offset-2 hover:text-gray-700">
+                  integritetspolicyn
+                </a>
+              </span>
+            </label>
+
             <button
               type="submit"
-              disabled={loading}
+              disabled={loading || !acceptedTerms}
               className="w-full bg-gray-900 text-white py-3 rounded-lg font-medium hover:bg-gray-800 transition-colors disabled:opacity-50"
             >
               {loading ? 'Skapar konto...' : 'Skapa konto'}

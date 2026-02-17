@@ -109,5 +109,12 @@
   },
   "frames": {
     "chooseFrame": "Välj ram"
+  },
+  "legal": {
+    "studioNotice": "AI-genererade motiv skapas i ArtBoris studio och säljs som tryck för privat bruk. ArtBoris kan visa dessa motiv i sitt galleri.",
+    "studioConsent": "Genom att generera ett motiv godkänner du våra villkor.",
+    "galleryNotice": "AI-verk skapade i studion kan visas i ArtBoris Gallery.",
+    "checkoutNotice": "AI-motiv säljs som tryck för privat bruk enligt våra villkor.",
+    "termsCheckbox": "Jag godkänner användarvillkoren och integritetspolicyn"
   }
 }

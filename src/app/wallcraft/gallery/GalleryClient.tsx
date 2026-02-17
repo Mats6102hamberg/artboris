@@ -13,9 +13,10 @@ interface GalleryItem {
   imageUrl: string
   style: string
   likesCount: number
+  isAiGenerated?: boolean
 }
 
-const STYLE_FILTERS = ['all', 'nordic', 'abstract', 'minimal', 'botanical', 'retro']
+const STYLE_FILTERS = ['all', 'ai-art', 'nordic', 'abstract', 'minimal', 'botanical', 'retro']
 
 export default function GalleryPage() {
   const { t } = useTranslation()
@@ -28,7 +29,11 @@ export default function GalleryPage() {
   useEffect(() => {
     setLoading(true)
     const params = new URLSearchParams({ sortBy })
-    if (activeStyle !== 'all') params.set('style', activeStyle)
+    if (activeStyle === 'ai-art') {
+      params.set('aiOnly', 'true')
+    } else if (activeStyle !== 'all') {
+      params.set('style', activeStyle)
+    }
     fetch(`/api/gallery/list?${params}`)
       .then(res => res.json())
       .then(data => {
@@ -71,7 +76,7 @@ export default function GalleryPage() {
                     : 'bg-white text-gray-600 border border-gray-200 hover:border-gray-300'
                 }`}
               >
-                {style === 'all' ? 'All' : style.charAt(0).toUpperCase() + style.slice(1)}
+                {style === 'all' ? 'All' : style === 'ai-art' ? '✨ AI Art' : style.charAt(0).toUpperCase() + style.slice(1)}
               </button>
             ))}
           </div>
@@ -111,6 +116,13 @@ export default function GalleryPage() {
                     alt={item.title}
                     className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                   />
+                  {item.isAiGenerated && (
+                    <div className="absolute top-2 left-2 z-10">
+                      <span className="bg-purple-600/90 backdrop-blur-sm text-white text-[10px] font-semibold px-2 py-0.5 rounded-full tracking-wide uppercase">
+                        AI Generated
+                      </span>
+                    </div>
+                  )}
                   <div className="absolute inset-0 bg-gradient-to-t from-black/30 via-transparent to-transparent sm:opacity-0 sm:group-hover:opacity-100 transition-opacity" />
                   <div className="absolute bottom-3 left-3 right-3 flex items-end justify-between sm:opacity-0 sm:group-hover:opacity-100 transition-opacity">
                     <span className="text-white text-xs font-medium bg-black/40 backdrop-blur-sm px-2 py-1 rounded-md">
@@ -131,16 +143,25 @@ export default function GalleryPage() {
         )}
       </div>
 
+      {/* AI Art notice (Nivå 3 — discreet) */}
+      <div className="max-w-6xl mx-auto px-6 mt-10">
+        <p className="text-xs text-gray-400 text-center leading-relaxed">
+          {t('legal.galleryNotice') !== 'legal.galleryNotice'
+            ? t('legal.galleryNotice')
+            : <>AI-generated works created in the studio may be displayed in the ArtBoris Gallery. <a href="/terms" className="underline underline-offset-2 hover:text-gray-500">Terms</a></>}
+        </p>
+      </div>
+
       {/* Sell your art CTA */}
-      <div className="max-w-7xl mx-auto px-6 mt-16 mb-8">
+      <div className="max-w-7xl mx-auto px-6 mt-8 mb-8">
         <div className="bg-white rounded-2xl border border-gray-200/60 p-8 sm:p-10 flex flex-col sm:flex-row items-center justify-between gap-6">
           <div>
             <h2 className="text-xl font-medium text-gray-900">
-              Vill du sälja din konst?
+              Want to sell your art?
             </h2>
             <p className="text-gray-500 mt-1 max-w-md">
-              Registrera dig som konstnär på Artboris Art Market.
-              Gör det möjligt för köpare att prova ditt verk på sin vägg innan de köper.
+              Register as an artist on Artboris Art Market.
+              Let buyers preview your work on their wall before purchasing.
             </p>
           </div>
           <Button
@@ -148,7 +169,7 @@ export default function GalleryPage() {
             onClick={() => router.push('/market/artist')}
             className="flex-shrink-0"
           >
-            Bli konstnär
+            Become an Artist
           </Button>
         </div>
       </div>

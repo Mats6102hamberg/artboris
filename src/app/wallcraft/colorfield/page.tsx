@@ -1,10 +1,13 @@
 'use client'
 
-import { useState, useRef, useEffect, useCallback } from 'react'
+import { useState, useRef, useEffect, useCallback, Suspense } from 'react'
 import { useRouter } from 'next/navigation'
 import Button from '@/components/ui/Button'
 import CreditBadge from '@/components/poster/CreditBadge'
 import BorisButton from '@/components/boris/BorisButton'
+import RemixMenu, { RemixBanner } from '@/components/wallcraft/RemixMenu'
+import { useSourceImage } from '@/hooks/useSourceImage'
+import { HIRES_EXPORT_SIZE } from '@/lib/wallcraft/hiResExport'
 import { refineArtwork } from '@/lib/mandala/refineArtwork'
 
 // ─── Types ───
@@ -45,9 +48,11 @@ const BACKGROUNDS = [
 let fieldIdCounter = 0
 const newFieldId = () => `field-${++fieldIdCounter}-${Date.now()}`
 
-export default function ColorFieldPage() {
+function ColorFieldContent() {
   const router = useRouter()
   const canvasRef = useRef<HTMLCanvasElement>(null)
+  const sourceImageRef = useRef<HTMLImageElement | null>(null)
+  const [canvasReady, setCanvasReady] = useState(false)
 
   const [fields, setFields] = useState<ColorField[]>([
     { id: newFieldId(), color: '#8B0000', weight: 3 },
@@ -101,6 +106,19 @@ export default function ColorFieldPage() {
     // Background
     ctx.fillStyle = bgColor
     ctx.fillRect(0, 0, canvasSize, canvasSize)
+
+    // Draw source image as background layer (from remix)
+    const srcImg = sourceImageRef.current
+    if (srcImg) {
+      const scale = Math.max(canvasSize / srcImg.width, canvasSize / srcImg.height)
+      const w = srcImg.width * scale
+      const h = srcImg.height * scale
+      const x = (canvasSize - w) / 2
+      const y = (canvasSize - h) / 2
+      ctx.globalAlpha = 0.3
+      ctx.drawImage(srcImg, x, y, w, h)
+      ctx.globalAlpha = 1
+    }
 
     if (fields.length === 0) return
 
@@ -198,7 +216,31 @@ export default function ColorFieldPage() {
 
   useEffect(() => {
     renderComposition()
+    setCanvasReady(true)
   }, [renderComposition])
+
+  // Remix: load source image from another tool (stored in ref, drawn as bg layer by renderComposition)
+  const { remixFrom, remixDesignId } = useSourceImage({
+    canvasRef,
+    canvasSize,
+    canvasReady,
+    onLoaded: () => {
+      // Store the loaded image element in ref so renderComposition can use it
+      const canvas = canvasRef.current
+      if (!canvas) return
+      const ctx = canvas.getContext('2d')
+      if (!ctx) return
+      // Extract the image from the canvas (it was just drawn by useSourceImage)
+      // We need to capture it as an Image element for renderComposition to reuse
+      const dataUrl = canvas.toDataURL('image/png')
+      const img = new Image()
+      img.onload = () => {
+        sourceImageRef.current = img
+        renderComposition()
+      }
+      img.src = dataUrl
+    },
+  })
 
   const roundRect = (ctx: CanvasRenderingContext2D, x: number, y: number, w: number, h: number, r: number) => {
     ctx.beginPath()
@@ -342,16 +384,130 @@ export default function ColorFieldPage() {
     setSliderPosition(Math.max(0, Math.min(100, ((clientX - rect.left) / rect.width) * 100)))
   }
 
+  // ─── High-res export ───
+  const exportHiResComposition = (): HTMLCanvasElement => {
+    const size = HIRES_EXPORT_SIZE
+    const hiCanvas = document.createElement('canvas')
+    hiCanvas.width = size
+    hiCanvas.height = size
+    const ctx = hiCanvas.getContext('2d')
+    if (!ctx) return hiCanvas
+
+    // Background
+    ctx.fillStyle = bgColor
+    ctx.fillRect(0, 0, size, size)
+
+    // Source image background layer (from remix)
+    const srcImg = sourceImageRef.current
+    if (srcImg) {
+      const sc = Math.max(size / srcImg.width, size / srcImg.height)
+      const w = srcImg.width * sc
+      const h = srcImg.height * sc
+      ctx.globalAlpha = 0.3
+      ctx.drawImage(srcImg, (size - w) / 2, (size - h) / 2, w, h)
+      ctx.globalAlpha = 1
+    }
+
+    if (fields.length === 0) return hiCanvas
+
+    const totalWeight = fields.reduce((sum, f) => sum + f.weight, 0)
+    const scaledPad = (padding / canvasSize) * size
+    const scaledGap = (gap / canvasSize) * size
+    const scaledRadius = (borderRadius / canvasSize) * size
+    const inner = size - scaledPad * 2
+
+    const drawHiField = (x: number, y: number, w: number, h: number, color: string) => {
+      ctx.save()
+      if (edge === 'feathered' || edge === 'painterly') {
+        const passes = edge === 'painterly' ? 8 : 4
+        for (let i = passes; i >= 0; i--) {
+          const spread = i * (edge === 'painterly' ? 3 : 2) * (size / canvasSize)
+          ctx.globalAlpha = 1 / (passes + 1)
+          ctx.fillStyle = color
+          if (scaledRadius > 0) {
+            roundRect(ctx, x - spread, y - spread, w + spread * 2, h + spread * 2, scaledRadius + spread)
+          } else {
+            ctx.fillRect(x - spread, y - spread, w + spread * 2, h + spread * 2)
+          }
+        }
+        ctx.globalAlpha = 1
+      }
+      ctx.fillStyle = color
+      ctx.globalAlpha = edge === 'soft' ? 0.92 : 1
+      if (scaledRadius > 0) {
+        roundRect(ctx, x, y, w, h, scaledRadius)
+      } else {
+        ctx.fillRect(x, y, w, h)
+      }
+      ctx.globalAlpha = 1
+      if (texture !== 'none') applyTexture(ctx, x, y, w, h, texture)
+      ctx.restore()
+    }
+
+    if (layout === 'horizontal') {
+      let currentY = scaledPad
+      fields.forEach((f) => {
+        const h = (f.weight / totalWeight) * (inner - scaledGap * (fields.length - 1))
+        drawHiField(scaledPad, currentY, inner, h, f.color)
+        currentY += h + scaledGap
+      })
+    } else if (layout === 'vertical') {
+      let currentX = scaledPad
+      fields.forEach((f) => {
+        const w = (f.weight / totalWeight) * (inner - scaledGap * (fields.length - 1))
+        drawHiField(currentX, scaledPad, w, inner, f.color)
+        currentX += w + scaledGap
+      })
+    } else if (layout === 'grid') {
+      const cols = Math.ceil(Math.sqrt(fields.length))
+      const rows = Math.ceil(fields.length / cols)
+      const cellW = (inner - scaledGap * (cols - 1)) / cols
+      const cellH = (inner - scaledGap * (rows - 1)) / rows
+      fields.forEach((f, i) => {
+        const col = i % cols
+        const row = Math.floor(i / cols)
+        drawHiField(scaledPad + col * (cellW + scaledGap), scaledPad + row * (cellH + scaledGap), cellW, cellH, f.color)
+      })
+    } else if (layout === 'centered') {
+      const maxSize = inner * 0.9
+      fields.forEach((f, i) => {
+        const ratio = 1 - (i / fields.length) * 0.7
+        const w = maxSize * ratio
+        const h = maxSize * ratio * 0.7
+        drawHiField((size - w) / 2, (size - h) / 2, w, h, f.color)
+      })
+    } else if (layout === 'floating') {
+      const baseW = inner * 0.6
+      const baseH = inner * 0.4
+      fields.forEach((f, i) => {
+        const offsetX = scaledPad + (i * inner * 0.12)
+        const offsetY = scaledPad + (i * inner * 0.15)
+        const w = baseW - i * (20 * size / canvasSize)
+        const h = baseH + i * (10 * size / canvasSize)
+        drawHiField(offsetX, offsetY, w, h, f.color)
+      })
+    }
+
+    return hiCanvas
+  }
+
   // ─── Export ───
   const handleSaveAsDesign = async () => {
     setIsSaving(true)
     try {
-      const canvas = canvasRef.current
-      if (!canvas) throw new Error('No canvas')
-      const blob = await new Promise<Blob | null>((resolve) => canvas.toBlob(resolve, 'image/png', 1.0))
+      const hiCanvas = exportHiResComposition()
+      // White background for JPEG (no transparency)
+      const finalCanvas = document.createElement('canvas')
+      finalCanvas.width = hiCanvas.width
+      finalCanvas.height = hiCanvas.height
+      const fCtx = finalCanvas.getContext('2d')!
+      fCtx.fillStyle = '#FFFFFF'
+      fCtx.fillRect(0, 0, finalCanvas.width, finalCanvas.height)
+      fCtx.drawImage(hiCanvas, 0, 0)
+      const blob = await new Promise<Blob | null>((resolve) => finalCanvas.toBlob(resolve, 'image/jpeg', 0.95))
       if (!blob) throw new Error('Canvas export failed')
       const formData = new FormData()
-      formData.append('file', blob, 'colorfield.png')
+      formData.append('file', blob, 'colorfield.jpg')
       const uploadRes = await fetch('/api/rooms/upload', { method: 'POST', body: formData })
       const uploadData = await uploadRes.json()
       if (!uploadData.success) throw new Error('Upload failed')
@@ -409,7 +565,8 @@ export default function ColorFieldPage() {
       </header>
 
       <main className="max-w-7xl mx-auto px-4 py-5 sm:py-8">
-        <div className="flex flex-col lg:flex-row gap-6">
+        <RemixBanner remixFrom={remixFrom} remixDesignId={remixDesignId} />
+        <div className="flex flex-col lg:flex-row gap-6 mt-3">
           {/* Canvas */}
           <div className="flex-1 flex flex-col items-center">
             <div
@@ -597,6 +754,8 @@ export default function ColorFieldPage() {
                 {isSaving ? (<><div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" /> Saving...</>) : '🖼️ Use as Wall Art'}
               </Button>
               <Button variant="secondary" onClick={downloadPng} className="w-full">↓ Download PNG</Button>
+              <div className="h-px bg-gray-100 my-1" />
+              <RemixMenu currentTool="colorfield" canvasRef={canvasRef} />
             </div>
           </div>
         </div>
@@ -660,5 +819,13 @@ export default function ColorFieldPage() {
         ]}
       />
     </div>
+  )
+}
+
+export default function ColorFieldPage() {
+  return (
+    <Suspense>
+      <ColorFieldContent />
+    </Suspense>
   )
 }

@@ -125,6 +125,7 @@ export async function generatePreview(input: GeneratePreviewInput): Promise<Gene
           imageUrl: variants[0].imageUrl,
           style,
           prompt,
+          isAiGenerated: true,
           roomImageUrl: input.roomImageUrl || null,
           wallCorners: input.wallCorners || null,
           variants: {

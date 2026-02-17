@@ -202,6 +202,20 @@ export default function StudioPage() {
                 )}
               </Button>
             </div>
+
+            {/* AI notice for visitors (Nivå 2 + Extra) */}
+            <div className="bg-gray-50/80 border border-gray-200/60 rounded-lg px-4 py-3 mt-2 space-y-1.5">
+              <p className="text-[11px] text-gray-500 leading-relaxed">
+                {t('legal.studioNotice') !== 'legal.studioNotice'
+                  ? t('legal.studioNotice')
+                  : 'AI-generated designs are created within the ArtBoris studio and are sold as physical prints for personal use. ArtBoris may display these designs in its gallery.'}
+              </p>
+              <p className="text-[11px] text-gray-400 leading-relaxed">
+                {t('legal.studioConsent') !== 'legal.studioConsent'
+                  ? t('legal.studioConsent')
+                  : <>By generating a design you agree to our <a href="/terms" target="_blank" className="underline underline-offset-2 hover:text-gray-600">terms</a>.</>}
+              </p>
+            </div>
           </div>
         )}
       </div>

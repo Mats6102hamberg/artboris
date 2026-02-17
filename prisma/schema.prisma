@@ -149,8 +149,9 @@ model Design {
   cropOffsetX       Float    @default(0)  // -1 to 1, 0 = centered
   cropOffsetY       Float    @default(0)  // -1 to 1, 0 = centered
 
-  isPublic    Boolean  @default(false)
-  likesCount  Int      @default(0)
+  isAiGenerated Boolean @default(false)
+  isPublic      Boolean @default(false)
+  likesCount    Int     @default(0)
 
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
