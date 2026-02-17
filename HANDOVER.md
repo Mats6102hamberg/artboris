@@ -43,6 +43,10 @@ REPLICATE_API_TOKEN=r8_...
 RESEND_API_KEY=re_...
 CRIMSON_ORDER_EMAIL=order@crimson.se
 CRIMSON_WEBHOOK_SECRET=secret_...
+NEXT_PUBLIC_SENTRY_DSN=https://xxx@yyy.ingest.sentry.io/zzz
+SENTRY_ORG=artboris
+SENTRY_PROJECT=javascript-nextjs
+ADMIN_ALERT_EMAIL=mhg10mhg@gmail.com
 
 # Run migrations
 npx prisma migrate dev
@@ -142,6 +146,10 @@ Upload photo → Pick style (18 styles) + transformation strength (0.2–0.95)
 | createOrder | `server/services/orders/createOrder.ts` | Order + credit deduction in transaction |
 | generatePrintAsset | `server/services/print/generatePrintAsset.ts` | Sharp-based print file generation |
 | sendEmail | `server/services/email/sendEmail.ts` | Order confirmation + Crimson order emails, retry with backoff |
+| withAIRetry | `server/services/ai/withAIRetry.ts` | Retry with exponential backoff + cross-provider fallback (Replicate ↔ DALL-E 3) |
+| adminAlert | `server/services/email/adminAlert.ts` | Admin email alerts via Resend with 5-min debounce |
+| reportApiError | `lib/crashcatcher.ts` | Reports to Sentry (primary) + CrashCatcher (optional), with user/order context |
+| reportError | `lib/crashcatcher.ts` | HTTP client for CrashCatcher API with debounce |
 
 ### Key Components
 
@@ -157,6 +165,10 @@ Upload photo → Pick style (18 styles) + transformation strength (0.2–0.95)
 | MockupPreview | `components/poster/MockupPreview.tsx` | CSS-based wall placement, drag/pinch/resize, +/- scale buttons, mobile-optimized touch |
 | PublishToggle | `components/poster/PublishToggle.tsx` | Gallery publish toggle (calls API on toggle) |
 | CreditBadge | `components/poster/CreditBadge.tsx` | Credit balance display |
+| ErrorBoundary | `components/ErrorBoundary.tsx` | React error boundary → Sentry + CrashCatcher |
+| SentryUserSync | `components/SentryUserSync.tsx` | Syncs session user.id/email to Sentry context |
+| BorisButton | `components/boris/BorisButton.tsx` | Floating FAB or inline chat button for Boris AI |
+| BorisVoice | `components/boris/BorisVoice.tsx` | Typewriter speech bubble from Boris |
 
 ### i18n System
 
@@ -255,6 +267,36 @@ Client-side: calculatePrintPrice() → synchronous with hardcoded fallback (no D
 Public API: GET /api/pricing → strips costSEK, Cache-Control 5 min
 ```
 
+### Error Monitoring & Alerting
+
+```
+Error occurs (client or server)
+  ├─ Sentry (primary) — real-time error tracking with user context
+  │   ├─ Client: sentry.client.config.ts (browser tracing, session replay)
+  │   ├─ Server: sentry.server.config.ts (via instrumentation.ts)
+  │   ├─ User context: SentryUserSync syncs user.id + email from session
+  │   └─ API context: reportApiError() adds userId, orderId, designId as tags
+  │
+  ├─ Admin email alerts (Resend) — immediate notification to mhg10mhg@gmail.com
+  │   ├─ sendAIAdminAlert() — when AI services fail/fallback
+  │   ├─ sendErrorAdminAlert() — when critical API routes error
+  │   └─ 5-min debounce per service key (prevents flood)
+  │
+  ├─ AI Fallback (invisible to user)
+  │   ├─ withAIRetry() — exponential backoff retry with error classification
+  │   ├─ generatePreview: Replicate Flux → DALL-E 3 fallback
+  │   ├─ refinePreview: DALL-E 3 → Replicate Flux fallback
+  │   └─ generateFinalPrint, upscale: retry only (no cross-provider fallback)
+  │
+  └─ CrashCatcher (prepared, not active)
+      ├─ reportError() fires to CRASHCATCHER_API_URL if set
+      ├─ /api/health — DB + env check for external monitors
+      └─ /api/report-error — client-side error proxy
+```
+
+**Admin auth:** Server-side layout (`src/app/admin/layout.tsx`) checks `auth()` and redirects.
+No edge middleware (removed due to Vercel 1MB edge function limit with next-auth).
+
 ### Brand Style
 
 - Background: `#FAFAF8` (warm off-white)
@@ -280,9 +322,15 @@ Public API: GET /api/pricing → strips costSEK, Cache-Control 5 min
 - [x] **Crimson print partner** — Auto-send orders via email, retry mechanism, admin resend, webhook, market orders.
 - [x] **Admin pricing panel** — DB-driven pricing config with admin UI, server-side price validation in checkout.
 - [x] **Mobile mockup touch** — Bigger resize handles (48px), visible corners, +/- buttons, pinch hint.
+- [x] **AI Fallback** — withAIRetry with cross-provider failover (Replicate ↔ DALL-E 3), admin email alerts.
+- [x] **Sentry integration** — Client + server error monitoring, user context, deployed to Vercel.
+- [x] **CrashCatcher prep** — Health endpoint, error proxy, ErrorBoundary (CrashCatcher itself on hold).
+- [x] **Admin auth fix** — Middleware removed (>1MB edge limit), replaced with server-side admin layout.
+- [x] **Boris buttons visibility** — Floating shows label on desktop + amber glow, inline has stronger contrast.
 
 ### For Production
-- [ ] **Auth** — No real authentication. Uses cookie-based `anonId`
+- [x] **Auth** — NextAuth with JWT sessions, Google + Credentials providers, admin role check via layout
+- [ ] **CrashCatcher deployment** — Prepared but not deployed (on hold, Sentry covers monitoring needs)
 - [ ] **Remaining Swedish** — poster-lab, admin UI, some components still have Swedish strings
 - [ ] **Frame assets** — PNG placeholders, need real frame images
 - [x] **Tests** — Vitest testsvit med 37 tester (se Test Suite nedan)
@@ -347,4 +395,4 @@ Push: `git push origin main`
 
 ---
 
-*Last updated: 2026-02-17 · Built with Claude Code*
+*Last updated: 2026-02-17 (session 2) · Built with Claude Code*
