@@ -3,7 +3,7 @@
 **GitHub:** https://github.com/Mats6102hamberg/artboris
 **Vercel:** https://artboris.vercel.app/
 **Local path:** `/Users/matshamberg/CascadeProjects/Artboris`
-**Last updated:** 2026-02-17
+**Last updated:** 2026-02-18
 
 ---
 
@@ -11,7 +11,7 @@
 
 Artboris is a Next.js 16 app with multiple products:
 
-1. **Wallcraft** (main product) — Create unique art for your walls. Includes 5 interactive creative tools, AI-powered design studio, Photo Transform (AI img2img), Print Your Own (upload photo), room mockup preview, and print ordering via Stripe.
+1. **Wallcraft** (main product) — Create unique art for your walls. Includes 5 interactive creative tools with remix flow between them, AI-powered design studio, Photo Transform (AI img2img), Print Your Own (upload photo), room mockup preview, hi-res export (6000×6000px), AI Gallery with auto-publish, and print ordering via Stripe.
 2. **Art Market** — Marketplace for artists/photographers. Invite-only registration, AI review, Stripe Connect 50/50 payouts.
 3. **Art Scanner** — Scans auction houses for undervalued artworks with GPT-4 valuation.
 4. **BorisArt AI** — GPT-4 chatbot for art questions.
@@ -70,7 +70,8 @@ stripe listen --forward-to localhost:3000/api/webhook/stripe
 | `/wallcraft/studio` | Design Studio | Upload room → mark wall → pick style → AI generates 4 variants |
 | `/wallcraft/result` | Results | Variant selection (redirects to design editor) |
 | `/wallcraft/design/[id]` | Design Editor | Position on wall, pick frame & size, publish toggle, auto-saves state |
-| `/wallcraft/gallery` | Gallery | Public inspiration gallery with filter, sort, likes + "Sell your art" CTA |
+| `/wallcraft/gallery` | Gallery | Public inspiration gallery with filter (incl. "✨ AI Art"), sort, likes, AI badge, legal notice + "Sell your art" CTA |
+| `/terms` | Terms of Service | Full terms page with 8 sections (SV+EN toggle), AI-generated designs section highlighted |
 | `/wallcraft/checkout` | Checkout | Stripe checkout flow (Apple Pay, Klarna, cards) |
 | `/wallcraft/mandala` | Mandala Maker | Radial symmetry drawing tool (4–16 fold) |
 | `/wallcraft/pattern` | Pattern Studio | Seamless tile pattern creator with live repeat preview |
@@ -89,11 +90,12 @@ stripe listen --forward-to localhost:3000/api/webhook/stripe
 
 ```
 WallCraft Studio / Creative Tools
-  → AI generates design variants
+  → AI generates design variants (isAiGenerated: true)
   → Design Editor: pick frame, size, position on wall
   → Toggle "Dela i galleriet" → publishes to /wallcraft/gallery (live API call)
   → CTA: "Vill du sälja? Bli konstnär →" → /market/artist
   → "Add to cart" → /wallcraft/checkout → Stripe
+  → Stripe webhook: AI-generated designs auto-published to Gallery (isPublic: true)
 
 Art Market (separate gated flow):
   → Register with invite code → Stripe Connect onboarding
@@ -107,9 +109,24 @@ All 5 creative tools follow the same pattern (4 canvas tools + Photo Transform):
 
 ```
 Canvas drawing/generation → Refine (local processing) → Compare (before/after slider)
-  → "Use as Wall Art" (upload to Blob → create Design → open editor)
+  → "Use as Wall Art" (hi-res 6000×6000px JPEG 95% → upload to Blob → create Design → open editor)
   → "Download PNG" (direct export)
+  → "Remix in..." (auto-save → JPEG 80% 1024px → open another tool with sourceImage)
 ```
+
+**Remix flow:** Any creative tool can send its result to another tool as a starting image.
+- `RemixMenu` component: dropdown with all tools, auto-saves current work to DB
+- `useSourceImage` hook: reads `?sourceImage` + `?remixDesignId` + `?remixFrom` params
+- `RemixBanner`: shows "Remixed from X" with link to saved version
+- All 4 canvas tools wrapped in `<Suspense>` (required by useSearchParams)
+
+**Hi-res export (6000×6000px):**
+- `src/lib/wallcraft/hiResExport.ts`: RENDER_SCALE=4, upscaleCanvas(), exportHiResPng()
+- Mandala + Abstract: internal canvas = displaySize × 4, upscaled to 6000px at export
+- Pattern: tile upscaled, repeated to 6000×6000px
+- Color Field: fully programmatic re-render at 6000×6000px
+- All export as JPEG 95% (~2-5 MB vs 20-50 MB PNG)
+- Upload limit raised to 25 MB in /api/rooms/upload
 
 **Key shared module:** `src/lib/mandala/refineArtwork.ts`
 - Local canvas image processing (no external services)
@@ -142,7 +159,7 @@ Upload photo → Pick style (18 styles) + transformation strength (0.2–0.95)
 | composeMockup | `server/services/mockup/composeMockup.ts` | CSS-based wall placement |
 | canSpend / spend | `server/services/credits/` | Credit check and transactions |
 | publishToGallery | `server/services/gallery/publish.ts` | Toggles `isPublic` on existing Design (update, not create) |
-| listGallery / like | `server/services/gallery/` | Gallery listing + anonymous likes |
+| listGallery / like | `server/services/gallery/` | Gallery listing (supports `aiOnly` filter + `isAiGenerated` field) + anonymous likes |
 | createOrder | `server/services/orders/createOrder.ts` | Order + credit deduction in transaction |
 | generatePrintAsset | `server/services/print/generatePrintAsset.ts` | Sharp-based print file generation |
 | sendEmail | `server/services/email/sendEmail.ts` | Order confirmation + Crimson order emails, retry with backoff |
@@ -169,6 +186,8 @@ Upload photo → Pick style (18 styles) + transformation strength (0.2–0.95)
 | SentryUserSync | `components/SentryUserSync.tsx` | Syncs session user.id/email to Sentry context |
 | BorisButton | `components/boris/BorisButton.tsx` | Floating FAB or inline chat button for Boris AI |
 | BorisVoice | `components/boris/BorisVoice.tsx` | Typewriter speech bubble from Boris |
+| RemixMenu | `components/wallcraft/RemixMenu.tsx` | "Remix in..." dropdown, auto-save to DB, JPEG 80% 1024px |
+| RemixBanner | `components/wallcraft/RemixMenu.tsx` | "Remixed from X" banner with link to saved version |
 
 ### i18n System
 
@@ -176,11 +195,15 @@ Upload photo → Pick style (18 styles) + transformation strength (0.2–0.95)
 - Provider: `src/lib/i18n/context.tsx` → `I18nProvider` + `useTranslation()` hook
 - Locale stored in `localStorage('wallcraft-locale')`
 - All Wallcraft pages use English strings (translated from Swedish)
+- **Legal keys:** `legal.studioNotice`, `legal.studioConsent`, `legal.galleryNotice`, `legal.checkoutNotice`, `legal.termsCheckbox`
 
 ### Database Models (Prisma)
 
+**User:**
+- `User` — id, name, email, passwordHash, role, anonId, artistProfileId, `termsAcceptedAt`, `termsVersion`
+
 **Design & Gallery:**
-- `Design` — style, roomType, colorMood, likesCount, isPublic, position/scale/frame/size state
+- `Design` — style, roomType, colorMood, likesCount, isPublic, `isAiGenerated`, position/scale/frame/size state
 - `DesignVariant` — individual generated variants
 - `DesignAsset` — print files (roles: PREVIEW/PRINT/THUMB) with DPI, size, URL
 - `Like` — anonymous likes with anonId, `@@unique([designId, anonId])`
@@ -327,6 +350,14 @@ No edge middleware (removed due to Vercel 1MB edge function limit with next-auth
 - [x] **CrashCatcher prep** — Health endpoint, error proxy, ErrorBoundary (CrashCatcher itself on hold).
 - [x] **Admin auth fix** — Middleware removed (>1MB edge limit), replaced with server-side admin layout.
 - [x] **Boris buttons visibility** — Floating shows label on desktop + amber glow, inline has stronger contrast.
+- [x] **Remix flow** — RemixMenu + useSourceImage hook, auto-save, JPEG 80% 1024px mellanlager.
+- [x] **Hi-res export** — 6000×6000px JPEG 95% for all creative tools, upload limit 25 MB.
+- [x] **AI Gallery** — isAiGenerated field, auto-publish via webhook, "✨ AI Art" filter, AI badge.
+- [x] **Legal copy (4 nivåer)** — Registration checkbox, studio notice, gallery notice, checkout notice.
+- [x] **Terms page** — `/terms` with 8 sections, SV+EN toggle, AI section highlighted.
+- [x] **termsAcceptedAt** — DateTime + version tracked on User model at registration.
+- [x] **Hero image** — CSS-based room scene on landing page.
+- [x] **GlobalNav login** — Login/account button in navigation.
 
 ### For Production
 - [x] **Auth** — NextAuth with JWT sessions, Google + Credentials providers, admin role check via layout
@@ -395,4 +426,4 @@ Push: `git push origin main`
 
 ---
 
-*Last updated: 2026-02-17 (session 2) · Built with Claude Code*
+*Last updated: 2026-02-18 (session 4) · Built with Cascade*

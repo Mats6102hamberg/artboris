@@ -1,12 +1,14 @@
 'use client'
 
-import { useState, useEffect, useRef } from 'react'
+import { useState, useEffect, useRef, useCallback } from 'react'
 import { useParams, useRouter } from 'next/navigation'
 import { POSTER_SIZES } from '@/lib/image/resize'
 import { FRAME_OPTIONS, calculatePrintPrice } from '@/lib/pricing/prints'
 import { calculateMarketPrice, formatPriceSEK } from '@/lib/pricing/market'
+import { cropToCSS } from '@/lib/image/crop'
 import MockupPreview from '@/components/poster/MockupPreview'
 import WallMarker from '@/components/poster/WallMarker'
+import CreativeToolsSection from '@/components/wallcraft/CreativeToolsSection'
 
 interface ListingDetail {
   id: string
@@ -52,6 +54,32 @@ export default function ListingDetailPage() {
   const [positionX, setPositionX] = useState(0.5)
   const [positionY, setPositionY] = useState(0.4)
   const [scale, setScale] = useState(1.0)
+
+  // Crop offset — buyer drags to reposition motif
+  const [cropOffsetX, setCropOffsetX] = useState(0)
+  const [cropOffsetY, setCropOffsetY] = useState(0)
+  const isDraggingCrop = useRef(false)
+  const dragStart = useRef({ x: 0, y: 0, ox: 0, oy: 0 })
+  const imageContainerRef = useRef<HTMLDivElement>(null)
+
+  const handleCropPointerDown = useCallback((e: React.PointerEvent) => {
+    isDraggingCrop.current = true
+    dragStart.current = { x: e.clientX, y: e.clientY, ox: cropOffsetX, oy: cropOffsetY }
+    ;(e.target as HTMLElement).setPointerCapture(e.pointerId)
+  }, [cropOffsetX, cropOffsetY])
+
+  const handleCropPointerMove = useCallback((e: React.PointerEvent) => {
+    if (!isDraggingCrop.current || !imageContainerRef.current) return
+    const rect = imageContainerRef.current.getBoundingClientRect()
+    const dx = (e.clientX - dragStart.current.x) / rect.width * -2
+    const dy = (e.clientY - dragStart.current.y) / rect.height * -2
+    setCropOffsetX(Math.max(-1, Math.min(1, dragStart.current.ox + dx)))
+    setCropOffsetY(Math.max(-1, Math.min(1, dragStart.current.oy + dy)))
+  }, [])
+
+  const handleCropPointerUp = useCallback(() => {
+    isDraggingCrop.current = false
+  }, [])
 
   const fileInputRef = useRef<HTMLInputElement>(null)
 
@@ -153,6 +181,8 @@ export default function ListingDetailPage() {
             listingId: listing.id,
             sizeCode: sizeId,
             frameColor: frameId === 'none' ? 'NONE' : frameId.toUpperCase(),
+            cropOffsetX,
+            cropOffsetY,
             shipping: shippingForm,
           }),
         })
@@ -274,7 +304,7 @@ export default function ListingDetailPage() {
 
                 <div className="flex gap-3 mb-6">
                   <div className="w-16 h-20 flex-shrink-0 rounded-lg overflow-hidden bg-gray-50 border border-gray-100">
-                    <img src={listing.imageUrl} alt={listing.title} className="w-full h-full object-cover" />
+                    <img src={listing.imageUrl} alt={listing.title} className="w-full h-full" style={cropToCSS('COVER', cropOffsetX, cropOffsetY)} />
                   </div>
                   <div className="flex-1 min-w-0">
                     <p className="text-sm font-medium text-gray-900 truncate">{listing.title}</p>
@@ -615,13 +645,22 @@ export default function ListingDetailPage() {
 
       <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-10">
-          {/* Image */}
+          {/* Image — drag to reposition */}
           <div className="relative">
-            <div className="aspect-[3/4] rounded-2xl overflow-hidden bg-gray-100 shadow-xl">
+            <div
+              ref={imageContainerRef}
+              className="aspect-[3/4] rounded-2xl overflow-hidden bg-gray-100 shadow-xl cursor-grab active:cursor-grabbing select-none touch-none"
+              onPointerDown={handleCropPointerDown}
+              onPointerMove={handleCropPointerMove}
+              onPointerUp={handleCropPointerUp}
+              onPointerCancel={handleCropPointerUp}
+            >
               <img
                 src={listing.imageUrl}
                 alt={listing.title}
-                className="w-full h-full object-cover"
+                className="w-full h-full pointer-events-none"
+                style={cropToCSS('COVER', cropOffsetX, cropOffsetY)}
+                draggable={false}
               />
             </div>
             {listing.isOriginal && (
@@ -629,6 +668,7 @@ export default function ListingDetailPage() {
                 Original
               </span>
             )}
+            <p className="text-center text-xs text-gray-400 mt-2">Dra f&ouml;r att justera motivet</p>
           </div>
 
           {/* Info */}
@@ -700,6 +740,8 @@ export default function ListingDetailPage() {
                   <li>Välj storlek och ram — köp direkt</li>
                 </ol>
               </div>
+
+              <CreativeToolsSection imageUrl={listing.imageUrl} />
             </div>
 
             {/* Artist info */}

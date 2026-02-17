@@ -19,11 +19,15 @@ export async function POST(req: Request) {
       listingId,
       sizeCode,
       frameColor,
+      cropOffsetX: rawCropX,
+      cropOffsetY: rawCropY,
       shipping,
     } = body as {
       listingId: string
       sizeCode: string
       frameColor: string
+      cropOffsetX?: number
+      cropOffsetY?: number
       shipping: {
         firstName: string
         lastName: string
@@ -34,6 +38,9 @@ export async function POST(req: Request) {
         city: string
       }
     }
+
+    const cropOffsetX = Math.max(-1, Math.min(1, rawCropX ?? 0))
+    const cropOffsetY = Math.max(-1, Math.min(1, rawCropY ?? 0))
 
     if (!listingId || !sizeCode) {
       return NextResponse.json(
@@ -94,6 +101,8 @@ export async function POST(req: Request) {
         buyerAnonId: anonId,
         sizeCode,
         frameColor: (frameColor && frameColor !== 'none' ? frameColor.toUpperCase() : 'NONE') as any,
+        cropOffsetX,
+        cropOffsetY,
         artistShareCents: pricing.artistShareSEK * 100,
         platformShareCents: pricing.platformShareSEK * 100,
         frameCostCents: pricing.printCostSEK * 100,

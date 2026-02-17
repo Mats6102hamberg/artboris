@@ -583,6 +583,8 @@ model MarketOrder {
   sizeCode        String   // e.g. "50x70"
   frameColor      FrameColor @default(NONE)
   paperType       PaperType  @default(DEFAULT)
+  cropOffsetX     Float      @default(0)  // Image crop position (-1 to 1, 0 = centered)
+  cropOffsetY     Float      @default(0)  // Image crop position (-1 to 1, 0 = centered)
 
   // Pricing breakdown (all in SEK öre / cents)
   artistShareCents  Int    // 50% of artwork price

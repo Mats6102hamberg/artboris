@@ -6,7 +6,7 @@
 - **GitHub:** `https://github.com/Mats6102hamberg/artboris.git`
 - **Branch:** `main`
 - **Deploy:** Vercel (kopplat till GitHub-repot)
-- **Senaste commit:** `f661c71`
+- **Senaste commit:** `b54a706`
 
 ## Tech Stack
 - Next.js 16, React 19, TypeScript
@@ -16,7 +16,7 @@
 - Stripe (betalning), Resend (e-post), Vercel Blob (lagring)
 - Sentry (felmonitorering), CrashCatcher (förbered, ej aktivt)
 
-## Vad som implementerades denna session
+## Vad som implementerades (alla sessioner)
 
 ### 1. Orderbekräftelse e-postval
 - **Checkout:** Kund väljer "Skicka till min e-post" eller "Skicka till annan e-post"
@@ -105,26 +105,84 @@
 - **Floating (desktop):** Visar "Fråga Boris"-text på `lg:`, amber glow-skugga
 - **Inline:** Starkare bakgrund (`amber-100`), mörkare text (`amber-900`), tydligare kant, permanent skugga
 
+### 11. Remix-flöde mellan kreativa verktyg
+- **RemixMenu:** "Remix in..." dropdown — auto-save till DB + JPEG 80% 1024px mellanlager
+- **useSourceImage hook:** Läser ?sourceImage + ?remixDesignId + ?remixFrom, canvasReady-flagga
+- **RemixBanner:** Visar "Remixed from X" + "View saved version" länk
+- **Alla 4 verktyg wrappade i `<Suspense>`** (krävs av useSearchParams)
+- **Filer:** `src/components/wallcraft/RemixMenu.tsx`, `src/hooks/useSourceImage.ts`
+
+### 12. Högupplöst export (6000×6000px)
+- **hiResExport.ts:** RENDER_SCALE=4, HIRES_EXPORT_SIZE=6000, upscaleCanvas(), exportHiResPng()
+- **Mandala + Abstract:** Intern canvas = displaySize × 4, upscalas till 6000px vid export
+- **Pattern:** Tile upscalas, repeteras till 6000×6000px
+- **Color Field:** Programmatisk re-rendering i 6000×6000px
+- **Alla exporterar JPEG 95%** (~2-5 MB istället för 20-50 MB PNG)
+- **Upload-gräns höjd till 25 MB** i /api/rooms/upload
+- **Fil:** `src/lib/wallcraft/hiResExport.ts`
+
+### 13. AI Gallery-integration
+- **Design.isAiGenerated** Boolean @default(false) — markerar AI-genererade designs
+- **generatePreview.ts:** Sätter isAiGenerated: true vid AI-generering
+- **PATCH /api/designs/[id]:** Stödjer isAiGenerated fält
+- **Stripe webhook:** Auto-publicerar AI-designs till Gallery efter betalning (isPublic: true)
+- **Gallery list API:** Stödjer `?aiOnly=true` filter, returnerar isAiGenerated
+- **Gallery UI:** "✨ AI Art" filter-tab + lila "AI Generated" badge på kort
+- **Demo gallery:** Alla demo-items har isAiGenerated: true
+
+### 14. Legal copy — 4-nivå AI-villkor
+- **Nivå 1 — Registrering** (`/auth/register`): Checkbox "Jag godkänner användarvillkoren" + länk till /terms. Submit disabled tills ikryssad.
+- **Nivå 2 — Studio** (`/wallcraft/studio`, steg 3): Notice under generate-knappen: "AI-genererade motiv skapas i ArtBoris studio och säljs som tryck för privat bruk. ArtBoris kan visa dessa motiv i sitt galleri."
+- **Nivå 3 — Gallery** (`/wallcraft/gallery`): Diskret text: "AI-verk skapade i studion kan visas i ArtBoris Gallery."
+- **Nivå 4 — Checkout** (`/wallcraft/checkout`): "AI-motiv säljs som tryck för privat bruk enligt våra villkor." (länk till /terms)
+- **Extra — Studio:** "Genom att generera ett motiv godkänner du våra villkor." (länk till /terms)
+- **i18n:** `legal.*`-nycklar i en.json + sv.json
+
+### 15. Terms-sida (`/terms`)
+- Fullständig villkorssida med 8 sektioner (SV+EN med språkväxlare)
+- Sektion 4 (lila highlight): AI-genererade motiv — juridiskt bindande text
+- Täcker: allmänt, konto, köp/leverans, AI-motiv, användargenererat innehåll, integritet, ansvarsbegränsning, kontakt
+
+### 16. termsAcceptedAt + termsVersion
+- **User-modellen:** `termsAcceptedAt DateTime?`, `termsVersion String?`
+- **Register API:** Validerar acceptedTerms, sparar termsAcceptedAt + termsVersion ('2026-02')
+- **Register UI:** Skickar acceptedTerms i POST body
+
+### 17. Hero-bild på landningssidan
+- CSS-baserad rumsscen med väggkonst, soffa, lampa
+- Rotation borttagen efter feedback
+
+### 18. GlobalNav login-knapp
+- "Logga in / Konto"-knapp i GlobalNav
+
+### 19. AI-förbättring av konstverksbilder vid uppladdning
+- Senaste commit: AI-baserad bildförbättring vid artwork upload
+
 ## Kända issues / TODO
 - Market checkout saknar orderbekräftelse-mejlval (bara Wallcraft + Poster Lab har det)
 - Crimson-priser (costSEK) behöver fyllas i efter avtal med Crimson
 - Frame-assets är PNG-placeholders, behöver riktiga rambilder
 
-## Git-historik denna session
+## Git-historik (senaste 20)
 ```
+b54a706 feat: AI-förbättring av konstverksbilder vid uppladdning
+1d2392e feat: lägg till logga in/konto-knapp i GlobalNav
+711770e fix: ta bort rotation på hero-illustrationen
+9ce7267 feat: hero-bild med CSS-baserad rumsscen på landningssidan
+32e7db6 docs: uppdatera SESSION_SUMMARY och HANDOVER med senaste funktioner
 f661c71 fix: gör Boris-knappar mer synliga på desktop
 f0bd3ba feat: Sentry user context — user.id, email, orderId, designId på varje fel
 acaf2d1 fix: flytta admin-auth från middleware till server-side layout
 b663d12 Add termsAcceptedAt + termsVersion to User model, validate on register
 69c956e Legal copy: 4-nivå AI-villkor + /terms sida + i18n + Sentry setup
-37487e8 feat: CrashCatcher + Supertestaren-integration — felrapportering, health endpoint, error boundary
-7847206 feat: AI fallback + admin-notifikation — retry, cross-provider failover, e-postalert
+37487e8 feat: CrashCatcher + Supertestaren-integration
+7847206 feat: AI fallback + admin-notifikation
 62cd8a3 feat: gör "Mina Tavlor" user-scoped via getUserId()
-2df26fa docs: uppdatera README, SESSION_SUMMARY och HANDOVER med senaste funktioner
+2df26fa docs: uppdatera README, SESSION_SUMMARY och HANDOVER
 36980a6 fix: bättre touch-hantering i MockupPreview för mobil
-d1b191a feat: admin-prispanel — DB-driven priskonfiguration + server-side prisvalidering
+d1b191a feat: admin-prispanel — DB-driven priskonfiguration
 a274aca feat: 4 Crimson-förbättringar — retry, admin resend, webhook, market-ordrar
 abd6905 feat: automatisk tryckorder till Crimson via e-post vid betalad order
 3f8d401 feat: orderbekräftelse e-postval på success-sidan
-a2b7fa0 feat: orderbekräftelse e-postval i checkout + auth, admin, SEO & client-komponent-refaktor
+a2b7fa0 feat: orderbekräftelse e-postval i checkout + auth, admin, SEO
 ```
