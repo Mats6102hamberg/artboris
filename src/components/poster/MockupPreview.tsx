@@ -275,6 +275,25 @@ export default function MockupPreview({
   const isInteractive = !!(onPositionChange || onScaleChange)
   const hitPad = isInteractive ? 24 : 0 // extra touch area around poster (px)
 
+  // Touch device detection for bigger hit targets & visible controls
+  const [isTouchDevice, setIsTouchDevice] = useState(false)
+  const [showPinchHint, setShowPinchHint] = useState(false)
+  useEffect(() => {
+    const isTouch = 'ontouchstart' in window || navigator.maxTouchPoints > 0
+    setIsTouchDevice(isTouch)
+    if (isTouch && isInteractive && onScaleChange) {
+      setShowPinchHint(true)
+      const timer = setTimeout(() => setShowPinchHint(false), 3000)
+      return () => clearTimeout(timer)
+    }
+  }, []) // eslint-disable-line react-hooks/exhaustive-deps
+
+  const handleScaleStep = useCallback((delta: number) => {
+    if (!onScaleChange) return
+    const newScale = Math.max(0.2, Math.min(4.0, scale + delta))
+    onScaleChange(newScale)
+  }, [scale, onScaleChange])
+
   // --- Dynamic shadow & light based on poster position ---
   const dynamicShadow = useMemo(() => {
     // Light direction: continuous angle based on positionX
@@ -465,24 +484,78 @@ export default function MockupPreview({
         </div>
       </div>
 
-      {/* Resize corner handles — invisible but functional, cursor changes on hover */}
+      {/* Resize corner handles — visible markers with generous touch targets */}
+      {isInteractive && onScaleChange && (() => {
+        const handleSize = isTouchDevice ? 48 : 28
+        const half = handleSize / 2
+        const cornerLen = isTouchDevice ? 16 : 12
+        return (
+          <>
+            {[
+              { corner: 'br', cursor: 'nwse-resize', left: `calc(${(placement.left + placement.width) * 100}% - ${half}px)`, top: `calc(${(placement.top + placement.height) * 100}% - ${half}px)`, borderStyle: { borderRight: '2px solid rgba(255,255,255,0.7)', borderBottom: '2px solid rgba(255,255,255,0.7)', borderRadius: '0 0 3px 0' } },
+              { corner: 'bl', cursor: 'nesw-resize', left: `calc(${placement.left * 100}% - ${half}px)`, top: `calc(${(placement.top + placement.height) * 100}% - ${half}px)`, borderStyle: { borderLeft: '2px solid rgba(255,255,255,0.7)', borderBottom: '2px solid rgba(255,255,255,0.7)', borderRadius: '0 0 0 3px' } },
+              { corner: 'tr', cursor: 'nesw-resize', left: `calc(${(placement.left + placement.width) * 100}% - ${half}px)`, top: `calc(${placement.top * 100}% - ${half}px)`, borderStyle: { borderRight: '2px solid rgba(255,255,255,0.7)', borderTop: '2px solid rgba(255,255,255,0.7)', borderRadius: '0 3px 0 0' } },
+              { corner: 'tl', cursor: 'nwse-resize', left: `calc(${placement.left * 100}% - ${half}px)`, top: `calc(${placement.top * 100}% - ${half}px)`, borderStyle: { borderLeft: '2px solid rgba(255,255,255,0.7)', borderTop: '2px solid rgba(255,255,255,0.7)', borderRadius: '3px 0 0 0' } },
+            ].map(({ corner, cursor, left, top, borderStyle }) => (
+              <div
+                key={corner}
+                className="absolute z-20"
+                style={{ left, top, width: `${handleSize}px`, height: `${handleSize}px`, cursor, touchAction: 'none' }}
+                onMouseDown={handleResizeStart}
+                onTouchStart={handleResizeStart}
+              >
+                {/* Visible corner marker */}
+                <div
+                  className="absolute pointer-events-none opacity-0 group-hover/mockup:opacity-100 transition-opacity"
+                  style={{
+                    ...borderStyle,
+                    width: `${cornerLen}px`,
+                    height: `${cornerLen}px`,
+                    ...(corner.includes('b') ? { bottom: `${half - 1}px` } : { top: `${half - 1}px` }),
+                    ...(corner.includes('r') ? { right: `${half - 1}px` } : { left: `${half - 1}px` }),
+                    filter: 'drop-shadow(0 1px 2px rgba(0,0,0,0.5))',
+                    ...(isTouchDevice ? { opacity: 0.8 } : {}),
+                  }}
+                />
+              </div>
+            ))}
+          </>
+        )
+      })()}
+
+      {/* +/- Scale buttons — always visible when interactive */}
       {isInteractive && onScaleChange && (
-        <>
-          {[
-            { corner: 'br', cursor: 'nwse-resize', left: `calc(${(placement.left + placement.width) * 100}% - 14px)`, top: `calc(${(placement.top + placement.height) * 100}% - 14px)` },
-            { corner: 'bl', cursor: 'nesw-resize', left: `calc(${placement.left * 100}% - 14px)`, top: `calc(${(placement.top + placement.height) * 100}% - 14px)` },
-            { corner: 'tr', cursor: 'nesw-resize', left: `calc(${(placement.left + placement.width) * 100}% - 14px)`, top: `calc(${placement.top * 100}% - 14px)` },
-            { corner: 'tl', cursor: 'nwse-resize', left: `calc(${placement.left * 100}% - 14px)`, top: `calc(${placement.top * 100}% - 14px)` },
-          ].map(({ corner, cursor, left, top }) => (
-            <div
-              key={corner}
-              className="absolute z-20"
-              style={{ left, top, width: '28px', height: '28px', cursor }}
-              onMouseDown={handleResizeStart}
-              onTouchStart={handleResizeStart}
-            />
-          ))}
-        </>
+        <div className="absolute z-30 flex items-center gap-1 bg-black/50 backdrop-blur-sm rounded-full px-1 py-0.5"
+          style={{
+            bottom: '8px',
+            right: '8px',
+          }}
+        >
+          <button
+            type="button"
+            className="w-8 h-8 flex items-center justify-center text-white/80 hover:text-white active:scale-90 transition-all rounded-full hover:bg-white/10"
+            onClick={() => handleScaleStep(-0.15)}
+            aria-label="Förminska"
+          >
+            <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M4 8h8" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/></svg>
+          </button>
+          <span className="text-white/60 text-xs font-mono min-w-[3ch] text-center select-none">{Math.round(scale * 100)}%</span>
+          <button
+            type="button"
+            className="w-8 h-8 flex items-center justify-center text-white/80 hover:text-white active:scale-90 transition-all rounded-full hover:bg-white/10"
+            onClick={() => handleScaleStep(0.15)}
+            aria-label="Förstora"
+          >
+            <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M8 4v8M4 8h8" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/></svg>
+          </button>
+        </div>
+      )}
+
+      {/* Pinch-to-zoom hint — shown briefly on mobile */}
+      {showPinchHint && (
+        <div className="absolute z-30 left-1/2 -translate-x-1/2 bottom-14 bg-black/60 backdrop-blur-sm text-white/90 text-xs px-3 py-1.5 rounded-full animate-pulse pointer-events-none">
+          Nyp for att zooma
+        </div>
       )}
 
     </div>
