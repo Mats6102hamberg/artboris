@@ -7,6 +7,7 @@ const LOCALE_LABELS: Record<Locale, string> = {
   en: 'EN',
   sv: 'SV',
   de: 'DE',
+  fr: 'FR',
 }
 
 export default function LanguageSwitcher() {

@@ -1,0 +1,120 @@
+{
+  "brand": {
+    "name": "Wallcraft",
+    "tagline": "Art conçu par IA pour votre intérieur"
+  },
+  "nav": {
+    "studio": "Studio",
+    "gallery": "Galerie",
+    "pricing": "Tarifs",
+    "signIn": "Se connecter"
+  },
+  "landing": {
+    "hero": {
+      "title": "Votre studio d'art personnel",
+      "subtitle": "Créez des œuvres uniques adaptées à votre pièce. Visualisez-les sur votre mur avant d'acheter.",
+      "cta": "Créez votre mur",
+      "ctaSecondary": "Explorer la galerie"
+    },
+    "steps": {
+      "title": "Comment ça marche",
+      "step1": {
+        "title": "Téléchargez votre pièce",
+        "description": "Prenez une photo de votre mur et téléchargez-la. Marquez la zone où vous souhaitez votre œuvre."
+      },
+      "step2": {
+        "title": "Choisissez votre style",
+        "description": "Choisissez parmi des styles sélectionnés — minimal, scandinave, abstrait, moderne, photographie et plus."
+      },
+      "step3": {
+        "title": "Visualisez-le sur votre mur",
+        "description": "Obtenez 4 concepts uniques placés directement sur votre mur. Ajustez la taille, le cadre et la position."
+      }
+    },
+    "trust": {
+      "printedLocal": "Imprimé localement",
+      "fineArt": "Papier fine art",
+      "delivery": "Livraison 3–5 jours",
+      "guarantee": "Garantie satisfaction"
+    },
+    "featured": {
+      "title": "Designs populaires",
+      "viewOnWall": "Voir sur mon mur"
+    }
+  },
+  "studio": {
+    "upload": {
+      "title": "Téléchargez votre pièce",
+      "description": "Prenez une photo de votre pièce ou utilisez notre pièce de démonstration pour commencer.",
+      "dropzone": "Déposez votre photo ici ou cliquez pour parcourir",
+      "useDemo": "Utiliser la pièce démo",
+      "formats": "JPG, PNG ou HEIC — max 10 Mo"
+    },
+    "wallMarker": {
+      "title": "Marquer le mur",
+      "description": "Cliquez sur l'image pour marquer les 4 coins de la surface murale",
+      "corners": "coins",
+      "done": "Terminé !",
+      "clearAll": "Tout effacer",
+      "clickToPlace": "Cliquez pour placer",
+      "labels": ["Haut gauche", "Haut droit", "Bas droit", "Bas gauche"]
+    },
+    "style": {
+      "title": "Choisissez votre style",
+      "description": "Quelle ambiance souhaitez-vous ?",
+      "generate": "Générer des concepts",
+      "generating": "Création de votre œuvre...",
+      "descriptionPlaceholder": "Décrivez ce que vous souhaitez (optionnel)"
+    },
+    "editor": {
+      "variants": "Variantes",
+      "frame": "Cadre",
+      "size": "Taille",
+      "addToCart": "Commander l'impression",
+      "price": "Prix"
+    }
+  },
+  "checkout": {
+    "title": "Finaliser votre commande",
+    "orderSummary": "Récapitulatif de commande",
+    "pay": "Payer maintenant",
+    "secure": "Paiement sécurisé via Stripe"
+  },
+  "gallery": {
+    "title": "Galerie",
+    "subtitle": "Inspirez-vous des créations de notre communauté",
+    "viewDesign": "Voir le design"
+  },
+  "credits": {
+    "balance": "Crédits",
+    "buy": "Acheter des crédits",
+    "free": "3 générations gratuites incluses",
+    "packages": {
+      "small": "10 crédits",
+      "medium": "30 crédits",
+      "large": "100 crédits"
+    }
+  },
+  "common": {
+    "next": "Suivant",
+    "back": "Retour",
+    "cancel": "Annuler",
+    "save": "Enregistrer",
+    "loading": "Chargement...",
+    "error": "Une erreur est survenue",
+    "tryAgain": "Réessayer"
+  },
+  "sizes": {
+    "chooseSize": "Choisir la taille"
+  },
+  "frames": {
+    "chooseFrame": "Choisir le cadre"
+  },
+  "legal": {
+    "studioNotice": "Les motifs générés par IA sont créés dans le studio ArtBoris et vendus sous forme d'impressions pour un usage personnel. ArtBoris peut afficher ces motifs dans sa galerie.",
+    "studioConsent": "En générant un motif, vous acceptez nos conditions d'utilisation.",
+    "galleryNotice": "Les œuvres IA créées dans le studio peuvent être affichées dans la galerie ArtBoris.",
+    "checkoutNotice": "Les motifs IA sont vendus sous forme d'impressions pour un usage personnel selon nos conditions.",
+    "termsCheckbox": "J'accepte les conditions d'utilisation et la politique de confidentialité"
+  }
+}
