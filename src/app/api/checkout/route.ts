@@ -2,9 +2,7 @@ import { NextResponse } from 'next/server'
 import Stripe from 'stripe'
 import { prisma } from '@/lib/prisma'
 import { getUserId } from '@/lib/auth/getUserId'
-
-const SHIPPING_CENTS = 9900 // 99 kr
-const VAT_RATE = 0.25
+import { getPricingConfig, calculateServerPrice } from '@/lib/pricing/prints'
 
 const VALID_PRODUCT_TYPES = ['POSTER', 'CANVAS', 'METAL', 'FRAMED_POSTER'] as const
 const VALID_FRAME_COLORS = ['NONE', 'BLACK', 'WHITE', 'OAK', 'WALNUT', 'GOLD'] as const
@@ -143,11 +141,31 @@ export async function POST(req: Request) {
     step = 'validate-stripe'
     const stripe = getStripe()
 
-    // --- Step 4: Calculate totals ---
+    // --- Step 4: Calculate totals (server-side pricing) ---
     step = 'calculate-totals'
+    const pricingConfig = await getPricingConfig()
+    const shippingCents = pricingConfig.shippingSEK * 100
+    const vatRate = pricingConfig.vatRate
+
+    // Calculate server-side price per item and override client-sent unitPriceCents
+    for (const item of orderItems) {
+      const frameId = (item.frameColor ?? 'none').toLowerCase()
+      const serverPrice = calculateServerPrice(pricingConfig, item.sizeCode, frameId, item.paperType)
+      const serverPriceCents = serverPrice.totalPriceSEK * 100
+
+      // Log if client price diverges significantly (> 100 öre / 1 kr)
+      if (Math.abs(item.unitPriceCents - serverPriceCents) > 100) {
+        console.warn(
+          `[checkout] Prisavvikelse för ${item.sizeCode}/${frameId}: klient=${item.unitPriceCents} server=${serverPriceCents}`
+        )
+      }
+
+      // Always use server-calculated price
+      item.unitPriceCents = serverPriceCents
+    }
+
     const subtotalCents = orderItems.reduce((sum, item) => sum + item.unitPriceCents * (item.quantity || 1), 0)
-    const shippingCents = SHIPPING_CENTS
-    const taxCents = Math.round((subtotalCents + shippingCents) * VAT_RATE)
+    const taxCents = Math.round((subtotalCents + shippingCents) * vatRate)
     const totalCents = subtotalCents + shippingCents + taxCents
 
     // --- Step 5: Create order in DB ---

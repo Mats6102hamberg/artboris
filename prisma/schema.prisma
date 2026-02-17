@@ -643,6 +643,20 @@ model DesignAsset {
   @@unique([designId, role, sizeCode, productType])
 }
 
+// ─── Pricing Configuration ────────────────────────────────
+
+model PricingConfig {
+  id                String   @id @default("current")
+  sizes             Json     // [{ id, label, widthCm, heightCm, baseSEK, costSEK }]
+  frames            Json     // [{ id, label, color, width, costSEK, priceSEK }]
+  papers            Json     // [{ id, label, costSEK, priceSEK }]
+  shippingSEK       Int      @default(99)
+  marketShippingSEK Int      @default(79)
+  vatRate           Float    @default(0.25)
+  updatedAt         DateTime @updatedAt
+  updatedBy         String?
+}
+
 // ─── Scanner Portfolio ─────────────────────────────────────
 
 model ScannerPortfolioItem {

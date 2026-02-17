@@ -1,6 +1,8 @@
 import { SizeOption, FrameOption } from '@/types/design'
 import { POSTER_SIZES } from '@/lib/image/resize'
 
+// ── Static fallback (used client-side and as default) ──
+
 export const FRAME_OPTIONS: FrameOption[] = [
   { id: 'none', label: 'Ingen ram', imageUrl: '', color: 'transparent', width: 0, priceMultiplier: 1.0 },
   { id: 'black', label: 'Svart', imageUrl: '/assets/frames/black.png', color: '#1a1a1a', width: 20, priceMultiplier: 1.3 },
@@ -29,6 +31,8 @@ const BASE_PRICES_SEK: Record<string, number> = {
   '70x100': 749,
 }
 
+// ── Client-side: synkron beräkning med hårdkodade fallback-priser ──
+
 export function calculatePrintPrice(sizeId: string, frameId: string): PrintPricing {
   const size = POSTER_SIZES.find(s => s.id === sizeId)
   const frame = FRAME_OPTIONS.find(f => f.id === frameId)
@@ -42,6 +46,100 @@ export function calculatePrintPrice(sizeId: string, frameId: string): PrintPrici
     sizeLabel: size?.label || sizeId,
     basePriceSEK,
     framePriceSEK,
+    totalPriceSEK,
+    creditsNeeded: size?.priceCredits || 10,
+  }
+}
+
+// ── Server-side: DB-driven pricing with in-memory cache ──
+
+export interface PricingConfigData {
+  sizes: Array<{ id: string; label: string; widthCm: number; heightCm: number; baseSEK: number; costSEK: number }>
+  frames: Array<{ id: string; label: string; color: string; width: number; costSEK: number; priceSEK: number }>
+  papers: Array<{ id: string; label: string; costSEK: number; priceSEK: number }>
+  shippingSEK: number
+  marketShippingSEK: number
+  vatRate: number
+}
+
+let cachedConfig: PricingConfigData | null = null
+let cacheExpiry = 0
+const CACHE_TTL_MS = 5 * 60 * 1000 // 5 minutes
+
+export async function getPricingConfig(): Promise<PricingConfigData> {
+  if (cachedConfig && Date.now() < cacheExpiry) {
+    return cachedConfig
+  }
+
+  try {
+    const { prisma } = await import('@/lib/prisma')
+    const config = await prisma.pricingConfig.findUnique({ where: { id: 'current' } })
+
+    if (config) {
+      cachedConfig = {
+        sizes: config.sizes as PricingConfigData['sizes'],
+        frames: config.frames as PricingConfigData['frames'],
+        papers: config.papers as PricingConfigData['papers'],
+        shippingSEK: config.shippingSEK,
+        marketShippingSEK: config.marketShippingSEK,
+        vatRate: config.vatRate,
+      }
+      cacheExpiry = Date.now() + CACHE_TTL_MS
+      return cachedConfig
+    }
+  } catch (err) {
+    console.warn('[pricing] DB fetch failed, using fallback:', err)
+  }
+
+  // Fallback to hardcoded prices
+  return {
+    sizes: Object.entries(BASE_PRICES_SEK).map(([id, baseSEK]) => {
+      const size = POSTER_SIZES.find(s => s.id === id)
+      return { id, label: size?.label || id, widthCm: size?.widthCm || 0, heightCm: size?.heightCm || 0, baseSEK, costSEK: 0 }
+    }),
+    frames: FRAME_OPTIONS.map(f => ({
+      id: f.id, label: f.label, color: f.color, width: f.width, costSEK: 0, priceSEK: 0,
+    })),
+    papers: [
+      { id: 'DEFAULT', label: 'Standard', costSEK: 0, priceSEK: 0 },
+      { id: 'MATTE', label: 'Matt', costSEK: 0, priceSEK: 0 },
+      { id: 'SEMI_GLOSS', label: 'Semi-gloss', costSEK: 0, priceSEK: 0 },
+      { id: 'FINE_ART', label: 'Fine Art', costSEK: 0, priceSEK: 0 },
+    ],
+    shippingSEK: 99,
+    marketShippingSEK: 79,
+    vatRate: 0.25,
+  }
+}
+
+// Clear cache (called after admin updates pricing)
+export function invalidatePricingCache() {
+  cachedConfig = null
+  cacheExpiry = 0
+}
+
+// Server-side price calculation using DB config
+export function calculateServerPrice(
+  config: PricingConfigData,
+  sizeId: string,
+  frameId: string,
+  paperType?: string,
+): PrintPricing {
+  const sizeConfig = config.sizes.find(s => s.id === sizeId)
+  const frameConfig = config.frames.find(f => f.id === frameId)
+  const paperConfig = paperType ? config.papers.find(p => p.id === paperType) : null
+
+  const basePriceSEK = sizeConfig?.baseSEK || BASE_PRICES_SEK[sizeId] || 199
+  const framePriceSEK = frameConfig?.priceSEK || 0
+  const paperPriceSEK = paperConfig?.priceSEK || 0
+  const totalPriceSEK = basePriceSEK + framePriceSEK + paperPriceSEK
+
+  const size = POSTER_SIZES.find(s => s.id === sizeId)
+
+  return {
+    sizeLabel: sizeConfig?.label || size?.label || sizeId,
+    basePriceSEK,
+    framePriceSEK: framePriceSEK + paperPriceSEK,
     totalPriceSEK,
     creditsNeeded: size?.priceCredits || 10,
   }
