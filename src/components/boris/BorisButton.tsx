@@ -106,10 +106,10 @@ export default function BorisButton({
         {/* FAB */}
         <button
           onClick={() => setIsOpen(!isOpen)}
-          className={`fixed bottom-6 right-6 z-50 w-14 h-14 rounded-full shadow-lg flex items-center justify-center transition-all duration-300 ${
+          className={`fixed bottom-6 right-6 z-50 flex items-center justify-center transition-all duration-300 ${
             isOpen
-              ? 'bg-gray-900 text-white scale-90'
-              : 'bg-gradient-to-br from-amber-500 to-orange-600 text-white hover:shadow-xl hover:scale-105'
+              ? 'w-14 h-14 rounded-full bg-gray-900 text-white scale-90'
+              : 'h-14 rounded-full bg-gradient-to-br from-amber-500 to-orange-600 text-white shadow-lg shadow-amber-500/25 hover:shadow-xl hover:shadow-amber-500/30 hover:scale-105 w-14 lg:w-auto lg:gap-2.5 lg:px-5 lg:rounded-2xl'
           }`}
           title="Fråga Boris"
         >
@@ -118,7 +118,10 @@ export default function BorisButton({
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
             </svg>
           ) : (
-            <span className="text-xl font-bold">B</span>
+            <>
+              <span className="text-xl font-bold">B</span>
+              <span className="hidden lg:inline text-sm font-semibold">Fråga Boris</span>
+            </>
           )}
         </button>
 
@@ -140,7 +143,7 @@ export default function BorisButton({
         className={`inline-flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-medium transition-all ${
           isOpen
             ? 'bg-gray-900 text-white'
-            : 'bg-gradient-to-r from-amber-50 to-orange-50 text-amber-800 border border-amber-200/60 hover:border-amber-300 hover:shadow-sm'
+            : 'bg-gradient-to-r from-amber-100 to-orange-100 text-amber-900 border border-amber-300 hover:border-amber-400 hover:shadow-md shadow-sm'
         }`}
       >
         <span className="w-6 h-6 rounded-full bg-gradient-to-br from-amber-500 to-orange-600 text-white flex items-center justify-center text-xs font-bold flex-shrink-0">
