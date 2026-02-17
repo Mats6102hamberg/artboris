@@ -5,9 +5,13 @@ import { reportApiError } from '@/lib/crashcatcher'
 import { sendErrorAdminAlert } from '@/server/services/email/adminAlert'
 
 export async function POST(request: NextRequest) {
+  let anonId: string | undefined
+  let designId: string | undefined
+
   try {
     const body = await request.json()
-    const { designId, productType, sizeCode, frameColor, paperType, quantity, unitPriceCents } = body
+    const { productType, sizeCode, frameColor, paperType, quantity, unitPriceCents } = body
+    designId = body.designId
 
     if (!designId || !productType || !sizeCode || unitPriceCents == null) {
       return NextResponse.json(
@@ -16,7 +20,7 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    const anonId = await getUserId()
+    anonId = await getUserId()
 
     const result = await createOrder({
       anonId,
@@ -43,7 +47,7 @@ export async function POST(request: NextRequest) {
     })
   } catch (error) {
     console.error('[orders/create] Error:', error)
-    reportApiError('orders/create', error, 'CRITICAL')
+    reportApiError('orders/create', error, 'CRITICAL', { userId: anonId, designId })
     sendErrorAdminAlert({
       route: 'orders/create',
       error: error instanceof Error ? error.message : String(error),

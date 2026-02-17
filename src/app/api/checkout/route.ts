@@ -42,11 +42,12 @@ interface ShippingInput {
 export async function POST(req: Request) {
   let step = 'init'
   let orderId: string | null = null
+  let anonId: string | undefined
 
   try {
     // --- Step 1: Parse & validate ---
     step = 'parse-body'
-    const anonId = await getUserId()
+    anonId = await getUserId()
     const body = await req.json()
 
     const { items, shipping } = body as {
@@ -290,7 +291,7 @@ export async function POST(req: Request) {
     const message = err?.message || 'Okänt fel'
 
     // Report to CrashCatcher + admin alert
-    reportApiError('checkout', err, 'CRITICAL')
+    reportApiError('checkout', err, 'CRITICAL', { userId: anonId, orderId: orderId ?? undefined })
     sendErrorAdminAlert({
       route: `checkout (step: ${step})`,
       error: message,

@@ -59,18 +59,35 @@ export async function reportError(incident: CrashCatcherIncident): Promise<void>
   }
 }
 
+export interface ErrorContext {
+  userId?: string
+  orderId?: string
+  designId?: string
+  [key: string]: string | undefined
+}
+
 /**
  * Convenience: report an Error object from an API route.
  * Reports to both Sentry and CrashCatcher.
+ *
+ * Pass context to attach user.id, orderId, designId etc. to the Sentry event.
  */
-export function reportApiError(route: string, error: unknown, severity: CrashCatcherIncident['severity'] = 'HIGH'): void {
+export function reportApiError(
+  route: string,
+  error: unknown,
+  severity: CrashCatcherIncident['severity'] = 'HIGH',
+  context?: ErrorContext,
+): void {
   const message = error instanceof Error ? error.message : String(error)
   const stack = error instanceof Error ? error.stack : undefined
 
   // Sentry (primary)
   import('@sentry/nextjs').then(Sentry => {
+    if (context?.userId) {
+      Sentry.setUser({ id: context.userId })
+    }
     Sentry.captureException(error, {
-      tags: { route },
+      tags: { route, ...context },
       extra: { severity },
     })
   }).catch(() => {})
