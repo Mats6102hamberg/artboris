@@ -235,7 +235,7 @@ export default function Home() {
 
             {/* Right column — room illustration */}
             <div className="hidden md:block mt-12 lg:mt-0">
-              <div className="relative rotate-1">
+              <div className="relative">
                 {/* Room scene */}
                 <div className="relative aspect-[4/3] rounded-2xl overflow-hidden shadow-2xl shadow-gray-900/10">
                   {/* Wall */}
@@ -248,12 +248,12 @@ export default function Home() {
                   </div>
 
                   {/* Small left painting (landscape) */}
-                  <div className="absolute top-[18%] left-[10%] p-1.5 bg-white rounded shadow-xl -rotate-2">
+                  <div className="absolute top-[18%] left-[10%] p-1.5 bg-white rounded shadow-xl">
                     <div className="w-20 h-14 sm:w-24 sm:h-16 rounded-sm bg-gradient-to-br from-rose-400 via-pink-500 to-rose-600" />
                   </div>
 
                   {/* Small right painting (square) */}
-                  <div className="absolute top-[22%] right-[10%] p-1.5 bg-white rounded shadow-xl rotate-1">
+                  <div className="absolute top-[22%] right-[10%] p-1.5 bg-white rounded shadow-xl">
                     <div className="w-14 h-14 sm:w-16 sm:h-16 rounded-sm bg-gradient-to-br from-violet-400 via-purple-500 to-indigo-600" />
                   </div>
 
