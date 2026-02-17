@@ -2,7 +2,7 @@ import { NextResponse } from 'next/server'
 import Stripe from 'stripe'
 import { prisma } from '@/lib/prisma'
 import { generatePrintAsset, isPremiumSize } from '@/server/services/print/generatePrintAsset'
-import { sendOrderConfirmation, sendArtistSaleNotification } from '@/server/services/email/sendEmail'
+import { sendOrderConfirmation, sendArtistSaleNotification, sendCrimsonOrderEmail } from '@/server/services/email/sendEmail'
 import { addCredits } from '@/server/services/credits/spend'
 import { FIRST_PURCHASE_BONUS } from '@/lib/pricing/credits'
 
@@ -210,6 +210,11 @@ async function processCheckoutCompleted(orderId: string, session: Stripe.Checkou
       }
     }
   }
+
+  // ── Send order to Crimson (non-blocking) ──
+  sendCrimsonOrderEmail(orderId).catch(err =>
+    console.error(`[stripe webhook] Crimson email failed for ${orderId}:`, err)
+  )
 
   console.log(`[stripe webhook] Order ${orderId} processing complete`)
 }
