@@ -17,6 +17,8 @@
 | Database | PostgreSQL + Prisma ORM |
 | Storage | Vercel Blob (persistent image storage) |
 | Payments | Stripe (checkout + webhooks) |
+| Email | Resend (order confirmations, Crimson print orders) |
+| Print Partner | Crimson (automated email orders, webhook status updates) |
 | Image Processing | Sharp (server-side), Canvas API (client-side) |
 | i18n | Custom EN/SV system with context provider |
 
@@ -114,6 +116,7 @@ src/
 │   │   ├── abstract/page.tsx           # Abstract Painter
 │   │   └── colorfield/page.tsx         # Color Field Studio
 │   ├── admin/orders/page.tsx           # Admin order management
+│   ├── admin/pricing/page.tsx         # Admin pricing config (sizes, frames, papers, shipping)
 │   ├── order/[id]/page.tsx             # Order confirmation
 │   ├── poster-lab/                     # Legacy poster lab (original version)
 │   ├── api/
@@ -130,7 +133,11 @@ src/
 │       ├── market/artist/              # Artist register, stripe onboard/status
 │       ├── invites/                    # Invite code management
 │       ├── webhook/stripe/             # Stripe webhook handler
+│       ├── webhook/crimson/           # Crimson print partner webhook
 │       ├── admin/orders/               # Admin CRUD
+│       ├── admin/pricing/             # Admin pricing config (GET/PATCH)
+│       ├── pricing/                   # Public pricing API (strips costSEK)
+│       ├── orders/send-receipt/       # Send order confirmation email (GET/POST)
 │       └── renders/final/              # Print-ready render
 ├── components/
 │   ├── ui/                             # Button, Card, LanguageSwitcher
@@ -185,6 +192,9 @@ npx prisma migrate dev
 | `REPLICATE_API_TOKEN` | Replicate Flux Schnell for image generation | Yes, for AI gen |
 | `ADMIN_SECRET` | Admin key for invite management | Yes, for admin |
 | `BLOB_READ_WRITE_TOKEN` | Vercel Blob token for image storage | Yes, for print |
+| `RESEND_API_KEY` | Resend email service API key | Yes, for emails |
+| `CRIMSON_ORDER_EMAIL` | Email for print orders to Crimson | Yes, for orders |
+| `CRIMSON_WEBHOOK_SECRET` | Crimson webhook authentication secret | Yes, for webhook |
 | `NEXT_PUBLIC_APP_URL` | App URL for redirects | No |
 
 ## Database Models (Prisma)
@@ -192,6 +202,7 @@ npx prisma migrate dev
 **Design & Gallery:** Design, DesignVariant, DesignAsset, Like, RoomMeta
 **Credits:** CreditAccount, CreditTransaction
 **Orders:** Order, OrderItem, Payment, ShippingAddress, Fulfillment, PrintPartner
+**Pricing:** PricingConfig (DB-driven, editable via /admin/pricing)
 **Market:** ArtistProfile, ArtworkListing, MarketOrder, InviteCode
 
 ## Credits System
@@ -233,12 +244,15 @@ npx prisma migrate dev
 | Invite System (artist registration) | ✅ Done |
 | Admin Order Management | ✅ Done |
 | Print Pipeline (Sharp + Blob) | ✅ Done |
-| PrintPartner (Crimson) | ✅ Seeded |
+| Crimson Print Partner (auto email, retry, webhook) | ✅ Done |
+| Admin Pricing Panel (DB-driven, margin calc) | ✅ Done |
+| Server-side Price Validation (checkout) | ✅ Done |
+| Order Confirmation Email Choice | ✅ Done |
+| Mobile Mockup Touch (+/- buttons, bigger handles) | ✅ Done |
 | Mobile responsive | ✅ Done |
 | Art Scanner | ✅ Done |
 | BorisArt AI Chatbot | ✅ Done |
-| Wallcraft Checkout | 🔧 Bug: "Kunde inte skapa checkout-session" — debugging |
 
 ---
 
-*Built with Cascade AI · February 2026 · Last updated: 2026-02-16*
+*Built with Cascade AI + Claude Code · February 2026 · Last updated: 2026-02-17*

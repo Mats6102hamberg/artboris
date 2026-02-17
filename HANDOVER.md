@@ -3,7 +3,7 @@
 **GitHub:** https://github.com/Mats6102hamberg/artboris
 **Vercel:** https://artboris.vercel.app/
 **Local path:** `/Users/matshamberg/CascadeProjects/Artboris`
-**Last updated:** 2026-02-16
+**Last updated:** 2026-02-17
 
 ---
 
@@ -40,6 +40,9 @@ NEXT_PUBLIC_APP_URL=http://localhost:3000
 STRIPE_WEBHOOK_SECRET=whsec_...
 BLOB_READ_WRITE_TOKEN=vercel_blob_...
 REPLICATE_API_TOKEN=r8_...
+RESEND_API_KEY=re_...
+CRIMSON_ORDER_EMAIL=order@crimson.se
+CRIMSON_WEBHOOK_SECRET=secret_...
 
 # Run migrations
 npx prisma migrate dev
@@ -75,6 +78,8 @@ stripe listen --forward-to localhost:3000/api/webhook/stripe
 | `/market/[id]` | Listing Detail | Preview → checkout with shipping form + Stripe Connect |
 | `/market/artist` | Artist Portal | Register (invite code), upload, manage listings, Stripe Connect |
 | `/admin/invites` | Invite Admin | Create and manage invite codes |
+| `/admin/pricing` | Pricing Admin | Edit sizes, frames, papers, shipping, VAT with margin calculation |
+| `/order/success` | Order Success | Confetti + send order confirmation to chosen email |
 
 ### User Flow: Create → Publish → Sell
 
@@ -136,7 +141,7 @@ Upload photo → Pick style (18 styles) + transformation strength (0.2–0.95)
 | listGallery / like | `server/services/gallery/` | Gallery listing + anonymous likes |
 | createOrder | `server/services/orders/createOrder.ts` | Order + credit deduction in transaction |
 | generatePrintAsset | `server/services/print/generatePrintAsset.ts` | Sharp-based print file generation |
-| sendEmail | `server/services/email/sendEmail.ts` | Order confirmation emails |
+| sendEmail | `server/services/email/sendEmail.ts` | Order confirmation + Crimson order emails, retry with backoff |
 
 ### Key Components
 
@@ -149,7 +154,7 @@ Upload photo → Pick style (18 styles) + transformation strength (0.2–0.95)
 | PrintYourOwn | `components/poster/PrintYourOwn.tsx` | Photo upload + DPI quality analysis |
 | WallMarker | `components/poster/WallMarker.tsx` | Click 4 corners, drag to adjust |
 | StylePicker | `components/poster/StylePicker.tsx` | 18 styles with color preview |
-| MockupPreview | `components/poster/MockupPreview.tsx` | CSS-based wall placement |
+| MockupPreview | `components/poster/MockupPreview.tsx` | CSS-based wall placement, drag/pinch/resize, +/- scale buttons, mobile-optimized touch |
 | PublishToggle | `components/poster/PublishToggle.tsx` | Gallery publish toggle (calls API on toggle) |
 | CreditBadge | `components/poster/CreditBadge.tsx` | Credit balance display |
 
@@ -177,9 +182,12 @@ Upload photo → Pick style (18 styles) + transformation strength (0.2–0.95)
 - `Order` — main order with status enum, prices in cents (SEK)
 - `OrderItem` — product type (POSTER/CANVAS/METAL/FRAMED_POSTER), size, frame, paper
 - `Payment` — Stripe integration (checkout session, payment intent)
-- `ShippingAddress` — full address with ISO country code
-- `Fulfillment` — print status per item: partner, tracking, timestamps
+- `ShippingAddress` — full address with ISO country code + `confirmationEmail` (nullable)
+- `Fulfillment` — print status per item: partner, tracking, timestamps, SENT_TO_PARTNER status
 - `PrintPartner` — seeded: Crimson (crimson.se, Stockholm)
+
+**Pricing:**
+- `PricingConfig` — single row (id: "current"), JSON fields for sizes/frames/papers, shippingSEK, marketShippingSEK, vatRate
 
 **Art Market:**
 - `ArtistProfile` — email, displayName, Stripe Connect, invite-gated
@@ -204,11 +212,47 @@ Design editor → PATCH auto-save (position, scale, crop, frame, size)
   1. parse-body — validate items, shipping
   2. validate-data — check enums (productType, frameColor, paperType) + verify designIds exist in DB
   3. validate-stripe — ensure STRIPE_SECRET_KEY is set
-  4. calculate-totals — subtotal + shipping (99 kr) + tax (25%)
+  4. calculate-totals — SERVER-SIDE pricing via getPricingConfig() + calculateServerPrice()
+     → overrides client-sent unitPriceCents (security: client can't manipulate price)
+     → logs warning if client price diverges > 1 kr
+     → shipping + VAT from DB config (not hardcoded)
   5. create-order — Prisma order with items, shipping, payment
   6. create-stripe-session — Stripe Checkout with line items
   7. update-payment — save Stripe session ID
   On error: rollback order to CANCELED if Stripe fails after DB write
+```
+
+### Crimson Print Partner Pipeline
+
+```
+Stripe webhook (checkout.session.completed)
+  → processCheckoutCompleted() creates Fulfillment records
+  → sendCrimsonOrderEmail(orderId) — non-blocking
+    → Fetches order + items + shipping + print file URLs
+    → Renders CrimsonOrderNotification email template
+    → Sends via Resend with retry (3 attempts, exponential backoff)
+    → Marks fulfillments as SENT_TO_PARTNER
+
+Crimson webhook (POST /api/webhook/crimson):
+  → Validates x-crimson-secret header
+  → Events: order.received, order.in_production, order.shipped
+  → Updates Fulfillment status + tracking info
+  → Sends shipped email to customer on order.shipped
+```
+
+### Pricing System
+
+```
+Admin: /admin/pricing → PATCH /api/admin/pricing → PricingConfig (DB)
+  → Sizes: baseSEK, costSEK per size (a5, a4, a3, 30x40, 40x50, 50x70, 61x91, 70x100)
+  → Frames: priceSEK, costSEK per frame (none, black, white, oak, walnut, gold)
+  → Papers: priceSEK, costSEK per paper (DEFAULT, MATTE, SEMI_GLOSS, FINE_ART)
+  → Shipping: shippingSEK, marketShippingSEK, vatRate
+  → invalidatePricingCache() clears in-memory cache
+
+Server-side: getPricingConfig() → DB with 5 min in-memory cache → fallback to hardcoded
+Client-side: calculatePrintPrice() → synchronous with hardcoded fallback (no DB)
+Public API: GET /api/pricing → strips costSEK, Cache-Control 5 min
 ```
 
 ### Brand Style
@@ -232,6 +276,10 @@ Design editor → PATCH auto-save (position, scale, crop, frame, size)
 - [x] **Vercel env vars** — `STRIPE_SECRET_KEY`, `NEXT_PUBLIC_APP_URL`, `NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY` added.
 - [x] **Photo Transform** — New creative tool: upload photo → pick style + strength → AI (Flux Dev img2img) generates 4 variants. Added to landing page + navigation.
 - [x] **Vitest test suite** — 37 tests covering 5 API routes + generatePreview service. All green.
+- [x] **Order confirmation email choice** — Customer chooses email recipient at checkout + success page.
+- [x] **Crimson print partner** — Auto-send orders via email, retry mechanism, admin resend, webhook, market orders.
+- [x] **Admin pricing panel** — DB-driven pricing config with admin UI, server-side price validation in checkout.
+- [x] **Mobile mockup touch** — Bigger resize handles (48px), visible corners, +/- buttons, pinch hint.
 
 ### For Production
 - [ ] **Auth** — No real authentication. Uses cookie-based `anonId`
@@ -239,6 +287,7 @@ Design editor → PATCH auto-save (position, scale, crop, frame, size)
 - [ ] **Frame assets** — PNG placeholders, need real frame images
 - [x] **Tests** — Vitest testsvit med 37 tester (se Test Suite nedan)
 - [ ] **Art Scanner portfolio** — saved in React state only, not persisted to DB
+- [ ] **Crimson costSEK** — Fill in production costs after Crimson agreement (via /admin/pricing)
 
 ### Nice to Have
 - [ ] **SEO** — Meta tags, OG images for Wallcraft pages
@@ -298,4 +347,4 @@ Push: `git push origin main`
 
 ---
 
-*Last updated: 2026-02-16 · Built with Claude Code*
+*Last updated: 2026-02-17 · Built with Claude Code*
