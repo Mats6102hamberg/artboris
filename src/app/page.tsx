@@ -171,62 +171,112 @@ export default function Home() {
         <div className="absolute bottom-0 left-0 w-[400px] h-[400px] bg-gradient-to-tr from-rose-100/20 via-transparent to-transparent rounded-full blur-3xl" />
 
         <div className="relative max-w-7xl mx-auto px-6">
-          <div className={`max-w-4xl transition-all duration-1000 ${heroVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-12'}`}>
-            <div className="inline-flex items-center gap-2 bg-white/60 backdrop-blur-sm border border-gray-200/60 rounded-full px-4 py-1.5 mb-8">
-              <span className="w-2 h-2 bg-emerald-500 rounded-full animate-pulse" />
-              <span className="text-xs font-medium text-gray-600 tracking-wide uppercase">Nu i beta — prova gratis</span>
+          <div className={`lg:grid lg:grid-cols-2 lg:gap-12 lg:items-center transition-all duration-1000 ${heroVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-12'}`}>
+            {/* Left column — text */}
+            <div className="max-w-2xl">
+              <div className="inline-flex items-center gap-2 bg-white/60 backdrop-blur-sm border border-gray-200/60 rounded-full px-4 py-1.5 mb-8">
+                <span className="w-2 h-2 bg-emerald-500 rounded-full animate-pulse" />
+                <span className="text-xs font-medium text-gray-600 tracking-wide uppercase">Nu i beta — prova gratis</span>
+              </div>
+
+              <h1 className="text-5xl sm:text-6xl lg:text-7xl font-light tracking-tight text-gray-900 leading-[1.08]">
+                Konst som passar
+                <br />
+                <span className="bg-gradient-to-r from-emerald-600 via-teal-600 to-cyan-600 bg-clip-text text-transparent">
+                  just din vägg
+                </span>
+              </h1>
+
+              <p className="mt-8 text-lg sm:text-xl text-gray-500 max-w-2xl leading-relaxed">
+                Skapa AI-genererad konst, upptäck lokala konstnärer eller ladda upp ditt eget foto.
+                Se hur det ser ut på din vägg — innan du beställer.
+              </p>
+
+              <div className="mt-10 flex flex-wrap gap-4">
+                <a
+                  href="#skapa-konto"
+                  className="inline-flex items-center gap-2 bg-gray-900 text-white px-8 py-4 rounded-xl text-base font-medium hover:bg-gray-800 transition-all hover:shadow-lg hover:shadow-gray-900/10"
+                >
+                  Kom igång gratis
+                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" />
+                  </svg>
+                </a>
+                <a
+                  href="/wallcraft"
+                  className="inline-flex items-center gap-2 bg-white text-gray-700 px-8 py-4 rounded-xl text-base font-medium border border-gray-200 hover:border-gray-300 hover:shadow-md transition-all"
+                >
+                  Se hur det fungerar
+                </a>
+              </div>
+
+              {/* Trust strip */}
+              <div className="mt-16 flex flex-wrap items-center gap-8 text-sm text-gray-400">
+                <div className="flex items-center gap-2">
+                  <svg className="w-4 h-4 text-emerald-500" fill="currentColor" viewBox="0 0 20 20">
+                    <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                  </svg>
+                  Gratis att testa
+                </div>
+                <div className="flex items-center gap-2">
+                  <svg className="w-4 h-4 text-emerald-500" fill="currentColor" viewBox="0 0 20 20">
+                    <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                  </svg>
+                  Inget kort krävs
+                </div>
+                <div className="flex items-center gap-2">
+                  <svg className="w-4 h-4 text-emerald-500" fill="currentColor" viewBox="0 0 20 20">
+                    <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                  </svg>
+                  Tryck & leverans i Sverige
+                </div>
+              </div>
             </div>
 
-            <h1 className="text-5xl sm:text-6xl lg:text-7xl font-light tracking-tight text-gray-900 leading-[1.08]">
-              Konst som passar
-              <br />
-              <span className="bg-gradient-to-r from-emerald-600 via-teal-600 to-cyan-600 bg-clip-text text-transparent">
-                just din vägg
-              </span>
-            </h1>
+            {/* Right column — room illustration */}
+            <div className="hidden md:block mt-12 lg:mt-0">
+              <div className="relative rotate-1">
+                {/* Room scene */}
+                <div className="relative aspect-[4/3] rounded-2xl overflow-hidden shadow-2xl shadow-gray-900/10">
+                  {/* Wall */}
+                  <div className="absolute inset-0 bg-gradient-to-b from-[#F5F0EB] via-[#EDE8E3] to-[#E8E2DA]" />
 
-            <p className="mt-8 text-lg sm:text-xl text-gray-500 max-w-2xl leading-relaxed">
-              Skapa AI-genererad konst, upptäck lokala konstnärer eller ladda upp ditt eget foto.
-              Se hur det ser ut på din vägg — innan du beställer.
-            </p>
+                  {/* Framed artworks */}
+                  {/* Large center painting (portrait) */}
+                  <div className="absolute top-[12%] left-1/2 -translate-x-1/2 p-1.5 bg-white rounded shadow-xl">
+                    <div className="w-28 h-36 sm:w-32 sm:h-40 rounded-sm bg-gradient-to-br from-emerald-400 via-teal-500 to-cyan-600" />
+                  </div>
 
-            <div className="mt-10 flex flex-wrap gap-4">
-              <a
-                href="#skapa-konto"
-                className="inline-flex items-center gap-2 bg-gray-900 text-white px-8 py-4 rounded-xl text-base font-medium hover:bg-gray-800 transition-all hover:shadow-lg hover:shadow-gray-900/10"
-              >
-                Kom igång gratis
-                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" />
-                </svg>
-              </a>
-              <a
-                href="/wallcraft"
-                className="inline-flex items-center gap-2 bg-white text-gray-700 px-8 py-4 rounded-xl text-base font-medium border border-gray-200 hover:border-gray-300 hover:shadow-md transition-all"
-              >
-                Se hur det fungerar
-              </a>
-            </div>
+                  {/* Small left painting (landscape) */}
+                  <div className="absolute top-[18%] left-[10%] p-1.5 bg-white rounded shadow-xl -rotate-2">
+                    <div className="w-20 h-14 sm:w-24 sm:h-16 rounded-sm bg-gradient-to-br from-rose-400 via-pink-500 to-rose-600" />
+                  </div>
 
-            {/* Trust strip */}
-            <div className="mt-16 flex flex-wrap items-center gap-8 text-sm text-gray-400">
-              <div className="flex items-center gap-2">
-                <svg className="w-4 h-4 text-emerald-500" fill="currentColor" viewBox="0 0 20 20">
-                  <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
-                </svg>
-                Gratis att testa
-              </div>
-              <div className="flex items-center gap-2">
-                <svg className="w-4 h-4 text-emerald-500" fill="currentColor" viewBox="0 0 20 20">
-                  <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
-                </svg>
-                Inget kort krävs
-              </div>
-              <div className="flex items-center gap-2">
-                <svg className="w-4 h-4 text-emerald-500" fill="currentColor" viewBox="0 0 20 20">
-                  <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
-                </svg>
-                Tryck & leverans i Sverige
+                  {/* Small right painting (square) */}
+                  <div className="absolute top-[22%] right-[10%] p-1.5 bg-white rounded shadow-xl rotate-1">
+                    <div className="w-14 h-14 sm:w-16 sm:h-16 rounded-sm bg-gradient-to-br from-violet-400 via-purple-500 to-indigo-600" />
+                  </div>
+
+                  {/* Floor */}
+                  <div className="absolute bottom-0 left-0 right-0 h-[28%] bg-gradient-to-b from-[#C9A882] to-[#B89B71]">
+                    <div className="absolute inset-0 opacity-20 bg-[repeating-linear-gradient(90deg,transparent,transparent_48%,rgba(0,0,0,0.08)_48%,rgba(0,0,0,0.08)_52%,transparent_52%)]" />
+                  </div>
+
+                  {/* Furniture silhouette — sideboard */}
+                  <div className="absolute bottom-[22%] left-1/2 -translate-x-1/2 w-[60%]">
+                    <div className="h-10 sm:h-12 bg-[#8B7355]/70 rounded-t-lg" />
+                    <div className="flex justify-between px-2">
+                      <div className="w-2 h-3 bg-[#8B7355]/70" />
+                      <div className="w-2 h-3 bg-[#8B7355]/70" />
+                    </div>
+                  </div>
+                </div>
+
+                {/* Floating badge */}
+                <div className="absolute -bottom-4 -left-4 z-10 inline-flex items-center gap-2 bg-white rounded-full px-4 py-2 shadow-lg border border-gray-100">
+                  <span className="w-2 h-2 bg-emerald-500 rounded-full animate-pulse" />
+                  <span className="text-xs font-medium text-gray-700">AI-genererad</span>
+                </div>
               </div>
             </div>
           </div>
