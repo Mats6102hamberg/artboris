@@ -2,7 +2,7 @@ import { NextResponse } from 'next/server'
 import Stripe from 'stripe'
 import { prisma } from '@/lib/prisma'
 import { generatePrintAsset, isPremiumSize } from '@/server/services/print/generatePrintAsset'
-import { sendOrderConfirmation, sendArtistSaleNotification, sendCrimsonOrderEmail } from '@/server/services/email/sendEmail'
+import { sendOrderConfirmation, sendArtistSaleNotification, sendCrimsonOrderEmail, sendCrimsonMarketOrderEmail } from '@/server/services/email/sendEmail'
 import { addCredits } from '@/server/services/credits/spend'
 import { FIRST_PURCHASE_BONUS } from '@/lib/pricing/credits'
 
@@ -270,6 +270,11 @@ async function processMarketOrderCompleted(marketOrderId: string, session: Strip
   // ── Send artist sale notification (non-blocking) ──
   sendArtistSaleNotification(marketOrderId).catch(err =>
     console.error(`[stripe webhook] Artist sale email failed for ${marketOrderId}:`, err)
+  )
+
+  // ── Send order to Crimson for printing (non-blocking) ──
+  sendCrimsonMarketOrderEmail(marketOrderId).catch(err =>
+    console.error(`[stripe webhook] Crimson market email failed for ${marketOrderId}:`, err)
   )
 
   console.log(`[stripe webhook] MarketOrder ${marketOrderId} processing complete`)

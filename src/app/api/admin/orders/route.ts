@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 import { generatePrintAsset } from '@/server/services/print/generatePrintAsset'
 import { renderFinalPrint } from '@/server/services/print/renderFinalPrint'
-import { sendShippedEmail, sendDeliveredEmail } from '@/server/services/email/sendEmail'
+import { sendShippedEmail, sendDeliveredEmail, sendCrimsonOrderEmail } from '@/server/services/email/sendEmail'
 
 export async function GET() {
   try {
@@ -278,6 +278,22 @@ export async function PATCH(request: NextRequest) {
       } else {
         return NextResponse.json({ error: result.error || 'PRINT_FINAL generation failed' }, { status: 500 })
       }
+    }
+
+    if (action === 'RESEND_CRIMSON') {
+      // Get orderId from fulfillment
+      const fulfillment = await prisma.fulfillment.findUnique({
+        where: { id: fulfillmentId },
+        include: { orderItem: { select: { orderId: true } } },
+      })
+
+      if (!fulfillment) {
+        return NextResponse.json({ error: 'Fulfillment not found.' }, { status: 404 })
+      }
+
+      await sendCrimsonOrderEmail(fulfillment.orderItem.orderId)
+
+      return NextResponse.json({ success: true, message: 'Crimson-mejl skickat' })
     }
 
     return NextResponse.json({ error: `Unknown action: ${action}` }, { status: 400 })

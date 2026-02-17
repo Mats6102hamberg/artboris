@@ -117,6 +117,7 @@ export default function AdminOrdersPage() {
   } | null>(null)
   const [generateLoading, setGenerateLoading] = useState<string | null>(null)
   const [generateFinalLoading, setGenerateFinalLoading] = useState<string | null>(null)
+  const [crimsonLoading, setCrimsonLoading] = useState<string | null>(null)
 
   const fetchOrders = useCallback(async () => {
     try {
@@ -173,6 +174,28 @@ export default function AdminOrdersPage() {
       alert('Kunde inte generera slutgiltig tryckfil.')
     } finally {
       setGenerateFinalLoading(null)
+    }
+  }
+
+  const handleResendCrimson = async (fulfillmentId: string) => {
+    setCrimsonLoading(fulfillmentId)
+    try {
+      const res = await fetch('/api/admin/orders', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'RESEND_CRIMSON', fulfillmentId }),
+      })
+      const data = await res.json()
+      if (data.success) {
+        await fetchOrders()
+      } else {
+        alert(`Fel: ${data.error || 'Okänt fel'}`)
+      }
+    } catch (err) {
+      console.error('Resend Crimson failed:', err)
+      alert('Kunde inte skicka om till Crimson.')
+    } finally {
+      setCrimsonLoading(null)
     }
   }
 
@@ -402,6 +425,16 @@ export default function AdminOrdersPage() {
 
                                   {/* Actions */}
                                   <div className="flex items-center gap-1">
+                                    {(item.fulfillment.status === 'QUEUED' || item.fulfillment.status === 'SENT_TO_PARTNER' || item.fulfillment.status === 'FAILED') && (
+                                      <button
+                                        onClick={() => handleResendCrimson(item.fulfillment!.id)}
+                                        disabled={crimsonLoading === item.fulfillment.id}
+                                        className="px-2 py-1 text-xs bg-amber-600 text-white rounded hover:bg-amber-700 disabled:opacity-50 transition-colors"
+                                      >
+                                        {crimsonLoading === item.fulfillment.id ? '…' : '↻ Crimson'}
+                                      </button>
+                                    )}
+
                                     {item.fulfillment.status === 'QUEUED' && (
                                       <button
                                         onClick={() => handleAction('IN_PRODUCTION', item.fulfillment!.id)}
