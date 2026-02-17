@@ -480,13 +480,15 @@ model ArtworkListing {
   year          Int?
 
   // Image
-  imageUrl      String   // Original high-res uploaded to Blob
-  printUrl      String?  // Optimized print-ready version (Sharp-processed)
-  thumbnailUrl  String   @default("")
-  imageWidthPx  Int?     // Source image width in pixels
-  imageHeightPx Int?     // Source image height in pixels
-  maxPrintSize  String?  // Largest size with ≥200 DPI, e.g. "50x70"
-  printQuality  String?  // "perfect" | "good" | "fair" | "low" for largest requested size
+  imageUrl          String   // Display image (AI-enhanced if available, otherwise Sharp-processed)
+  originalUploadUrl String?  // Raw uploaded image before AI enhancement
+  printUrl          String?  // Optimized print-ready version (Sharp-processed)
+  thumbnailUrl      String   @default("")
+  imageWidthPx      Int?     // Source image width in pixels
+  imageHeightPx     Int?     // Source image height in pixels
+  maxPrintSize      String?  // Largest size with ≥200 DPI, e.g. "50x70"
+  printQuality      String?  // "perfect" | "good" | "fair" | "low" for largest requested size
+  aiEnhanced        Boolean  @default(false)  // Has the image been AI-enhanced?
 
   // Original dimensions (if physical artwork)
   widthCm       Float?

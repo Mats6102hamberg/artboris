@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 import { put } from '@vercel/blob'
 import { optimizeForPrint } from '@/lib/image/printOptimize'
+import { enhanceArtwork } from '@/server/services/ai/enhanceArtwork'
 
 // GET: Public gallery — fetch all published listings
 export async function GET(request: NextRequest) {
@@ -120,6 +121,19 @@ export async function POST(request: NextRequest) {
       { access: 'public', contentType: 'image/jpeg' }
     )
 
+    // ── AI enhancement — remove reflections, clean up photo artifacts ──
+    let displayUrl = printBlob.url
+    let aiEnhanced = false
+
+    const enhanced = await enhanceArtwork(printBlob.url)
+    if (enhanced) {
+      displayUrl = enhanced.enhancedUrl
+      aiEnhanced = true
+      console.log('[market/listings] AI enhancement succeeded')
+    } else {
+      console.log('[market/listings] AI enhancement skipped/failed, using original')
+    }
+
     const listing = await prisma.artworkListing.create({
       data: {
         artistId: artist.id,
@@ -128,13 +142,15 @@ export async function POST(request: NextRequest) {
         technique,
         category,
         year,
-        imageUrl: printBlob.url,
+        imageUrl: displayUrl,
+        originalUploadUrl: printBlob.url,
         printUrl: printBlob.url,
         thumbnailUrl: thumbBlob.url,
         imageWidthPx: optimized.optimizedWidthPx,
         imageHeightPx: optimized.optimizedHeightPx,
         maxPrintSize: optimized.maxPrintSize,
         printQuality: optimized.overallQuality,
+        aiEnhanced,
         widthCm,
         heightCm,
         artistPriceSEK,
