@@ -5,6 +5,8 @@ import { generatePrintAsset, isPremiumSize } from '@/server/services/print/gener
 import { sendOrderConfirmation, sendArtistSaleNotification, sendCrimsonOrderEmail, sendCrimsonMarketOrderEmail } from '@/server/services/email/sendEmail'
 import { addCredits } from '@/server/services/credits/spend'
 import { FIRST_PURCHASE_BONUS } from '@/lib/pricing/credits'
+import { reportApiError } from '@/lib/crashcatcher'
+import { sendErrorAdminAlert } from '@/server/services/email/adminAlert'
 
 function getStripe() {
   return new Stripe(process.env.STRIPE_SECRET_KEY!, {
@@ -24,6 +26,13 @@ export async function POST(req: Request) {
     event = stripe.webhooks.constructEvent(body, sig, webhookSecret)
   } catch (err) {
     console.error('[stripe webhook] Signature verification failed:', err)
+    reportApiError('webhook/stripe', err, 'CRITICAL')
+    sendErrorAdminAlert({
+      route: 'webhook/stripe (signature)',
+      error: err instanceof Error ? err.message : String(err),
+      statusCode: 400,
+      timestamp: new Date().toISOString(),
+    }).catch(() => {})
     return NextResponse.json({ error: 'Invalid signature' }, { status: 400 })
   }
 

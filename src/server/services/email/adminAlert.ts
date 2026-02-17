@@ -39,6 +39,49 @@ function shouldSendAlert(key: string): boolean {
   return true
 }
 
+// ── Server error alerts ──
+
+export interface ErrorAlertPayload {
+  route: string
+  error: string
+  statusCode: number
+  timestamp: string
+}
+
+export async function sendErrorAdminAlert(payload: ErrorAlertPayload): Promise<void> {
+  const adminEmail = getAdminEmail()
+  if (!adminEmail) return
+
+  const cooldownKey = `error:${payload.route}`
+  if (!shouldSendAlert(cooldownKey)) return
+
+  const subject = `SERVER ERROR: ${payload.route} (${payload.statusCode})`
+  const body = [
+    `Route: ${payload.route}`,
+    `Status: ${payload.statusCode}`,
+    `Error: ${payload.error}`,
+    `Time: ${payload.timestamp}`,
+  ].join('\n')
+
+  try {
+    const { error } = await getResend().emails.send({
+      from: getFromEmail(),
+      to: adminEmail,
+      subject,
+      text: body,
+    })
+    if (error) {
+      console.error('[adminAlert] Resend error:', error)
+    } else {
+      console.log(`[adminAlert] Error alert sent to ${adminEmail}: ${subject}`)
+    }
+  } catch (err) {
+    console.error('[adminAlert] Failed to send error alert:', err)
+  }
+}
+
+// ── AI alerts ──
+
 export async function sendAIAdminAlert(payload: AIAlertPayload): Promise<void> {
   const adminEmail = getAdminEmail()
   if (!adminEmail) {

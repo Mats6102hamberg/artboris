@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createOrder } from '@/server/services/orders/createOrder'
 import { getUserId } from '@/lib/auth/getUserId'
+import { reportApiError } from '@/lib/crashcatcher'
+import { sendErrorAdminAlert } from '@/server/services/email/adminAlert'
 
 export async function POST(request: NextRequest) {
   try {
@@ -41,6 +43,13 @@ export async function POST(request: NextRequest) {
     })
   } catch (error) {
     console.error('[orders/create] Error:', error)
+    reportApiError('orders/create', error, 'CRITICAL')
+    sendErrorAdminAlert({
+      route: 'orders/create',
+      error: error instanceof Error ? error.message : String(error),
+      statusCode: 500,
+      timestamp: new Date().toISOString(),
+    }).catch(() => {})
     return NextResponse.json(
       { error: 'Orderhantering misslyckades.' },
       { status: 500 }

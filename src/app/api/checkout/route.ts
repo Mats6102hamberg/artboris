@@ -3,6 +3,8 @@ import Stripe from 'stripe'
 import { prisma } from '@/lib/prisma'
 import { getUserId } from '@/lib/auth/getUserId'
 import { getPricingConfig, calculateServerPrice } from '@/lib/pricing/prints'
+import { reportApiError } from '@/lib/crashcatcher'
+import { sendErrorAdminAlert } from '@/server/services/email/adminAlert'
 
 const VALID_PRODUCT_TYPES = ['POSTER', 'CANVAS', 'METAL', 'FRAMED_POSTER'] as const
 const VALID_FRAME_COLORS = ['NONE', 'BLACK', 'WHITE', 'OAK', 'WALNUT', 'GOLD'] as const
@@ -286,6 +288,16 @@ export async function POST(req: Request) {
     }
 
     const message = err?.message || 'Okänt fel'
+
+    // Report to CrashCatcher + admin alert
+    reportApiError('checkout', err, 'CRITICAL')
+    sendErrorAdminAlert({
+      route: `checkout (step: ${step})`,
+      error: message,
+      statusCode: 500,
+      timestamp: new Date().toISOString(),
+    }).catch(() => {})
+
     return NextResponse.json(
       { error: `Checkout-fel (${step}): ${message}` },
       { status: 500 }
