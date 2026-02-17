@@ -1,8 +1,10 @@
 import OpenAI from 'openai'
+import Replicate from 'replicate'
 import { DesignControls, DesignVariant } from '@/types/design'
 import { buildRefinePrompt } from '@/lib/prompts/templates'
 import { checkPromptSafety } from '@/lib/prompts/safety'
 import { isDemoMode } from '@/lib/demo/demoImages'
+import { withAIRetry } from '@/server/services/ai/withAIRetry'
 
 const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY || '',
@@ -56,12 +58,35 @@ export async function refinePreview(input: RefinePreviewInput): Promise<RefinePr
   }
 
   try {
-    const response = await openai.images.generate({
-      model: 'dall-e-3',
-      prompt,
-      n: 1,
-      size: '1024x1792',
-      quality: 'standard',
+    const { data: response } = await withAIRetry({
+      label: 'refinePreview',
+      maxRetries: 3,
+      primary: () => openai.images.generate({
+        model: 'dall-e-3',
+        prompt,
+        n: 1,
+        size: '1024x1792',
+        quality: 'standard',
+      }),
+      fallback: async () => {
+        const replicate = new Replicate({ auth: process.env.REPLICATE_API_TOKEN || '' })
+        const output = await replicate.run(
+          'black-forest-labs/flux-schnell' as `${string}/${string}`,
+          {
+            input: {
+              prompt,
+              num_outputs: 1,
+              aspect_ratio: '2:3',
+              output_format: 'webp',
+              output_quality: 90,
+            },
+          }
+        )
+        const outputArr = Array.isArray(output) ? output : [output]
+        const url = String(outputArr[0] || '')
+        if (!url.startsWith('http')) throw new Error('Replicate returned no valid URL')
+        return { data: [{ url }] } as OpenAI.Images.ImagesResponse
+      },
     })
 
     const imageUrl = response.data?.[0]?.url

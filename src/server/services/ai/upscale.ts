@@ -1,4 +1,5 @@
 import Replicate from 'replicate'
+import { withAIRetry } from '@/server/services/ai/withAIRetry'
 
 const replicate = new Replicate({
   auth: process.env.REPLICATE_API_TOKEN!,
@@ -36,16 +37,21 @@ export interface UpscaleResult {
 async function runSingleUpscale(imageUrl: string, scale: 2 | 4): Promise<string> {
   console.log(`[upscale] Running ${scale}× pass via Replicate...`)
 
-  const output = await replicate.run(
-    'nightmareai/real-esrgan:f121d640bd286e1fdc67f9799164c1d5be36ff74576ee11c803ae5b665dd46aa',
-    {
-      input: {
-        image: imageUrl,
-        scale,
-        face_enhance: false,
+  const { data: output } = await withAIRetry({
+    label: `upscale ${scale}x`,
+    maxRetries: 3,
+    baseDelayMs: 2000,
+    primary: () => replicate.run(
+      'nightmareai/real-esrgan:f121d640bd286e1fdc67f9799164c1d5be36ff74576ee11c803ae5b665dd46aa',
+      {
+        input: {
+          image: imageUrl,
+          scale,
+          face_enhance: false,
+        },
       },
-    },
-  )
+    ),
+  })
 
   // Output is a URL string or ReadableStream
   if (typeof output === 'string') {

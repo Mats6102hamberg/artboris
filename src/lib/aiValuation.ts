@@ -1,6 +1,7 @@
 import OpenAI from 'openai'
 import { ScrapedItem } from './scrapers'
 import { PriceAnalyzer } from './priceAnalyzer'
+import { sendAIAdminAlert } from '@/server/services/email/adminAlert'
 
 export interface ValuatedItem extends ScrapedItem {
   estimatedValue: number
@@ -35,6 +36,12 @@ export async function valuateItems(items: ScrapedItem[]): Promise<ValuatedItem[]
     return await aiValuation(items, apiKey)
   } catch (error) {
     console.error('[Valuation] OpenAI failed, using fallback:', error)
+    sendAIAdminAlert({
+      type: 'fallback_triggered',
+      service: 'aiValuation',
+      error: error instanceof Error ? error.message : String(error),
+      timestamp: new Date().toISOString(),
+    }).catch(() => {})
     return fallbackValuation(items)
   }
 }

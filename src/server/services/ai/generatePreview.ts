@@ -1,10 +1,13 @@
 import Replicate from 'replicate'
+import OpenAI from 'openai'
 import { StylePreset, DesignControls, DesignVariant } from '@/types/design'
 import { buildGeneratePrompt } from '@/lib/prompts/templates'
 import { checkPromptSafety } from '@/lib/prompts/safety'
 import { isDemoMode, getDemoVariants } from '@/lib/demo/demoImages'
 import { put } from '@vercel/blob'
 import { prisma } from '@/lib/prisma'
+import { withAIRetry } from '@/server/services/ai/withAIRetry'
+import { sendAIAdminAlert } from '@/server/services/email/adminAlert'
 
 const replicate = new Replicate({
   auth: process.env.REPLICATE_API_TOKEN || '',
@@ -73,7 +76,25 @@ export async function generatePreview(input: GeneratePreviewInput): Promise<Gene
         }
       }
 
+      // Alert admin if some variants failed
+      const failedCount = results.filter(r => r.status === 'rejected').length
+      if (failedCount > 0 && variants.length > 0) {
+        sendAIAdminAlert({
+          type: 'fallback_triggered',
+          service: `generatePreview (${failedCount}/${count} variants failed)`,
+          error: 'Partial failure in variant generation',
+          timestamp: new Date().toISOString(),
+        }).catch(() => {})
+      }
+
       if (variants.length === 0) {
+        sendAIAdminAlert({
+          type: 'complete_failure',
+          service: 'generatePreview',
+          error: 'All variants failed',
+          timestamp: new Date().toISOString(),
+        }).catch(() => {})
+
         return {
           success: false,
           variants: [],
@@ -156,10 +177,29 @@ async function generateSingleVariant(
       baseInput.num_inference_steps = 28
     }
 
-    const output = await replicate.run(
-      model as `${string}/${string}`,
-      { input: baseInput }
-    )
+    const { data: output } = await withAIRetry({
+      label: `generatePreview variant ${index}`,
+      maxRetries: 2,
+      fallbackRetries: 1,
+      suppressAlert: true, // parent aggregates alerts
+      primary: () => replicate.run(model as `${string}/${string}`, { input: baseInput }),
+      // DALL-E 3 fallback (only for txt2img — img2img has no DALL-E equivalent)
+      ...(!inputImageUrl && {
+        fallback: async () => {
+          const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY || '' })
+          const res = await openai.images.generate({
+            model: 'dall-e-3',
+            prompt,
+            n: 1,
+            size: '1024x1792',
+            quality: 'standard',
+          })
+          const url = res.data?.[0]?.url
+          if (!url) throw new Error('DALL-E 3 returned no image')
+          return [url]
+        },
+      }),
+    })
 
     // Flux returns FileOutput[] — use String() to get the URL
     const outputArr = Array.isArray(output) ? output : [output]

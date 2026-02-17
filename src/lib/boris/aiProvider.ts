@@ -1,4 +1,5 @@
 import OpenAI from 'openai'
+import { sendAIAdminAlert } from '@/server/services/email/adminAlert'
 
 /**
  * Boris AI Provider — endpoint-first architecture.
@@ -176,11 +177,23 @@ export async function borisChat(
       const result = await callWithTimeout(fallbackClient, fallbackCfg, messages)
       if (result) {
         console.info('[Boris] Fallback used successfully.')
+        sendAIAdminAlert({
+          type: 'fallback_triggered',
+          service: `boris-chat (${channel})`,
+          error: primaryError?.message || 'Primary endpoint failed',
+          timestamp: new Date().toISOString(),
+        }).catch(() => {})
         return result
       }
       throw new Error('Empty fallback response')
     } catch (fallbackError: any) {
       console.error('[Boris] Fallback also failed:', fallbackError?.message)
+      sendAIAdminAlert({
+        type: 'complete_failure',
+        service: `boris-chat (${channel})`,
+        error: `Primary: ${primaryError?.message}. Fallback: ${fallbackError?.message}`,
+        timestamp: new Date().toISOString(),
+      }).catch(() => {})
       throw primaryError // throw the original error
     }
   }

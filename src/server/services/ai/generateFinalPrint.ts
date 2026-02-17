@@ -3,6 +3,7 @@ import { DesignControls } from '@/types/design'
 import { buildFinalRenderPrompt } from '@/lib/prompts/templates'
 import { getSizeById, getPixelDimensions } from '@/lib/image/resize'
 import { isDemoMode } from '@/lib/demo/demoImages'
+import { withAIRetry } from '@/server/services/ai/withAIRetry'
 
 const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY || '',
@@ -53,12 +54,16 @@ export async function generateFinalPrint(input: FinalPrintInput): Promise<FinalP
   try {
     // DALL-E 3 max is 1024x1792; for true print resolution
     // we'd need to upscale. For now, generate at max quality.
-    const response = await openai.images.generate({
-      model: 'dall-e-3',
-      prompt,
-      n: 1,
-      size: '1024x1792',
-      quality: 'hd',
+    const { data: response } = await withAIRetry({
+      label: 'generateFinalPrint',
+      maxRetries: 3,
+      primary: () => openai.images.generate({
+        model: 'dall-e-3',
+        prompt,
+        n: 1,
+        size: '1024x1792',
+        quality: 'hd',
+      }),
     })
 
     const imageUrl = response.data?.[0]?.url
