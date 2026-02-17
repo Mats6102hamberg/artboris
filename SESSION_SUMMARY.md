@@ -60,8 +60,13 @@
 - `CRIMSON_ORDER_EMAIL` — E-postadress för tryckorder till Crimson
 - `CRIMSON_WEBHOOK_SECRET` — Hemlig nyckel för Crimson webhook
 
+### 5. "Mina Tavlor" user-scoped
+- **Prisma:** `userId` (String, default "") tillagd i `Artwork`-modellen + `@@index([userId])`
+- **API:** `/api/my-artworks` — alla endpoints (GET/POST/PUT/DELETE) autentiserade via `getUserId()`
+- **Ownership-check:** PUT/DELETE verifierar att `artwork.userId === userId` innan ändring
+- **Mönster:** Samma som `ScannerPortfolioItem` — auth + anon fallback
+
 ## Kända issues / TODO
-- Art Scanner portfolio sparas bara i minne (inte i DB)
 - Market checkout saknar orderbekräftelse-mejlval (bara Wallcraft + Poster Lab har det)
 - Crimson-priser (costSEK) behöver fyllas i efter avtal med Crimson
 - Frame-assets är PNG-placeholders, behöver riktiga rambilder

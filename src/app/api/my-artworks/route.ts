@@ -1,9 +1,13 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
+import { getUserId } from '@/lib/auth/getUserId'
 
 export async function GET() {
   try {
+    const userId = await getUserId()
+
     const artworks = await prisma.artwork.findMany({
+      where: { userId },
       orderBy: { createdAt: 'desc' },
     })
 
@@ -23,10 +27,12 @@ export async function GET() {
 
 export async function POST(request: NextRequest) {
   try {
+    const userId = await getUserId()
     const body = await request.json()
 
     const artwork = await prisma.artwork.create({
       data: {
+        userId,
         title: body.title,
         artist: body.artist,
         description: body.description,
@@ -54,7 +60,17 @@ export async function POST(request: NextRequest) {
 
 export async function PUT(request: NextRequest) {
   try {
+    const userId = await getUserId()
     const { id, ...updates } = await request.json()
+
+    // Ownership check
+    const existing = await prisma.artwork.findUnique({ where: { id } })
+    if (!existing || existing.userId !== userId) {
+      return NextResponse.json(
+        { error: 'Artwork not found' },
+        { status: 404 }
+      )
+    }
 
     const artwork = await prisma.artwork.update({
       where: { id },
@@ -65,13 +81,7 @@ export async function PUT(request: NextRequest) {
       success: true,
       artwork,
     })
-  } catch (error: any) {
-    if (error?.code === 'P2025') {
-      return NextResponse.json(
-        { error: 'Artwork not found' },
-        { status: 404 }
-      )
-    }
+  } catch (error) {
     console.error('Failed to update artwork:', error)
     return NextResponse.json(
       { error: 'Failed to update artwork' },
@@ -82,7 +92,17 @@ export async function PUT(request: NextRequest) {
 
 export async function DELETE(request: NextRequest) {
   try {
+    const userId = await getUserId()
     const { id } = await request.json()
+
+    // Ownership check
+    const existing = await prisma.artwork.findUnique({ where: { id } })
+    if (!existing || existing.userId !== userId) {
+      return NextResponse.json(
+        { error: 'Artwork not found' },
+        { status: 404 }
+      )
+    }
 
     await prisma.artwork.delete({
       where: { id },
@@ -92,13 +112,7 @@ export async function DELETE(request: NextRequest) {
       success: true,
       message: 'Artwork deleted successfully',
     })
-  } catch (error: any) {
-    if (error?.code === 'P2025') {
-      return NextResponse.json(
-        { error: 'Artwork not found' },
-        { status: 404 }
-      )
-    }
+  } catch (error) {
     console.error('Failed to delete artwork:', error)
     return NextResponse.json(
       { error: 'Failed to delete artwork' },
