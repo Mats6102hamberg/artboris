@@ -1,9 +1,10 @@
 import en from '@/i18n/en.json'
 import sv from '@/i18n/sv.json'
+import de from '@/i18n/de.json'
 
-export type Locale = 'en' | 'sv'
+export type Locale = 'en' | 'sv' | 'de'
 
-const dictionaries: Record<Locale, typeof en> = { en, sv }
+const dictionaries: Record<Locale, typeof en> = { en, sv, de }
 
 export function getDictionary(locale: Locale) {
   return dictionaries[locale] ?? dictionaries.en
@@ -19,5 +20,5 @@ export function getNestedValue(obj: Record<string, unknown>, path: string): stri
   return typeof current === 'string' ? current : path
 }
 
-export const SUPPORTED_LOCALES: Locale[] = ['en', 'sv']
+export const SUPPORTED_LOCALES: Locale[] = ['en', 'sv', 'de']
 export const DEFAULT_LOCALE: Locale = 'en'

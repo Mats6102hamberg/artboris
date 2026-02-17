@@ -1,0 +1,120 @@
+{
+  "brand": {
+    "name": "Wallcraft",
+    "tagline": "KI-gestaltete Kunst für dein Zuhause"
+  },
+  "nav": {
+    "studio": "Studio",
+    "gallery": "Galerie",
+    "pricing": "Preise",
+    "signIn": "Anmelden"
+  },
+  "landing": {
+    "hero": {
+      "title": "Dein persönliches Kunststudio",
+      "subtitle": "Gestalte einzigartige Kunstwerke, abgestimmt auf deinen Raum. Sieh sie an deiner Wand, bevor du kaufst.",
+      "cta": "Gestalte deine Wand",
+      "ctaSecondary": "Galerie entdecken"
+    },
+    "steps": {
+      "title": "So funktioniert's",
+      "step1": {
+        "title": "Lade deinen Raum hoch",
+        "description": "Fotografiere deine Wand und lade das Bild hoch. Markiere den Bereich, an dem dein Kunstwerk hängen soll."
+      },
+      "step2": {
+        "title": "Wähle deinen Stil",
+        "description": "Wähle aus kuratierten Stilen — minimal, skandinavisch, abstrakt, modern, Fotografie und mehr."
+      },
+      "step3": {
+        "title": "Sieh es an deiner Wand",
+        "description": "Erhalte 4 einzigartige Konzepte, direkt an deiner Wand platziert. Passe Größe, Rahmen und Position an."
+      }
+    },
+    "trust": {
+      "printedLocal": "Lokal gedruckt",
+      "fineArt": "Fine-Art-Papier",
+      "delivery": "Lieferung in 3–5 Tagen",
+      "guarantee": "Zufriedenheitsgarantie"
+    },
+    "featured": {
+      "title": "Beliebte Designs",
+      "viewOnWall": "An meiner Wand ansehen"
+    }
+  },
+  "studio": {
+    "upload": {
+      "title": "Lade deinen Raum hoch",
+      "description": "Fotografiere deinen Raum oder nutze unseren Demo-Raum, um loszulegen.",
+      "dropzone": "Ziehe dein Foto hierher oder klicke zum Durchsuchen",
+      "useDemo": "Demo-Raum verwenden",
+      "formats": "JPG, PNG oder HEIC — max. 10 MB"
+    },
+    "wallMarker": {
+      "title": "Wand markieren",
+      "description": "Klicke auf das Bild, um die 4 Ecken der Wandfläche zu markieren",
+      "corners": "Ecken",
+      "done": "Fertig!",
+      "clearAll": "Alle löschen",
+      "clickToPlace": "Klicken zum Platzieren",
+      "labels": ["Oben links", "Oben rechts", "Unten rechts", "Unten links"]
+    },
+    "style": {
+      "title": "Wähle deinen Stil",
+      "description": "Welches Gefühl möchtest du?",
+      "generate": "Konzepte generieren",
+      "generating": "Dein Kunstwerk wird erstellt...",
+      "descriptionPlaceholder": "Beschreibe, was du möchtest (optional)"
+    },
+    "editor": {
+      "variants": "Varianten",
+      "frame": "Rahmen",
+      "size": "Größe",
+      "addToCart": "Druck bestellen",
+      "price": "Preis"
+    }
+  },
+  "checkout": {
+    "title": "Bestellung abschließen",
+    "orderSummary": "Bestellübersicht",
+    "pay": "Jetzt bezahlen",
+    "secure": "Sichere Zahlung über Stripe"
+  },
+  "gallery": {
+    "title": "Galerie",
+    "subtitle": "Lass dich von Designs unserer Community inspirieren",
+    "viewDesign": "Design ansehen"
+  },
+  "credits": {
+    "balance": "Guthaben",
+    "buy": "Guthaben kaufen",
+    "free": "3 kostenlose Generierungen inklusive",
+    "packages": {
+      "small": "10 Guthaben",
+      "medium": "30 Guthaben",
+      "large": "100 Guthaben"
+    }
+  },
+  "common": {
+    "next": "Weiter",
+    "back": "Zurück",
+    "cancel": "Abbrechen",
+    "save": "Speichern",
+    "loading": "Wird geladen...",
+    "error": "Etwas ist schiefgelaufen",
+    "tryAgain": "Erneut versuchen"
+  },
+  "sizes": {
+    "chooseSize": "Größe wählen"
+  },
+  "frames": {
+    "chooseFrame": "Rahmen wählen"
+  },
+  "legal": {
+    "studioNotice": "KI-generierte Motive werden im ArtBoris Studio erstellt und als Drucke für den privaten Gebrauch verkauft. ArtBoris kann diese Motive in seiner Galerie zeigen.",
+    "studioConsent": "Mit der Generierung eines Motivs stimmst du unseren Nutzungsbedingungen zu.",
+    "galleryNotice": "Im Studio erstellte KI-Werke können in der ArtBoris Galerie angezeigt werden.",
+    "checkoutNotice": "KI-Motive werden als Drucke für den privaten Gebrauch gemäß unseren Nutzungsbedingungen verkauft.",
+    "termsCheckbox": "Ich stimme den Nutzungsbedingungen und der Datenschutzerklärung zu"
+  }
+}

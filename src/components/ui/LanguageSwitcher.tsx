@@ -6,6 +6,7 @@ import { SUPPORTED_LOCALES, type Locale } from '@/lib/i18n'
 const LOCALE_LABELS: Record<Locale, string> = {
   en: 'EN',
   sv: 'SV',
+  de: 'DE',
 }
 
 export default function LanguageSwitcher() {
