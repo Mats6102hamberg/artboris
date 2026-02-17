@@ -5,11 +5,18 @@ import { cookies } from 'next/headers'
 
 export async function POST(request: Request) {
   try {
-    const { email, password, name } = await request.json()
+    const { email, password, name, acceptedTerms } = await request.json()
 
     if (!email || !password) {
       return NextResponse.json(
         { error: 'Email och lösenord krävs' },
+        { status: 400 },
+      )
+    }
+
+    if (!acceptedTerms) {
+      return NextResponse.json(
+        { error: 'Du måste godkänna användarvillkoren' },
         { status: 400 },
       )
     }
@@ -41,6 +48,8 @@ export async function POST(request: Request) {
         name: name || email.split('@')[0],
         passwordHash,
         anonId,
+        termsAcceptedAt: new Date(),
+        termsVersion: '2026-02',
       },
     })
 
