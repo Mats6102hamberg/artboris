@@ -7,6 +7,63 @@ generator client {
   provider = "prisma-client-js"
 }
 
+// ─── Auth (NextAuth.js v5) ─────────────────────────────────
+
+enum UserRole {
+  USER
+  ARTIST
+  ADMIN
+}
+
+model User {
+  id             String    @id @default(cuid())
+  name           String?
+  email          String?   @unique
+  emailVerified  DateTime?
+  image          String?
+  passwordHash   String?
+  role           UserRole  @default(USER)
+  anonId         String?   @unique  // links to ab_anon_id cookie
+  artistProfileId String?  @unique
+
+  accounts       Account[]
+
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+}
+
+model Account {
+  id                String  @id @default(cuid())
+  userId            String
+  type              String
+  provider          String
+  providerAccountId String
+  refresh_token     String?
+  access_token      String?
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String?
+  session_state     String?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([provider, providerAccountId])
+}
+
+model VerificationToken {
+  identifier String
+  token      String
+  expires    DateTime
+
+  @@unique([identifier, token])
+}
+
+// ─── Legacy ────────────────────────────────────────────────
+
 model Artwork {
   id          String   @id @default(cuid())
   title       String
@@ -302,6 +359,7 @@ model ShippingAddress {
   fullName    String
   email       String
   phone       String?
+  confirmationEmail String?  // If customer wants receipt sent to a different email
 
   address1    String
   address2    String?
@@ -583,4 +641,30 @@ model DesignAsset {
   @@index([designId])
   @@index([role])
   @@unique([designId, role, sizeCode, productType])
+}
+
+// ─── Scanner Portfolio ─────────────────────────────────────
+
+model ScannerPortfolioItem {
+  id             String   @id @default(cuid())
+  userId         String
+  title          String
+  artist         String   @default("")
+  source         String   @default("")
+  sourceUrl      String   @default("")
+  imageUrl       String   @default("")
+  description    String   @default("")
+  category       String   @default("")
+  price          Int      @default(0)
+  estimatedValue Int      @default(0)
+  profit         Int      @default(0)
+  profitMargin   Float    @default(0)
+  confidence     Float    @default(0)
+  riskLevel      String   @default("medium")
+  marketTrend    String   @default("stable")
+  recommendation String   @default("hold")
+  addedAt        DateTime @default(now())
+
+  @@unique([userId, title, source])
+  @@index([userId])
 }

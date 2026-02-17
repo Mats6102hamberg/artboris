@@ -1,10 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { publishToGallery, unpublishFromGallery } from '@/server/services/gallery/publish'
-import { getOrCreateAnonId } from '@/lib/anonId'
+import { getUserId } from '@/lib/auth/getUserId'
 
 export async function POST(request: NextRequest) {
   try {
-    const userId = await getOrCreateAnonId()
+    const userId = await getUserId()
     const body = await request.json()
     const { designId } = body
 
@@ -28,7 +28,7 @@ export async function POST(request: NextRequest) {
 
 export async function DELETE(request: NextRequest) {
   try {
-    const userId = await getOrCreateAnonId()
+    const userId = await getUserId()
     const body = await request.json()
     const { designId } = body
 

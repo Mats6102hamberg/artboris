@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server'
 import Stripe from 'stripe'
 import { prisma } from '@/lib/prisma'
-import { getOrCreateAnonId } from '@/lib/anonId'
+import { getUserId } from '@/lib/auth/getUserId'
 import { calculateMarketPrice } from '@/lib/pricing/market'
 
 function getStripe() {
@@ -12,7 +12,7 @@ function getStripe() {
 
 export async function POST(req: Request) {
   try {
-    const anonId = await getOrCreateAnonId()
+    const anonId = await getUserId()
     const body = await req.json()
 
     const {

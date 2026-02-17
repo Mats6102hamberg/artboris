@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { refinePreview } from '@/server/services/ai/refinePreview'
 import { DesignControls } from '@/types/design'
-import { getOrCreateAnonId } from '@/lib/anonId'
+import { getUserId } from '@/lib/auth/getUserId'
 import { canSpend, getBalance } from '@/server/services/credits/canSpend'
 import { spendCredits } from '@/server/services/credits/spend'
 
@@ -14,7 +14,7 @@ const lastRefineTime = new Map<string, number>()
 
 export async function POST(request: NextRequest) {
   try {
-    const userId = await getOrCreateAnonId()
+    const userId = await getUserId()
 
     // --- Rate limit: 3s cooldown ---
     const now = Date.now()

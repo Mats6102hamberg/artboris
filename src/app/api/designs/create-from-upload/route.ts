@@ -1,10 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { getOrCreateAnonId } from '@/lib/anonId'
+import { getUserId } from '@/lib/auth/getUserId'
 import { prisma } from '@/lib/prisma'
 
 export async function POST(request: NextRequest) {
   try {
-    const anonId = await getOrCreateAnonId()
+    const anonId = await getUserId()
     const body = await request.json()
     const { imageUrl, roomImageUrl, wallCorners, imageWidth, imageHeight } = body as {
       imageUrl: string

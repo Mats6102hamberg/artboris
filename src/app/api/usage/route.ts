@@ -1,10 +1,10 @@
 import { NextResponse } from 'next/server'
-import { getOrCreateAnonId } from '@/lib/anonId'
+import { getUserId } from '@/lib/auth/getUserId'
 import { getUsage } from '@/server/services/usage/dailyUsage'
 
 export async function GET() {
   try {
-    const anonId = await getOrCreateAnonId()
+    const anonId = await getUserId()
     const usage = await getUsage(anonId)
     return NextResponse.json(usage)
   } catch (error) {

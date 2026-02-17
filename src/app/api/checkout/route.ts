@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server'
 import Stripe from 'stripe'
 import { prisma } from '@/lib/prisma'
-import { getOrCreateAnonId } from '@/lib/anonId'
+import { getUserId } from '@/lib/auth/getUserId'
 
 const SHIPPING_CENTS = 9900 // 99 kr
 const VAT_RATE = 0.25
@@ -36,6 +36,7 @@ interface ShippingInput {
   address: string
   postalCode: string
   city: string
+  confirmationEmail?: string
 }
 
 export async function POST(req: Request) {
@@ -45,7 +46,7 @@ export async function POST(req: Request) {
   try {
     // --- Step 1: Parse & validate ---
     step = 'parse-body'
-    const anonId = await getOrCreateAnonId()
+    const anonId = await getUserId()
     const body = await req.json()
 
     const { items, shipping } = body as {
@@ -182,6 +183,7 @@ export async function POST(req: Request) {
             fullName: `${shipping.firstName} ${shipping.lastName}`,
             email: shipping.email,
             phone: shipping.phone || null,
+            confirmationEmail: shipping.confirmationEmail || null,
             address1: shipping.address,
             postalCode: shipping.postalCode,
             city: shipping.city,
@@ -235,7 +237,7 @@ export async function POST(req: Request) {
       automatic_tax: { enabled: false },
       success_url: `${appUrl}/order/success?orderId=${order.id}`,
       cancel_url: `${appUrl}/order/cancel?orderId=${order.id}`,
-      customer_email: shipping.email,
+      customer_email: shipping.confirmationEmail || shipping.email,
       metadata: {
         orderId: order.id,
       },

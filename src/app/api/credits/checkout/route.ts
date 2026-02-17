@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import Stripe from 'stripe'
-import { getOrCreateAnonId } from '@/lib/anonId'
+import { getUserId } from '@/lib/auth/getUserId'
 import { CREDIT_PACKAGES } from '@/lib/pricing/credits'
 
 function getStripe() {
@@ -11,7 +11,7 @@ function getStripe() {
 
 export async function POST(req: NextRequest) {
   try {
-    const anonId = await getOrCreateAnonId()
+    const anonId = await getUserId()
     const body = await req.json()
     const { packageId } = body as { packageId: string }
 

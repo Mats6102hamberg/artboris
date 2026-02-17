@@ -1,11 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getBalance } from '@/server/services/credits/canSpend'
-import { getOrCreateAnonId } from '@/lib/anonId'
+import { getUserId } from '@/lib/auth/getUserId'
 import { prisma } from '@/lib/prisma'
 
 export async function GET(request: NextRequest) {
   try {
-    const userId = request.nextUrl.searchParams.get('userId') || await getOrCreateAnonId()
+    const userId = request.nextUrl.searchParams.get('userId') || await getUserId()
 
     const account = await prisma.creditAccount.findUnique({
       where: { userId },

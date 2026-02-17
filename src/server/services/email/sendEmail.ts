@@ -3,6 +3,7 @@ import { prisma } from '@/lib/prisma'
 import OrderConfirmation from '@/emails/OrderConfirmation'
 import ShippedNotification from '@/emails/ShippedNotification'
 import DeliveredNotification from '@/emails/DeliveredNotification'
+import ArtistSaleNotification from '@/emails/ArtistSaleNotification'
 
 function getResend() {
   return new Resend(process.env.RESEND_API_KEY)
@@ -32,7 +33,7 @@ export async function sendOrderConfirmation(orderId: string) {
     return
   }
 
-  const to = order.shippingAddress.email
+  const to = order.shippingAddress.confirmationEmail || order.shippingAddress.email
   const customerName = order.shippingAddress.fullName
 
   try {
@@ -164,5 +165,70 @@ export async function sendDeliveredEmail(orderId: string) {
     }
   } catch (err) {
     console.error(`[email] sendDeliveredEmail error:`, err)
+  }
+}
+
+// ── Artist Sale Notification (Market Order PAID) ──
+
+export async function sendArtistSaleNotification(marketOrderId: string) {
+  const marketOrder = await prisma.marketOrder.findUnique({
+    where: { id: marketOrderId },
+    include: {
+      listing: {
+        select: {
+          title: true,
+          imageUrl: true,
+          isOriginal: true,
+        },
+      },
+      artist: {
+        select: {
+          displayName: true,
+          email: true,
+          stripeAccountId: true,
+          stripeOnboardingDone: true,
+        },
+      },
+    },
+  })
+
+  if (!marketOrder) {
+    console.error(`[email] sendArtistSaleNotification: MarketOrder ${marketOrderId} not found`)
+    return
+  }
+
+  const to = marketOrder.artist.email
+  if (!to) {
+    console.error(`[email] sendArtistSaleNotification: Artist has no email for order ${marketOrderId}`)
+    return
+  }
+
+  try {
+    const { data, error } = await getResend().emails.send({
+      from: getFromEmail(),
+      to,
+      subject: `Grattis! Ditt konstverk "${marketOrder.listing.title}" har sålts!`,
+      react: ArtistSaleNotification({
+        artistName: marketOrder.artist.displayName,
+        artworkTitle: marketOrder.listing.title,
+        artworkImageUrl: marketOrder.listing.imageUrl,
+        sizeCode: marketOrder.sizeCode,
+        frameColor: marketOrder.frameColor,
+        artistShareSEK: Math.round(marketOrder.artistShareCents / 100),
+        totalBuyerSEK: Math.round(marketOrder.totalCents / 100),
+        buyerCity: marketOrder.buyerCity || 'Sverige',
+        isOriginal: marketOrder.listing.isOriginal,
+        hasStripeConnect: !!(marketOrder.artist.stripeAccountId && marketOrder.artist.stripeOnboardingDone),
+        orderId: marketOrderId,
+      }),
+    })
+
+    if (error) {
+      console.error(`[email] sendArtistSaleNotification failed:`, error)
+    } else {
+      console.log(`[email] Artist sale notification sent to ${to} (id: ${data?.id})`)
+    }
+  } catch (err) {
+    console.error(`[email] sendArtistSaleNotification error:`, err)
   }
 }

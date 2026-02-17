@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createOrder } from '@/server/services/orders/createOrder'
-import { getOrCreateAnonId } from '@/lib/anonId'
+import { getUserId } from '@/lib/auth/getUserId'
 
 export async function POST(request: NextRequest) {
   try {
@@ -14,7 +14,7 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    const anonId = await getOrCreateAnonId()
+    const anonId = await getUserId()
 
     const result = await createOrder({
       anonId,

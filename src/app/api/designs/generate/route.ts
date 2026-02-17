@@ -2,14 +2,14 @@ import { NextRequest, NextResponse } from 'next/server'
 import { generatePreview } from '@/server/services/ai/generatePreview'
 import { StylePreset, DesignControls } from '@/types/design'
 import { getStyleDefinition } from '@/lib/prompts/styles'
-import { getOrCreateAnonId } from '@/lib/anonId'
+import { getUserId } from '@/lib/auth/getUserId'
 import { getUsage, incrementGeneration } from '@/server/services/usage/dailyUsage'
 
 export const maxDuration = 60
 
 export async function POST(request: NextRequest) {
   try {
-    const anonId = await getOrCreateAnonId()
+    const anonId = await getUserId()
 
     // Check daily quota
     const usage = await getUsage(anonId)

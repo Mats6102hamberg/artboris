@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { spendCredits } from '@/server/services/credits/spend'
-import { getOrCreateAnonId } from '@/lib/anonId'
+import { getUserId } from '@/lib/auth/getUserId'
 
 export async function POST(request: NextRequest) {
   try {
@@ -12,7 +12,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Use provided userId or fall back to anonId from cookie
-    const resolvedUserId = userId || await getOrCreateAnonId()
+    const resolvedUserId = userId || await getUserId()
 
     if (!resolvedUserId || !amount || amount <= 0) {
       return NextResponse.json(

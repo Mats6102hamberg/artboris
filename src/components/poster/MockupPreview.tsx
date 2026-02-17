@@ -326,20 +326,57 @@ export default function MockupPreview({
         }}
       />
 
-      {/* Frame — scales proportionally with the poster */}
-      {frame && frame.id !== 'none' && frameFraction > 0 && (
-        <div
-          className="absolute pointer-events-none"
-          style={{
-            left: `${(placement.left - placement.width * frameFraction) * 100}%`,
-            top: `${(placement.top - placement.height * frameFraction) * 100}%`,
-            width: `${(placement.width * (1 + 2 * frameFraction)) * 100}%`,
-            height: `${(placement.height * (1 + 2 * frameFraction)) * 100}%`,
-            backgroundColor: frame.color,
-            zIndex: 9,
-          }}
-        />
-      )}
+      {/* Frame — 4-strip texture structure */}
+      {frame && frame.id !== 'none' && frameFraction > 0 && (() => {
+        const frameL = (placement.left - placement.width * frameFraction) * 100
+        const frameT = (placement.top - placement.height * frameFraction) * 100
+        const frameW = (placement.width * (1 + 2 * frameFraction)) * 100
+        const frameH = (placement.height * (1 + 2 * frameFraction)) * 100
+        const stripW = (placement.width * frameFraction) * 100
+        const stripH = (placement.height * frameFraction) * 100
+        const texStyle: React.CSSProperties = {
+          backgroundImage: frame.imageUrl ? `url(${frame.imageUrl})` : undefined,
+          backgroundSize: '200px 200px',
+          backgroundRepeat: 'repeat',
+          backgroundColor: frame.color,
+        }
+        return (
+          <>
+            {/* Top strip */}
+            <div className="absolute pointer-events-none" style={{
+              left: `${frameL}%`, top: `${frameT}%`,
+              width: `${frameW}%`, height: `${stripH}%`,
+              ...texStyle,
+              boxShadow: 'inset 0 2px 4px rgba(255,255,255,0.15), inset 0 -1px 3px rgba(0,0,0,0.2)',
+              zIndex: 9,
+            }} />
+            {/* Bottom strip */}
+            <div className="absolute pointer-events-none" style={{
+              left: `${frameL}%`, top: `${frameT + frameH - stripH}%`,
+              width: `${frameW}%`, height: `${stripH}%`,
+              ...texStyle,
+              boxShadow: 'inset 0 1px 3px rgba(0,0,0,0.2), inset 0 -2px 4px rgba(255,255,255,0.1)',
+              zIndex: 9,
+            }} />
+            {/* Left strip */}
+            <div className="absolute pointer-events-none" style={{
+              left: `${frameL}%`, top: `${frameT + stripH}%`,
+              width: `${stripW}%`, height: `${frameH - 2 * stripH}%`,
+              ...texStyle,
+              boxShadow: 'inset 2px 0 4px rgba(255,255,255,0.15), inset -1px 0 3px rgba(0,0,0,0.2)',
+              zIndex: 9,
+            }} />
+            {/* Right strip */}
+            <div className="absolute pointer-events-none" style={{
+              left: `${frameL + frameW - stripW}%`, top: `${frameT + stripH}%`,
+              width: `${stripW}%`, height: `${frameH - 2 * stripH}%`,
+              ...texStyle,
+              boxShadow: 'inset 1px 0 3px rgba(0,0,0,0.2), inset -2px 0 4px rgba(255,255,255,0.1)',
+              zIndex: 9,
+            }} />
+          </>
+        )
+      })()}
 
       {/* Poster — draggable with generous touch area */}
       <div

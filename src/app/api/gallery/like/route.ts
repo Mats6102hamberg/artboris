@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { toggleLike, removeLike } from '@/server/services/gallery/like'
-import { getOrCreateAnonId } from '@/lib/anonId'
+import { getUserId } from '@/lib/auth/getUserId'
 
 export async function POST(request: NextRequest) {
   try {
@@ -14,7 +14,7 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    const anonId = await getOrCreateAnonId()
+    const anonId = await getUserId()
     const result = await toggleLike(designId, anonId)
 
     return NextResponse.json({ success: true, ...result })
@@ -39,7 +39,7 @@ export async function DELETE(request: NextRequest) {
       )
     }
 
-    const anonId = await getOrCreateAnonId()
+    const anonId = await getUserId()
     const result = await removeLike(designId, anonId)
 
     return NextResponse.json({ success: true, ...result })

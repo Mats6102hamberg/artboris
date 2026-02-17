@@ -2,7 +2,7 @@ import { NextResponse } from 'next/server'
 import Stripe from 'stripe'
 import { prisma } from '@/lib/prisma'
 import { generatePrintAsset, isPremiumSize } from '@/server/services/print/generatePrintAsset'
-import { sendOrderConfirmation } from '@/server/services/email/sendEmail'
+import { sendOrderConfirmation, sendArtistSaleNotification } from '@/server/services/email/sendEmail'
 import { addCredits } from '@/server/services/credits/spend'
 import { FIRST_PURCHASE_BONUS } from '@/lib/pricing/credits'
 
@@ -217,7 +217,7 @@ async function processCheckoutCompleted(orderId: string, session: Stripe.Checkou
 async function processMarketOrderCompleted(marketOrderId: string, session: Stripe.Checkout.Session) {
   const marketOrder = await prisma.marketOrder.findUnique({
     where: { id: marketOrderId },
-    select: { status: true, listingId: true },
+    select: { status: true, listingId: true, buyerEmail: true, buyerName: true, sizeCode: true },
   })
 
   if (!marketOrder) {
@@ -230,7 +230,7 @@ async function processMarketOrderCompleted(marketOrderId: string, session: Strip
     return
   }
 
-  // Mark as PAID
+  // ── Mark as PAID ──
   await prisma.marketOrder.update({
     where: { id: marketOrderId },
     data: {
@@ -242,7 +242,7 @@ async function processMarketOrderCompleted(marketOrderId: string, session: Strip
 
   console.log(`[stripe webhook] MarketOrder ${marketOrderId} → PAID`)
 
-  // Check if original artwork — mark as sold
+  // ── Update listing: mark sold or increment printsSold ──
   const listing = await prisma.artworkListing.findUnique({
     where: { id: marketOrder.listingId },
     select: { isOriginal: true, printsSold: true },
@@ -261,4 +261,11 @@ async function processMarketOrderCompleted(marketOrderId: string, session: Strip
     })
     console.log(`[stripe webhook] Listing ${marketOrder.listingId} printsSold incremented`)
   }
+
+  // ── Send artist sale notification (non-blocking) ──
+  sendArtistSaleNotification(marketOrderId).catch(err =>
+    console.error(`[stripe webhook] Artist sale email failed for ${marketOrderId}:`, err)
+  )
+
+  console.log(`[stripe webhook] MarketOrder ${marketOrderId} processing complete`)
 }

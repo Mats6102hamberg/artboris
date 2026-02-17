@@ -27,6 +27,8 @@ function CheckoutContent() {
     postalCode: '',
     city: '',
   })
+  const [confirmationChoice, setConfirmationChoice] = useState<'same' | 'other'>('same')
+  const [confirmationEmail, setConfirmationEmail] = useState('')
   const [isProcessing, setIsProcessing] = useState(false)
   const [checkoutError, setCheckoutError] = useState<string | null>(null)
 
@@ -36,7 +38,7 @@ function CheckoutContent() {
   const vat = Math.round(totalBeforeVat * VAT_RATE)
   const grandTotal = totalBeforeVat + vat
 
-  const isFormValid = form.firstName && form.lastName && form.email && form.address && form.postalCode && form.city
+  const isFormValid = form.firstName && form.lastName && form.email && form.address && form.postalCode && form.city && (confirmationChoice === 'same' || confirmationEmail)
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setForm(prev => ({ ...prev, [e.target.name]: e.target.value }))
@@ -60,7 +62,10 @@ function CheckoutContent() {
             quantity: 1,
             unitPriceCents: totalSEK * 100,
           }],
-          shipping: form,
+          shipping: {
+            ...form,
+            confirmationEmail: confirmationChoice === 'other' ? confirmationEmail : undefined,
+          },
           returnPath: '/poster-lab',
         }),
       })
@@ -143,6 +148,62 @@ function CheckoutContent() {
                   <input name="city" value={form.city} onChange={handleChange}
                     className="w-full px-4 py-3 border border-gray-200 rounded-xl text-gray-900 text-sm focus:outline-none focus:ring-2 focus:ring-gray-900/10 focus:border-gray-400 transition-colors" />
                 </div>
+              </div>
+            </div>
+
+            {/* Order confirmation email */}
+            <div className="bg-white rounded-2xl p-6 border border-gray-200/60">
+              <h2 className="text-base font-semibold text-gray-900 mb-4">Orderbekräftelse</h2>
+              <p className="text-xs text-gray-500 mb-4">Vart vill du att orderbekräftelsen skickas?</p>
+              <div className="space-y-3">
+                <label
+                  className={`flex items-center gap-3 p-3.5 rounded-xl border cursor-pointer transition-colors ${
+                    confirmationChoice === 'same'
+                      ? 'border-gray-900 bg-gray-50/80'
+                      : 'border-gray-200 hover:border-gray-300'
+                  }`}
+                >
+                  <input
+                    type="radio"
+                    name="confirmationChoice"
+                    checked={confirmationChoice === 'same'}
+                    onChange={() => setConfirmationChoice('same')}
+                    className="w-4 h-4 text-gray-900 accent-gray-900"
+                  />
+                  <div>
+                    <span className="text-sm font-medium text-gray-900">Skicka till min e-post</span>
+                    {form.email && (
+                      <span className="block text-xs text-gray-400 mt-0.5">{form.email}</span>
+                    )}
+                  </div>
+                </label>
+                <label
+                  className={`flex items-start gap-3 p-3.5 rounded-xl border cursor-pointer transition-colors ${
+                    confirmationChoice === 'other'
+                      ? 'border-gray-900 bg-gray-50/80'
+                      : 'border-gray-200 hover:border-gray-300'
+                  }`}
+                >
+                  <input
+                    type="radio"
+                    name="confirmationChoice"
+                    checked={confirmationChoice === 'other'}
+                    onChange={() => setConfirmationChoice('other')}
+                    className="w-4 h-4 text-gray-900 accent-gray-900 mt-0.5"
+                  />
+                  <div className="flex-1">
+                    <span className="text-sm font-medium text-gray-900">Skicka till annan e-post</span>
+                    {confirmationChoice === 'other' && (
+                      <input
+                        type="email"
+                        value={confirmationEmail}
+                        onChange={(e) => setConfirmationEmail(e.target.value)}
+                        placeholder="annan@example.com"
+                        className="w-full mt-2 px-4 py-2.5 border border-gray-200 rounded-xl text-gray-900 text-sm focus:outline-none focus:ring-2 focus:ring-gray-900/10 focus:border-gray-400 transition-colors"
+                      />
+                    )}
+                  </div>
+                </label>
               </div>
             </div>
 

@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
-import { getOrCreateAnonId } from '@/lib/anonId'
+import { getUserId } from '@/lib/auth/getUserId'
 
 // GET — load a design with its variants
 export async function GET(
@@ -34,7 +34,7 @@ export async function PATCH(
 ) {
   try {
     const { id } = await params
-    const anonId = await getOrCreateAnonId()
+    const anonId = await getUserId()
     const body = await request.json()
 
     // Verify ownership
