@@ -10,6 +10,7 @@ import CreditBadge from '@/components/poster/CreditBadge'
 import { StylePreset } from '@/types/design'
 
 import { DEMO_ROOM_IMAGE, DEMO_WALL_CORNERS } from '@/lib/demo/demoImages'
+import { CREDIT_COSTS } from '@/lib/pricing/credits'
 
 export default function PosterLabPage() {
   const router = useRouter()
@@ -23,10 +24,38 @@ export default function PosterLabPage() {
   const [userDescription, setUserDescription] = useState('')
   const [isGenerating, setIsGenerating] = useState(false)
   const [heroVisible, setHeroVisible] = useState(false)
+  const [borisGenerating, setBorisGenerating] = useState(false)
 
   useEffect(() => {
     setTimeout(() => setHeroVisible(true), 100)
   }, [])
+
+  const BORIS_STYLES: StylePreset[] = [
+    'nordic', 'abstract', 'minimal', 'botanical', 'watercolor',
+    'japanese', 'art-deco', 'surreal', 'pastel', 'dark-moody',
+  ]
+
+  const handleBorisGenerate = async () => {
+    setBorisGenerating(true)
+    try {
+      const style = BORIS_STYLES[Math.floor(Math.random() * BORIS_STYLES.length)]
+      const res = await fetch('/api/designs/generate', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ style, controls: null }),
+      })
+      const data = await res.json()
+      if (data.success && data.designId) {
+        router.push(`/wallcraft/design/${data.designId}`)
+      } else {
+        alert(data.error || 'Boris kunde inte skapa just nu. Försök igen!')
+        setBorisGenerating(false)
+      }
+    } catch {
+      alert('Något gick fel. Försök igen!')
+      setBorisGenerating(false)
+    }
+  }
 
   const startCreate = (useDemo = false) => {
     if (useDemo) {
@@ -144,6 +173,42 @@ export default function PosterLabPage() {
                   >
                     Utforska kollektionen
                   </button>
+                </div>
+
+                {/* Boris AI — Quick Generate */}
+                <div className="mt-6">
+                  <button
+                    onClick={borisGenerating ? undefined : handleBorisGenerate}
+                    disabled={borisGenerating}
+                    className="group relative w-full sm:w-auto px-8 py-4 bg-gradient-to-r from-purple-600 to-fuchsia-600 text-white rounded-xl font-semibold text-base hover:from-purple-700 hover:to-fuchsia-700 transition-all duration-200 shadow-lg shadow-purple-500/25 hover:shadow-xl hover:shadow-purple-500/30 disabled:opacity-80 disabled:cursor-wait"
+                  >
+                    <span className="flex items-center justify-center gap-2.5">
+                      {borisGenerating ? (
+                        <>
+                          <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                          Boris skapar...
+                        </>
+                      ) : (
+                        <>
+                          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9.813 15.904L9 18.75l-.813-2.846a4.5 4.5 0 00-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 003.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 003.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 00-3.09 3.09zM18.259 8.715L18 9.75l-.259-1.035a3.375 3.375 0 00-2.455-2.456L14.25 6l1.036-.259a3.375 3.375 0 002.455-2.456L18 2.25l.259 1.035a3.375 3.375 0 002.455 2.456L21.75 6l-1.036.259a3.375 3.375 0 00-2.455 2.456z" />
+                          </svg>
+                          L&aring;t Boris skapa &aring;t dig
+                        </>
+                      )}
+                    </span>
+                  </button>
+                  <div className="flex items-center gap-3 mt-2.5">
+                    <span className="text-xs text-gray-400 flex items-center gap-1">
+                      <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
+                      </svg>
+                      {CREDIT_COSTS.aiGenerate} credits per motiv
+                    </span>
+                    <span className="text-xs text-purple-500 font-medium">
+                      Skapa konto &mdash; f&aring; 20 gratis credits
+                    </span>
+                  </div>
                 </div>
               </div>
 
