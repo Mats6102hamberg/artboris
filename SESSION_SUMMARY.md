@@ -6,7 +6,7 @@
 - **GitHub:** `https://github.com/Mats6102hamberg/artboris.git`
 - **Branch:** `main`
 - **Deploy:** Vercel (kopplat till GitHub-repot)
-- **Senaste commit:** `fbc1c3b`
+- **Senaste commit:** `eaa2d4f`
 
 ## Tech Stack
 - Next.js 16, React 19, TypeScript
@@ -176,6 +176,35 @@
 - **Bakåtkompatibelt:** Alla nya fält optional, befintliga stilar opåverkade.
 - **Filer:** `types/design.ts`, `lib/prompts/styles.ts`, `lib/prompts/templates.ts`, `server/services/ai/generatePreview.ts`, `server/services/ai/refinePreview.ts`, `components/poster/StylePicker.tsx`
 
+### 22. i18n — internationalisera alla kundnära komponenter
+- **Commit:** `d8c8b01`
+- **useTranslation safe fallback:** `useTranslation()` kastar inte längre utan I18nProvider — returnerar fallback med localStorage-locale
+- **5 nya i18n-sektioner** i alla 5 språkfiler (en/sv/de/fr/nl):
+  - `boris.*` — 17 nycklar (chat UI, felmeddelanden, action-texter, artChat)
+  - `market.*` — 20 nycklar (detaljsida, checkout, "prova på vägg")
+  - `artist.*` — 30 nycklar (portal, login, register, dashboard, upload, Stripe)
+  - `posterLab.*` — 10 nycklar (result, design, navigation)
+  - `order.*` — 3 nycklar (sending, confirmation, sent)
+- **Komponenter uppdaterade med `t()`:**
+  - `BorisButton.tsx`, `BorisArtChat.tsx`
+  - `poster-lab/result/page.tsx`, `poster-lab/design/[id]/page.tsx`, `PosterLabClient.tsx`
+  - `market/[id]/ListingClient.tsx`, `market/artist/page.tsx`
+  - `order/success/page.tsx`
+- **STATUS_LABELS refaktorerad:** → `STATUS_COLORS` + `STATUS_KEYS` för dynamisk i18n i artist-dashboard
+
+### 23. Demo-rum förbättrat — inzoomat, större tavla, skippa väggmarkering
+- **Commit:** `eaa2d4f`
+- **SVG redesignad:** `room-sample.svg` viewBox zoomad in (`150 60 900 480`) — väggen tar ~85% av bilden
+  - Tillagda detaljer: väggtextur, taklist, soffben, pläd, frodigare växt, lampglöd
+  - Borttaget: golv/matta/tak-utrymme
+- **Tavlan ~25% större:** `ASSUMED_WALL_WIDTH_CM` sänkt 200→160 i `transform.ts`
+- **DEMO_WALL_CORNERS:** Fördefinierade vägg-hörn i `lib/demo/demoImages.ts`
+- **Skippar väggmarkering:** Alla 4 demo-rum-flöden sätter corners automatiskt:
+  - poster-lab → hoppar till pick-style
+  - wallcraft/studio → hoppar till pick-style
+  - wallcraft/print-your-own → pre-fyller corners
+  - market/[id] → hoppar direkt till preview
+
 ## Kända issues / TODO
 - Market checkout saknar orderbekräftelse-mejlval (bara Wallcraft + Poster Lab har det)
 - Crimson-priser (costSEK) behöver fyllas i efter avtal med Crimson
@@ -183,6 +212,8 @@
 
 ## Git-historik (senaste 20)
 ```
+eaa2d4f demo room: zoom in closer to sofa/wall, pre-defined wall corners, larger poster
+d8c8b01 i18n: internationalize all customer-facing components (boris, market, artist, posterLab, order)
 fbc1c3b feat: lägg till nederländska (NL) som femte språk
 7893db3 feat: lägg till franska (FR) som fjärde språk
 29855d8 feat: lägg till tyska (DE) som tredje språk
