@@ -12,13 +12,14 @@ export interface GalleryListItem {
   id: string
   designId: string
   title: string
-  description: string
+  description?: string
   imageUrl: string
   thumbnailUrl?: string
-  style: string
+  style?: string
   likesCount: number
+  trustScore: number
   isAiGenerated: boolean
-  type: 'ai-variant' | 'design'
+  type: 'ai-variant' | 'design' | 'market'
   createdAt: string
 }
 
@@ -73,6 +74,7 @@ export async function listGallery(options: GalleryListOptions = {}) {
     thumbnailUrl: v.thumbnailUrl || v.imageUrl,
     style: v.design.style,
     likesCount: v.design.likesCount,
+    trustScore: 98,
     isAiGenerated: true,
     type: 'ai-variant' as const,
     createdAt: v.design.createdAt.toISOString(),
@@ -119,6 +121,7 @@ export async function listGallery(options: GalleryListOptions = {}) {
       thumbnailUrl: d.imageUrl,
       style: d.style,
       likesCount: d.likesCount,
+      trustScore: 95,
       isAiGenerated: false,
       type: 'design' as const,
       createdAt: d.createdAt.toISOString(),
@@ -126,14 +129,63 @@ export async function listGallery(options: GalleryListOptions = {}) {
     nonAiCount = count
   }
 
+  // Query market listings (approved, public)
+  let marketItems: GalleryListItem[] = []
+  let marketCount = 0
+
+  if (!options.aiOnly) {
+    const marketWhere: any = { isPublic: true, reviewStatus: 'APPROVED', isSold: false }
+    if (style) marketWhere.category = style
+
+    const marketOrderBy = sortBy === 'popular'
+      ? { views: 'desc' as const }
+      : { createdAt: 'desc' as const }
+
+    const [listings, mCount] = await Promise.all([
+      prisma.artworkListing.findMany({
+        where: marketWhere,
+        orderBy: marketOrderBy,
+        take: limit,
+        skip: offset,
+        select: {
+          id: true,
+          title: true,
+          description: true,
+          imageUrl: true,
+          thumbnailUrl: true,
+          category: true,
+          views: true,
+          createdAt: true,
+        },
+      }),
+      prisma.artworkListing.count({ where: marketWhere }),
+    ])
+
+    marketItems = listings.map((l) => ({
+      id: l.id,
+      designId: l.id,
+      title: l.title,
+      description: l.description,
+      imageUrl: l.imageUrl,
+      thumbnailUrl: l.thumbnailUrl || l.imageUrl,
+      style: l.category,
+      likesCount: l.views,
+      trustScore: 95,
+      isAiGenerated: false,
+      type: 'market' as const,
+      createdAt: l.createdAt.toISOString(),
+    }))
+    marketCount = mCount
+  }
+
   // Merge and sort
-  const items = [...aiItems, ...nonAiItems]
+  const items = [...aiItems, ...nonAiItems, ...marketItems]
   if (sortBy === 'popular') {
     items.sort((a, b) => b.likesCount - a.likesCount)
   } else {
     items.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
   }
 
-  const total = variantCount + nonAiCount
+  const total = variantCount + nonAiCount + marketCount
   return { items: items.slice(0, limit), total, hasMore: offset + limit < total }
 }
