@@ -40,7 +40,7 @@ import { prisma } from '@/lib/prisma'
 describe('generatePreview', () => {
   beforeEach(() => {
     vi.clearAllMocks()
-    vi.mocked(buildGeneratePrompt).mockReturnValue('test prompt for art')
+    vi.mocked(buildGeneratePrompt).mockReturnValue({ prompt: 'test prompt for art', negativePrompt: undefined })
   })
 
   it('returns demo variants in demo mode', async () => {

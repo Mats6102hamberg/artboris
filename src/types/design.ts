@@ -62,6 +62,9 @@ export type StylePreset =
   | 'pastel'
   | 'dark-moody'
   | 'mid-century'
+  | 'boris-silence'
+  | 'boris-between'
+  | 'boris-awakening'
 
 export interface StyleDefinition {
   id: StylePreset
@@ -71,6 +74,9 @@ export interface StyleDefinition {
   promptPrefix: string
   defaultMood: MoodType
   defaultColors: string[]
+  negativePrompt?: string
+  printModifier?: string
+  variationHints?: string[]
 }
 
 export interface FrameOption {

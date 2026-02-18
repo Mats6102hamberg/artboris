@@ -1,10 +1,11 @@
 import OpenAI from 'openai'
 import Replicate from 'replicate'
-import { DesignControls, DesignVariant } from '@/types/design'
+import { StylePreset, DesignControls, DesignVariant } from '@/types/design'
 import { buildRefinePrompt } from '@/lib/prompts/templates'
 import { checkPromptSafety } from '@/lib/prompts/safety'
 import { isDemoMode } from '@/lib/demo/demoImages'
 import { withAIRetry } from '@/server/services/ai/withAIRetry'
+import { isBorisStyle, STYLE_DEFINITIONS } from '@/lib/prompts/styles'
 
 const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY || '',
@@ -14,6 +15,7 @@ export interface RefinePreviewInput {
   originalPrompt: string
   feedback: string
   controls: DesignControls
+  style?: StylePreset
 }
 
 export interface RefinePreviewResult {
@@ -24,9 +26,13 @@ export interface RefinePreviewResult {
 }
 
 export async function refinePreview(input: RefinePreviewInput): Promise<RefinePreviewResult> {
-  const { originalPrompt, feedback, controls } = input
+  const { originalPrompt, feedback, controls, style } = input
 
-  const prompt = buildRefinePrompt(originalPrompt, feedback, controls)
+  const prompt = buildRefinePrompt(originalPrompt, feedback, controls, style)
+
+  // Get negative prompt for Boris styles
+  const negativePrompt = style ? STYLE_DEFINITIONS[style]?.negativePrompt : undefined
+  const useBoris = style ? isBorisStyle(style) : false
 
   // Demo mode — return a placeholder refined variant
   if (isDemoMode()) {
@@ -70,17 +76,25 @@ export async function refinePreview(input: RefinePreviewInput): Promise<RefinePr
       }),
       fallback: async () => {
         const replicate = new Replicate({ auth: process.env.REPLICATE_API_TOKEN || '' })
-        const output = await replicate.run(
-          'black-forest-labs/flux-schnell' as `${string}/${string}`,
-          {
-            input: {
-              prompt,
-              num_outputs: 1,
-              aspect_ratio: '2:3',
-              output_format: 'webp',
-              output_quality: 90,
-            },
+        const replicateModel = useBoris
+          ? 'black-forest-labs/flux-dev'
+          : 'black-forest-labs/flux-schnell'
+        const replicateInput: Record<string, unknown> = {
+          prompt,
+          num_outputs: 1,
+          aspect_ratio: '2:3',
+          output_format: 'webp',
+          output_quality: 90,
+        }
+        if (useBoris) {
+          replicateInput.num_inference_steps = 28
+          if (negativePrompt) {
+            replicateInput.negative_prompt = negativePrompt
           }
+        }
+        const output = await replicate.run(
+          replicateModel as `${string}/${string}`,
+          { input: replicateInput }
         )
         const outputArr = Array.isArray(output) ? output : [output]
         const url = String(outputArr[0] || '')

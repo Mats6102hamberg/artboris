@@ -136,12 +136,13 @@ Canvas drawing/generation → Refine (local processing) → Compare (before/afte
 
 **Photo Transform** uses a different pipeline:
 ```
-Upload photo → Pick style (18 styles) + transformation strength (0.2–0.95)
+Upload photo → Pick style (21 styles: 3 Boris + 18 regular) + transformation strength (0.2–0.95)
   → Flux Dev img2img (4 parallel variants, prompt_strength controls transformation)
   → Design Editor → publish / sell / print
 ```
 - Strength presets: Subtle (0.35), Balanced (0.55), Creative (0.75), Reimagine (0.90)
-- Uses `flux-dev` (not `flux-schnell`) because only Dev supports `image` input
+- Uses `flux-dev` for img2img (image input) and Boris styles (negative prompt + higher quality)
+- Uses `flux-schnell` for regular txt2img styles (faster/cheaper)
 
 ### Navigation
 
@@ -153,7 +154,7 @@ Upload photo → Pick style (18 styles) + transformation strength (0.2–0.95)
 
 | Service | File | Description |
 |---------|------|-------------|
-| generatePreview | `server/services/ai/generatePreview.ts` | Replicate Flux Schnell (txt2img) or Flux Dev (img2img), 4 parallel variants. Demo mode returns local SVGs. |
+| generatePreview | `server/services/ai/generatePreview.ts` | Replicate Flux Schnell (regular styles) or Flux Dev (Boris styles + img2img), 4 parallel variants, negative prompt support. Demo mode returns local SVGs. |
 | refinePreview | `server/services/ai/refinePreview.ts` | New variant based on user feedback |
 | generateFinalPrint | `server/services/ai/generateFinalPrint.ts` | HD render for printing |
 | composeMockup | `server/services/mockup/composeMockup.ts` | CSS-based wall placement |
@@ -178,7 +179,7 @@ Upload photo → Pick style (18 styles) + transformation strength (0.2–0.95)
 | RoomUpload | `components/poster/RoomUpload.tsx` | Drag-drop image upload (Vercel Blob) |
 | PrintYourOwn | `components/poster/PrintYourOwn.tsx` | Photo upload + DPI quality analysis |
 | WallMarker | `components/poster/WallMarker.tsx` | Click 4 corners, drag to adjust |
-| StylePicker | `components/poster/StylePicker.tsx` | 18 styles with color preview |
+| StylePicker | `components/poster/StylePicker.tsx` | 21 styles (3 Boris Collection + 18 regular) with color preview |
 | MockupPreview | `components/poster/MockupPreview.tsx` | CSS-based wall placement, drag/pinch/resize, +/- scale buttons, mobile-optimized touch |
 | PublishToggle | `components/poster/PublishToggle.tsx` | Gallery publish toggle (calls API on toggle) |
 | CreditBadge | `components/poster/CreditBadge.tsx` | Credit balance display |
@@ -362,6 +363,7 @@ No edge middleware (removed due to Vercel 1MB edge function limit with next-auth
 - [x] **Hero image** — CSS-based room scene on landing page.
 - [x] **GlobalNav login** — Login/account button in navigation.
 - [x] **i18n 5 språk** — EN, SV, DE, FR, NL. LanguageSwitcher + Terms-sida på alla 5 språk.
+- [x] **Boris Master Prompt** — 3 Boris fine art portrait styles (Silence/Between/Awakening) med master prompt-bas, negative prompt, flux-dev, print-modifiers, variation hints, Boris Collection UI-sektion.
 
 ### For Production
 - [x] **Auth** — NextAuth with JWT sessions, Google + Credentials providers, admin role check via layout
@@ -430,4 +432,4 @@ Push: `git push origin main`
 
 ---
 
-*Last updated: 2026-02-18 (session 5) · Built with Cascade*
+*Last updated: 2026-02-18 (session 6) · Built with Cascade*

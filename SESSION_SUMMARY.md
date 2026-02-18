@@ -165,6 +165,17 @@
 - **Terms-sida:** `/terms` har nu alla 8 sektioner på 5 språk med SV/EN/DE/FR/NL toggle
 - **Skalbart:** Nytt språk = 1 JSON-fil + 3 rader kod
 
+### 21. Boris Master Prompt — Fine Art AI Portrait System
+- **3 nya Boris-stilar:** `boris-silence` (poetisk, mjukt ljus, beige/ivory, nordisk stillhet), `boris-between` (transformation, dimma, kontrast warm/cool), `boris-awakening` (dramatiskt gyllene sidoljus, svart bakgrund)
+- **Master prompt-bas:** Delas av alla tre — `androgynous portrait, timeless face, calm presence, fine art photography, soft sculptural light, ultra high detail skin, medium format look, gallery quality, museum print...`
+- **Negative prompt-stöd:** Nytt fält `negativePrompt` i `StyleDefinition` — blockerar leenden, tänder, busy backgrounds, fashion makeup etc.
+- **Flux-dev för Boris:** Boris-stilar använder `flux-dev` (bättre kvalitet, stöder negative prompt) istället för `flux-schnell`. Vanliga 18 stilar kvar på schnell.
+- **Print-modifiers:** Nytt fält `printModifier` — Hahnemühle-textur, matte yta, filmkorn. Läggs till vid slutrender (`buildFinalRenderPrompt`).
+- **Variation hints:** Nytt fält `variationHints` — `["double exposure feeling", "light passing through skin", "ethereal atmosphere"]`. Slumpmässigt tillagt vid shuffle/refine.
+- **Boris Collection UI:** Egen sektion med guldkant/amber-styling i StylePicker, ovanför de vanliga 18 stilarna med "Fine Art" badge.
+- **Bakåtkompatibelt:** Alla nya fält optional, befintliga stilar opåverkade.
+- **Filer:** `types/design.ts`, `lib/prompts/styles.ts`, `lib/prompts/templates.ts`, `server/services/ai/generatePreview.ts`, `server/services/ai/refinePreview.ts`, `components/poster/StylePicker.tsx`
+
 ## Kända issues / TODO
 - Market checkout saknar orderbekräftelse-mejlval (bara Wallcraft + Poster Lab har det)
 - Crimson-priser (costSEK) behöver fyllas i efter avtal med Crimson

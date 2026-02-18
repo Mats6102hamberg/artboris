@@ -163,6 +163,44 @@ export const STYLE_DEFINITIONS: Record<StylePreset, StyleDefinition> = {
     defaultMood: 'playful',
     defaultColors: ['#E8963E', '#2D5F5D', '#C84B31', '#F5E6CC', '#4A6741'],
   },
+
+  // --- Boris Collection ---
+  'boris-silence': {
+    id: 'boris-silence',
+    label: 'Boris: Silence',
+    description: 'Poetiskt porträtt, mjukt ljus, beige/ivory, nordisk stillhet',
+    previewUrl: '/poster-lab/styles/boris-silence.jpg',
+    promptPrefix: 'androgynous portrait, timeless face, calm presence, fine art photography, soft sculptural light, minimalist atmosphere, cinematic depth, ultra high detail skin, medium format look, matte texture, gallery quality, museum print, contemporary art, subtle grain, harmonious color palette, emotional stillness, soft natural light from large window, beige and ivory tones, calm linen backdrop, bare shoulders, closed eyes or gentle downward gaze, smooth porcelain skin, silence as emotion, Nordic stillness, poetic atmosphere',
+    defaultMood: 'calm',
+    defaultColors: ['#F5F0EB', '#E8DDD3', '#C9B99A', '#8B7D6B', '#3C3632'],
+    negativePrompt: 'harsh shadows, strong contrast, open mouth, smile, visible teeth, busy background, text, watermark, oversaturated colors, fashion makeup, jewelry',
+    printModifier: 'Hahnemühle paper texture, matte surface, soft tonal transitions, subtle film grain, medium format photography look, gallery lighting',
+    variationHints: ['double exposure feeling', 'light passing through skin', 'ethereal atmosphere'],
+  },
+  'boris-between': {
+    id: 'boris-between',
+    label: 'Boris: Between',
+    description: 'Transformation, dimma, kontrast warm/cool',
+    previewUrl: '/poster-lab/styles/boris-between.jpg',
+    promptPrefix: 'androgynous portrait, timeless face, calm presence, fine art photography, soft sculptural light, minimalist atmosphere, cinematic depth, ultra high detail skin, medium format look, matte texture, gallery quality, museum print, contemporary art, subtle grain, harmonious color palette, emotional stillness, half the face in warm golden light and half in cool blue shadow, misty haze between tones, sense of transformation, split identity feeling, foggy atmosphere, cinematic color grading, tension between warmth and cold',
+    defaultMood: 'dramatic',
+    defaultColors: ['#D4A574', '#6B8FAD', '#F0E0CC', '#3D5A6E', '#1A1A2E'],
+    negativePrompt: 'harsh shadows, strong contrast, open mouth, smile, visible teeth, busy background, text, watermark, oversaturated colors, fashion makeup, jewelry',
+    printModifier: 'Hahnemühle paper texture, matte surface, soft tonal transitions, subtle film grain, medium format photography look, gallery lighting',
+    variationHints: ['double exposure feeling', 'light passing through skin', 'ethereal atmosphere'],
+  },
+  'boris-awakening': {
+    id: 'boris-awakening',
+    label: 'Boris: Awakening',
+    description: 'Dramatiskt gyllene sidoljus, svart bakgrund',
+    previewUrl: '/poster-lab/styles/boris-awakening.jpg',
+    promptPrefix: 'androgynous portrait, timeless face, calm presence, fine art photography, soft sculptural light, minimalist atmosphere, cinematic depth, ultra high detail skin, medium format look, matte texture, gallery quality, museum print, contemporary art, subtle grain, harmonious color palette, emotional stillness, dramatic golden side light from left, deep black background, Rembrandt-inspired lighting, sculpted cheekbones, intense but calm gaze, one single tear or highlight on cheek, awakening emotion, raw and powerful',
+    defaultMood: 'bold',
+    defaultColors: ['#D4AF37', '#1A1A1A', '#F5E6CC', '#8B6914', '#0D0D0D'],
+    negativePrompt: 'harsh shadows, strong contrast, open mouth, smile, visible teeth, busy background, text, watermark, oversaturated colors, fashion makeup, jewelry',
+    printModifier: 'Hahnemühle paper texture, matte surface, soft tonal transitions, subtle film grain, medium format photography look, gallery lighting',
+    variationHints: ['double exposure feeling', 'light passing through skin', 'ethereal atmosphere'],
+  },
 }
 
 export const MOOD_LABELS: Record<MoodType, string> = {
@@ -193,4 +231,16 @@ export function getStyleDefinition(style: StylePreset): StyleDefinition {
 
 export function getAllStyles(): StyleDefinition[] {
   return Object.values(STYLE_DEFINITIONS)
+}
+
+export function isBorisStyle(style: StylePreset): boolean {
+  return style.startsWith('boris-')
+}
+
+export function getBorisStyles(): StyleDefinition[] {
+  return Object.values(STYLE_DEFINITIONS).filter((s) => s.id.startsWith('boris-'))
+}
+
+export function getRegularStyles(): StyleDefinition[] {
+  return Object.values(STYLE_DEFINITIONS).filter((s) => !s.id.startsWith('boris-'))
 }

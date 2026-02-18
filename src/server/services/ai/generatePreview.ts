@@ -4,6 +4,7 @@ import { StylePreset, DesignControls, DesignVariant } from '@/types/design'
 import { buildGeneratePrompt } from '@/lib/prompts/templates'
 import { checkPromptSafety } from '@/lib/prompts/safety'
 import { isDemoMode, getDemoVariants } from '@/lib/demo/demoImages'
+import { isBorisStyle } from '@/lib/prompts/styles'
 import { put } from '@vercel/blob'
 import { prisma } from '@/lib/prisma'
 import { withAIRetry } from '@/server/services/ai/withAIRetry'
@@ -36,7 +37,7 @@ export interface GeneratePreviewResult {
 export async function generatePreview(input: GeneratePreviewInput): Promise<GeneratePreviewResult> {
   const { style, controls, userDescription, count = 4, inputImageUrl, promptStrength } = input
 
-  const prompt = buildGeneratePrompt(style, controls, userDescription)
+  const { prompt, negativePrompt } = buildGeneratePrompt(style, controls, userDescription)
 
   let variants: Omit<DesignVariant, 'designId'>[] = []
 
@@ -65,7 +66,7 @@ export async function generatePreview(input: GeneratePreviewInput): Promise<Gene
     try {
       // Generate variants in parallel
       const promises = Array.from({ length: count }, (_, i) =>
-        generateSingleVariant(prompt, i, inputImageUrl, promptStrength)
+        generateSingleVariant(prompt, i, style, negativePrompt, inputImageUrl, promptStrength)
       )
 
       const results = await Promise.allSettled(promises)
@@ -152,14 +153,18 @@ export async function generatePreview(input: GeneratePreviewInput): Promise<Gene
 async function generateSingleVariant(
   prompt: string,
   index: number,
+  style: StylePreset,
+  negativePrompt?: string,
   inputImageUrl?: string,
   promptStrength?: number
 ): Promise<Omit<DesignVariant, 'designId'> | null> {
   try {
     const seed = Math.floor(Math.random() * 999999)
 
-    // Use flux-dev for img2img (supports image input), flux-schnell for txt2img
-    const model = inputImageUrl
+    // Use flux-dev for Boris styles (better quality, supports negative prompt) and img2img
+    // Use flux-schnell for regular styles (faster/cheaper)
+    const useFluxDev = inputImageUrl || isBorisStyle(style)
+    const model = useFluxDev
       ? 'black-forest-labs/flux-dev'
       : 'black-forest-labs/flux-schnell'
 
@@ -170,6 +175,16 @@ async function generateSingleVariant(
       output_format: 'webp',
       output_quality: 90,
       seed,
+    }
+
+    // Boris styles use flux-dev which needs inference steps
+    if (isBorisStyle(style) && !inputImageUrl) {
+      baseInput.num_inference_steps = 28
+    }
+
+    // Pass negative prompt for flux-dev (Boris styles)
+    if (negativePrompt && useFluxDev) {
+      baseInput.negative_prompt = negativePrompt
     }
 
     if (inputImageUrl) {

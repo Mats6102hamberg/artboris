@@ -1,11 +1,16 @@
 import { StylePreset, MoodType, DesignControls } from '@/types/design'
 import { STYLE_DEFINITIONS, MOOD_PROMPT_MODIFIERS } from './styles'
 
+export interface GeneratePromptResult {
+  prompt: string
+  negativePrompt?: string
+}
+
 export function buildGeneratePrompt(
   style: StylePreset,
   controls: DesignControls,
   userDescription?: string
-): string {
+): GeneratePromptResult {
   const styleDef = STYLE_DEFINITIONS[style]
   const moodMod = MOOD_PROMPT_MODIFIERS[controls.mood]
 
@@ -33,7 +38,7 @@ export function buildGeneratePrompt(
     ? `User request: ${userDescription}.`
     : ''
 
-  return [
+  const prompt = [
     `Create a high-quality poster design.`,
     styleDef.promptPrefix,
     moodMod,
@@ -48,14 +53,30 @@ export function buildGeneratePrompt(
   ]
     .filter(Boolean)
     .join(' ')
+
+  return {
+    prompt,
+    negativePrompt: styleDef.negativePrompt,
+  }
 }
 
 export function buildRefinePrompt(
   originalPrompt: string,
   feedback: string,
-  controls: DesignControls
+  controls: DesignControls,
+  style?: StylePreset
 ): string {
   const moodMod = MOOD_PROMPT_MODIFIERS[controls.mood]
+
+  // Pick a random variation hint for Boris styles
+  let variationPart = ''
+  if (style) {
+    const styleDef = STYLE_DEFINITIONS[style]
+    if (styleDef.variationHints && styleDef.variationHints.length > 0) {
+      const hint = styleDef.variationHints[Math.floor(Math.random() * styleDef.variationHints.length)]
+      variationPart = `Artistic variation: ${hint}.`
+    }
+  }
 
   return [
     `Refine the following poster design based on user feedback.`,
@@ -65,6 +86,7 @@ export function buildRefinePrompt(
     controls.textOverlay && controls.textPosition !== 'none'
       ? `Include text "${controls.textOverlay}" at ${controls.textPosition}.`
       : '',
+    variationPart,
     `Maintain the overall style but incorporate the requested changes.`,
     `High resolution, print-ready quality, 2:3 portrait.`,
   ]
@@ -76,11 +98,22 @@ export function buildFinalRenderPrompt(
   originalPrompt: string,
   controls: DesignControls,
   widthPx: number,
-  heightPx: number
+  heightPx: number,
+  style?: StylePreset
 ): string {
+  // Add print modifier for Boris styles
+  let printPart = ''
+  if (style) {
+    const styleDef = STYLE_DEFINITIONS[style]
+    if (styleDef.printModifier) {
+      printPart = styleDef.printModifier
+    }
+  }
+
   return [
     `Final high-resolution render for print production.`,
     originalPrompt,
+    printPart,
     `Output resolution: ${widthPx}x${heightPx} pixels.`,
     `Ensure crisp details, no artifacts, print-ready quality.`,
     `No watermarks, no borders, clean edges.`,
