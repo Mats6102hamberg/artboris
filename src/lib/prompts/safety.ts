@@ -1,23 +1,21 @@
-const BLOCKED_TERMS = [
-  'nude', 'naked', 'nsfw', 'porn', 'sex',
-  'violence', 'gore', 'blood', 'murder', 'kill',
-  'drug', 'cocaine', 'heroin', 'meth',
-  'hate', 'racist', 'nazi', 'swastika',
-  'child abuse', 'terrorism', 'bomb',
-  'weapon', 'gun', 'rifle',
-  'suicide', 'self-harm',
-  // Swedish equivalents
-  'naken', 'porr', 'våld', 'mord', 'döda',
-  'drog', 'kokain', 'hat', 'rasist',
-  'vapen', 'gevär', 'pistol',
-  'självmord', 'självskada',
-]
-
 const BLOCKED_PATTERNS = [
-  /\b(deep\s*fake)/i,
-  /\b(real\s*person)/i,
-  /\b(celebrity|kändi[s])/i,
-  /\b(copyright|varumärke)/i,
+  // English terms (word-boundary matched to avoid false positives)
+  /\bnude\b/i, /\bnaked\b/i, /\bnsfw\b/i, /\bporn\b/i, /\bsexual\b/i,
+  /\bviolence\b/i, /\bgore\b/i, /\bmurder\b/i,
+  /\bdrugs?\b/i, /\bcocaine\b/i, /\bheroin\b/i, /\bmeth\b/i,
+  /\bracist\b/i, /\bnazi\b/i, /\bswastika\b/i,
+  /\bchild\s*abuse\b/i, /\bterrorism\b/i,
+  /\bweapon\b/i, /\bsuicide\b/i, /\bself[- ]harm\b/i,
+  // Swedish equivalents
+  /\bnaken\b/i, /\bporr\b/i, /\bvåld\b/i, /\bmord\b/i, /\bdöda\b/i,
+  /\bdrog(er)?\b/i, /\bkokain\b/i, /\brasist\b/i,
+  /\bvapen\b/i, /\bgevär\b/i, /\bpistol\b/i,
+  /\bsjälvmord\b/i, /\bsjälvskada\b/i,
+  // Patterns
+  /\bdeep\s*fake\b/i,
+  /\breal\s*person\b/i,
+  /\bcelebrity\b/i, /\bkändi[s]?\b/i,
+  /\bcopyright\b/i, /\bvarumärke\b/i,
 ]
 
 export interface SafetyCheckResult {
@@ -27,23 +25,11 @@ export interface SafetyCheckResult {
 }
 
 export function checkPromptSafety(prompt: string): SafetyCheckResult {
-  const lower = prompt.toLowerCase()
-
-  for (const term of BLOCKED_TERMS) {
-    if (lower.includes(term)) {
-      return {
-        safe: false,
-        reason: `Prompten innehåller otillåtet innehåll.`,
-        blockedTerm: term,
-      }
-    }
-  }
-
   for (const pattern of BLOCKED_PATTERNS) {
     if (pattern.test(prompt)) {
       return {
         safe: false,
-        reason: `Prompten innehåller otillåtet mönster.`,
+        reason: `Prompten innehåller otillåtet innehåll.`,
         blockedTerm: pattern.source,
       }
     }
@@ -69,9 +55,8 @@ export function checkPromptSafety(prompt: string): SafetyCheckResult {
 export function sanitizePrompt(prompt: string): string {
   let sanitized = prompt.trim()
 
-  for (const term of BLOCKED_TERMS) {
-    const regex = new RegExp(term, 'gi')
-    sanitized = sanitized.replace(regex, '[removed]')
+  for (const pattern of BLOCKED_PATTERNS) {
+    sanitized = sanitized.replace(pattern, '[removed]')
   }
 
   if (sanitized.length > 2000) {

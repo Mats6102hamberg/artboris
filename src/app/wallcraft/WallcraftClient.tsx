@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation'
 import { useTranslation } from '@/lib/i18n/context'
 import Button from '@/components/ui/Button'
 import LanguageSwitcher from '@/components/ui/LanguageSwitcher'
+import { type StylePreset } from '@/types/design'
 
 const FEATURED_DESIGNS = [
   { id: '1', title: 'Nordic Calm', image: '/assets/demo/botanical-1.svg', style: 'Scandinavian', price: 349 },
@@ -20,10 +21,38 @@ export default function WallcraftLanding() {
   const router = useRouter()
   const [heroVisible, setHeroVisible] = useState(false)
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
+  const [borisGenerating, setBorisGenerating] = useState(false)
 
   useEffect(() => {
     setTimeout(() => setHeroVisible(true), 100)
   }, [])
+
+  const BORIS_STYLES: StylePreset[] = [
+    'nordic', 'abstract', 'minimal', 'botanical', 'watercolor',
+    'japanese', 'art-deco', 'surreal', 'pastel', 'dark-moody',
+  ]
+
+  const handleBorisGenerate = async () => {
+    setBorisGenerating(true)
+    try {
+      const style = BORIS_STYLES[Math.floor(Math.random() * BORIS_STYLES.length)]
+      const res = await fetch('/api/designs/generate', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ style, controls: null }),
+      })
+      const data = await res.json()
+      if (data.success && data.designId) {
+        router.push(`/wallcraft/design/${data.designId}`)
+      } else {
+        alert(data.error || 'Boris kunde inte skapa just nu. Försök igen!')
+        setBorisGenerating(false)
+      }
+    } catch {
+      alert('Något gick fel. Försök igen!')
+      setBorisGenerating(false)
+    }
+  }
 
   return (
     <div className="min-h-screen bg-[#FAFAF8] text-gray-900">
@@ -212,6 +241,55 @@ export default function WallcraftLanding() {
           <h2 className="text-3xl sm:text-4xl font-light text-gray-900 text-center">Creative Tools</h2>
           <p className="mt-3 text-gray-500 text-center">Design your own art with our interactive tools</p>
           <div className="mt-12 grid sm:grid-cols-2 gap-6">
+            {/* Boris AI — Quick Generate */}
+            <div
+              onClick={borisGenerating ? undefined : handleBorisGenerate}
+              className={`group sm:col-span-2 cursor-pointer bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 rounded-2xl overflow-hidden border border-gray-700/40 hover:shadow-2xl hover:shadow-purple-500/10 transition-all duration-300 relative ${borisGenerating ? 'pointer-events-none' : ''}`}
+            >
+              <div className="absolute top-0 right-0 w-64 h-64 bg-gradient-to-bl from-purple-500/15 via-transparent to-transparent rounded-full blur-3xl" />
+              <div className="absolute bottom-0 left-0 w-48 h-48 bg-gradient-to-tr from-amber-500/10 via-transparent to-transparent rounded-full blur-3xl" />
+              <div className="relative flex items-center gap-8 p-8 sm:p-10">
+                <div className="flex-shrink-0">
+                  <div className="w-20 h-20 rounded-2xl bg-gradient-to-br from-purple-500 to-fuchsia-600 flex items-center justify-center text-white shadow-lg shadow-purple-500/30 group-hover:scale-110 transition-transform duration-300">
+                    {borisGenerating ? (
+                      <div className="w-8 h-8 border-3 border-white/30 border-t-white rounded-full animate-spin" />
+                    ) : (
+                      <svg className="w-10 h-10" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9.813 15.904L9 18.75l-.813-2.846a4.5 4.5 0 00-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 003.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 003.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 00-3.09 3.09zM18.259 8.715L18 9.75l-.259-1.035a3.375 3.375 0 00-2.455-2.456L14.25 6l1.036-.259a3.375 3.375 0 002.455-2.456L18 2.25l.259 1.035a3.375 3.375 0 002.455 2.456L21.75 6l-1.036.259a3.375 3.375 0 00-2.455 2.456z" />
+                      </svg>
+                    )}
+                  </div>
+                </div>
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center gap-3 mb-2">
+                    <h3 className="text-xl font-semibold text-white">Boris skapar åt dig</h3>
+                    <span className="text-[10px] font-bold tracking-wider uppercase bg-purple-500/20 text-purple-300 px-2.5 py-1 rounded-full border border-purple-500/30">AI</span>
+                  </div>
+                  <p className="text-sm text-gray-400 leading-relaxed">
+                    {borisGenerating
+                      ? 'Boris skapar fyra unika motiv åt dig — vänta några sekunder...'
+                      : 'Klicka och Boris väljer stil och skapar fyra unika AI-motiv åt dig. Direkt klart, inga val behövs.'}
+                  </p>
+                  {!borisGenerating && (
+                    <span className="inline-flex items-center gap-1.5 mt-4 text-sm font-medium text-purple-300 group-hover:text-purple-200 group-hover:gap-2.5 transition-all">
+                      Låt Boris skapa
+                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" /></svg>
+                    </span>
+                  )}
+                  {borisGenerating && (
+                    <div className="mt-4 flex items-center gap-3">
+                      <div className="flex gap-1">
+                        <span className="w-2 h-2 bg-purple-400 rounded-full animate-bounce" style={{ animationDelay: '0ms' }} />
+                        <span className="w-2 h-2 bg-purple-400 rounded-full animate-bounce" style={{ animationDelay: '150ms' }} />
+                        <span className="w-2 h-2 bg-purple-400 rounded-full animate-bounce" style={{ animationDelay: '300ms' }} />
+                      </div>
+                      <span className="text-xs text-gray-500">Boris tänker...</span>
+                    </div>
+                  )}
+                </div>
+              </div>
+            </div>
+
             {/* Mandala Maker */}
             <div onClick={() => router.push('/wallcraft/mandala')} className="group cursor-pointer bg-white rounded-2xl overflow-hidden border border-gray-200/60 hover:shadow-xl transition-all duration-300">
               <div className="aspect-[16/9] bg-gradient-to-br from-purple-100 via-pink-50 to-amber-50 flex items-center justify-center relative overflow-hidden">
