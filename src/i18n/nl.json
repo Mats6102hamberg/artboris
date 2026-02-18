@@ -1,0 +1,120 @@
+{
+  "brand": {
+    "name": "Wallcraft",
+    "tagline": "AI-ontworpen kunst voor je interieur"
+  },
+  "nav": {
+    "studio": "Studio",
+    "gallery": "Galerie",
+    "pricing": "Prijzen",
+    "signIn": "Inloggen"
+  },
+  "landing": {
+    "hero": {
+      "title": "Jouw persoonlijke kunststudio",
+      "subtitle": "Ontwerp unieke kunstwerken afgestemd op jouw kamer. Bekijk ze op je muur voordat je koopt.",
+      "cta": "Ontwerp je muur",
+      "ctaSecondary": "Ontdek de galerie"
+    },
+    "steps": {
+      "title": "Zo werkt het",
+      "step1": {
+        "title": "Upload je kamer",
+        "description": "Maak een foto van je muur en upload deze. Markeer het gebied waar je je kunstwerk wilt."
+      },
+      "step2": {
+        "title": "Kies je stijl",
+        "description": "Kies uit samengestelde stijlen — minimaal, Scandinavisch, abstract, modern, fotografie en meer."
+      },
+      "step3": {
+        "title": "Bekijk het op je muur",
+        "description": "Ontvang 4 unieke concepten direct op je muur geplaatst. Pas formaat, lijst en positie aan."
+      }
+    },
+    "trust": {
+      "printedLocal": "Lokaal gedrukt",
+      "fineArt": "Fine art papier",
+      "delivery": "Levering 3–5 dagen",
+      "guarantee": "Tevredenheidsgarantie"
+    },
+    "featured": {
+      "title": "Populaire ontwerpen",
+      "viewOnWall": "Bekijk op mijn muur"
+    }
+  },
+  "studio": {
+    "upload": {
+      "title": "Upload je kamer",
+      "description": "Maak een foto van je kamer of gebruik onze demokamer om te beginnen.",
+      "dropzone": "Sleep je foto hierheen of klik om te bladeren",
+      "useDemo": "Demokamer gebruiken",
+      "formats": "JPG, PNG of HEIC — max 10 MB"
+    },
+    "wallMarker": {
+      "title": "Markeer de muur",
+      "description": "Klik op de afbeelding om de 4 hoeken van het muuroppervlak te markeren",
+      "corners": "hoeken",
+      "done": "Klaar!",
+      "clearAll": "Alles wissen",
+      "clickToPlace": "Klik om te plaatsen",
+      "labels": ["Linksboven", "Rechtsboven", "Rechtsonder", "Linksonder"]
+    },
+    "style": {
+      "title": "Kies je stijl",
+      "description": "Welk gevoel wil je?",
+      "generate": "Concepten genereren",
+      "generating": "Je kunstwerk wordt gemaakt...",
+      "descriptionPlaceholder": "Beschrijf wat je wilt (optioneel)"
+    },
+    "editor": {
+      "variants": "Varianten",
+      "frame": "Lijst",
+      "size": "Formaat",
+      "addToCart": "Print bestellen",
+      "price": "Prijs"
+    }
+  },
+  "checkout": {
+    "title": "Bestelling afronden",
+    "orderSummary": "Besteloverzicht",
+    "pay": "Nu betalen",
+    "secure": "Veilige betaling via Stripe"
+  },
+  "gallery": {
+    "title": "Galerie",
+    "subtitle": "Laat je inspireren door ontwerpen van onze community",
+    "viewDesign": "Ontwerp bekijken"
+  },
+  "credits": {
+    "balance": "Tegoed",
+    "buy": "Tegoed kopen",
+    "free": "3 gratis generaties inbegrepen",
+    "packages": {
+      "small": "10 tegoed",
+      "medium": "30 tegoed",
+      "large": "100 tegoed"
+    }
+  },
+  "common": {
+    "next": "Volgende",
+    "back": "Terug",
+    "cancel": "Annuleren",
+    "save": "Opslaan",
+    "loading": "Laden...",
+    "error": "Er is iets misgegaan",
+    "tryAgain": "Opnieuw proberen"
+  },
+  "sizes": {
+    "chooseSize": "Kies formaat"
+  },
+  "frames": {
+    "chooseFrame": "Kies lijst"
+  },
+  "legal": {
+    "studioNotice": "AI-gegenereerde motieven worden gemaakt in de ArtBoris studio en verkocht als prints voor persoonlijk gebruik. ArtBoris kan deze motieven in zijn galerie tonen.",
+    "studioConsent": "Door een motief te genereren ga je akkoord met onze voorwaarden.",
+    "galleryNotice": "AI-werken gemaakt in de studio kunnen worden getoond in de ArtBoris Galerie.",
+    "checkoutNotice": "AI-motieven worden verkocht als prints voor persoonlijk gebruik volgens onze voorwaarden.",
+    "termsCheckbox": "Ik ga akkoord met de gebruiksvoorwaarden en het privacybeleid"
+  }
+}
