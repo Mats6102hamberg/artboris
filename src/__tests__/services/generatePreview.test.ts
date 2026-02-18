@@ -128,6 +128,28 @@ describe('generatePreview', () => {
     )
   })
 
+  it('creates design with isPublic: true for auto-publishing', async () => {
+    vi.mocked(isDemoMode).mockReturnValue(true)
+    vi.mocked(getDemoVariants).mockReturnValue([
+      { id: 'demo_1', imageUrl: '/assets/demo/nordic-1.svg', thumbnailUrl: '/assets/demo/nordic-1.svg', seed: 0, isSelected: false },
+    ])
+    vi.mocked(prisma.design.create).mockResolvedValue({ id: 'design_public' } as any)
+
+    await generatePreview({
+      style: 'nordic',
+      controls: { colorPalette: ['#FFF'], mood: 'calm', contrast: 50, brightness: 50, saturation: 50, zoom: 100, textOverlay: '', textFont: '', textPosition: 'none' },
+    })
+
+    expect(prisma.design.create).toHaveBeenCalledWith(
+      expect.objectContaining({
+        data: expect.objectContaining({
+          isPublic: true,
+          isAiGenerated: true,
+        }),
+      })
+    )
+  })
+
   it('uses default promptStrength 0.65 when not specified', async () => {
     vi.mocked(isDemoMode).mockReturnValue(false)
     vi.mocked(checkPromptSafety).mockReturnValue({ safe: true })

@@ -83,7 +83,12 @@
   "gallery": {
     "title": "Galleri",
     "subtitle": "Låt dig inspireras av designs från vårt community",
-    "viewDesign": "Visa design"
+    "viewDesign": "Visa design",
+    "sectionAi": "AI",
+    "sectionPhotographers": "Fotografer",
+    "sectionArtists": "Konstnärer",
+    "noResults": "Inga motiv hittades",
+    "viewArtwork": "Visa konstverk"
   },
   "credits": {
     "balance": "Credits",

@@ -9,6 +9,7 @@ export async function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url)
     const category = searchParams.get('category')
+    const excludeCategory = searchParams.get('excludeCategory')
     const artistId = searchParams.get('artistId')
     const page = parseInt(searchParams.get('page') || '1')
     const limit = parseInt(searchParams.get('limit') || '24')
@@ -27,6 +28,7 @@ export async function GET(request: NextRequest) {
       ? { artistId }  // Artist sees all their own listings
       : { isPublic: true, reviewStatus: 'APPROVED', isSold: false }  // Public gallery
     if (category && category !== 'all') where.category = category
+    if (excludeCategory) where.category = { not: excludeCategory }
     if (!isOwnDashboard && artistId) where.artistId = artistId
 
     const [listings, total] = await Promise.all([

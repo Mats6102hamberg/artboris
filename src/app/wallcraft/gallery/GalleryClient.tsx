@@ -1,47 +1,122 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
 import { useTranslation } from '@/lib/i18n/context'
 import Button from '@/components/ui/Button'
 import LanguageSwitcher from '@/components/ui/LanguageSwitcher'
 
+type Section = 'ai' | 'photographers' | 'artists'
+
 interface GalleryItem {
   id: string
+  designId?: string
   title: string
-  description: string
+  description?: string
   imageUrl: string
-  style: string
+  thumbnailUrl?: string
+  style?: string
   likesCount: number
   isAiGenerated?: boolean
+  type: 'ai-variant' | 'design' | 'market'
+  artistName?: string
+  priceSEK?: number
 }
 
-const STYLE_FILTERS = ['all', 'ai-art', 'nordic', 'abstract', 'minimal', 'botanical', 'retro']
+const AI_STYLE_FILTERS = ['all', 'nordic', 'abstract', 'minimal', 'botanical', 'retro']
 
 export default function GalleryPage() {
   const { t } = useTranslation()
   const router = useRouter()
+  const [section, setSection] = useState<Section>('ai')
   const [items, setItems] = useState<GalleryItem[]>([])
   const [loading, setLoading] = useState(true)
   const [activeStyle, setActiveStyle] = useState('all')
   const [sortBy, setSortBy] = useState<'recent' | 'popular'>('popular')
 
-  useEffect(() => {
-    setLoading(true)
+  const fetchAiItems = useCallback(async () => {
     const params = new URLSearchParams({ sortBy })
-    if (activeStyle === 'ai-art') {
-      params.set('aiOnly', 'true')
-    } else if (activeStyle !== 'all') {
+    if (activeStyle !== 'all') {
       params.set('style', activeStyle)
     }
-    fetch(`/api/gallery/list?${params}`)
-      .then(res => res.json())
-      .then(data => {
-        if (data.success) setItems(data.items || [])
-      })
-      .catch(console.error)
-      .finally(() => setLoading(false))
+    const res = await fetch(`/api/gallery/list?${params}`)
+    const data = await res.json()
+    if (data.success) {
+      return (data.items || []).map((item: any) => ({
+        id: item.id,
+        designId: item.designId || item.id,
+        title: item.title,
+        description: item.description,
+        imageUrl: item.imageUrl,
+        thumbnailUrl: item.thumbnailUrl || item.imageUrl,
+        style: item.style,
+        likesCount: item.likesCount || 0,
+        isAiGenerated: true,
+        type: item.type || 'ai-variant',
+      }))
+    }
+    return []
   }, [activeStyle, sortBy])
+
+  const fetchMarketItems = useCallback(async (category: string, excludeCategory?: string) => {
+    const params = new URLSearchParams()
+    if (category) params.set('category', category)
+    if (excludeCategory) params.set('excludeCategory', excludeCategory)
+    const res = await fetch(`/api/market/listings?${params}`)
+    const data = await res.json()
+    return (data.listings || []).map((listing: any) => ({
+      id: listing.id,
+      title: listing.title,
+      description: listing.description,
+      imageUrl: listing.imageUrl,
+      thumbnailUrl: listing.thumbnailUrl || listing.imageUrl,
+      likesCount: 0,
+      type: 'market' as const,
+      artistName: listing.artist?.displayName || '',
+      priceSEK: listing.artistPriceSEK,
+    }))
+  }, [])
+
+  useEffect(() => {
+    let cancelled = false
+    setLoading(true)
+
+    const load = async () => {
+      try {
+        let result: GalleryItem[] = []
+        if (section === 'ai') {
+          result = await fetchAiItems()
+        } else if (section === 'photographers') {
+          result = await fetchMarketItems('photo')
+        } else {
+          result = await fetchMarketItems('', 'photo')
+        }
+        if (!cancelled) setItems(result)
+      } catch (err) {
+        console.error('[Gallery] fetch error:', err)
+        if (!cancelled) setItems([])
+      } finally {
+        if (!cancelled) setLoading(false)
+      }
+    }
+
+    load()
+    return () => { cancelled = true }
+  }, [section, activeStyle, sortBy, fetchAiItems, fetchMarketItems])
+
+  const handleCardClick = (item: GalleryItem) => {
+    if (item.type === 'market') {
+      router.push(`/market/${item.id}`)
+    } else {
+      router.push(`/wallcraft/design/${item.designId || item.id}`)
+    }
+  }
+
+  const sections: { key: Section; label: string }[] = [
+    { key: 'ai', label: t('gallery.sectionAi') },
+    { key: 'photographers', label: t('gallery.sectionPhotographers') },
+    { key: 'artists', label: t('gallery.sectionArtists') },
+  ]
 
   return (
     <div className="min-h-screen bg-[#FAFAF8]">
@@ -63,37 +138,56 @@ export default function GalleryPage() {
           <p className="mt-3 text-gray-500">{t('gallery.subtitle')}</p>
         </div>
 
-        {/* Filters */}
-        <div className="flex flex-wrap items-center justify-between gap-4 mb-8">
-          <div className="flex flex-wrap gap-2">
-            {STYLE_FILTERS.map(style => (
-              <button
-                key={style}
-                onClick={() => setActiveStyle(style)}
-                className={`px-4 py-2 rounded-full text-sm font-medium transition-all ${
-                  activeStyle === style
-                    ? 'bg-gray-900 text-white'
-                    : 'bg-white text-gray-600 border border-gray-200 hover:border-gray-300'
-                }`}
-              >
-                {style === 'all' ? 'All' : style === 'ai-art' ? '✨ AI Art' : style.charAt(0).toUpperCase() + style.slice(1)}
-              </button>
-            ))}
-          </div>
-          <div className="flex gap-2">
-            {(['popular', 'recent'] as const).map(s => (
-              <button
-                key={s}
-                onClick={() => setSortBy(s)}
-                className={`text-xs font-medium px-3 py-1 rounded-md transition-colors ${
-                  sortBy === s ? 'bg-gray-200 text-gray-900' : 'text-gray-500 hover:text-gray-900'
-                }`}
-              >
-                {s === 'popular' ? '♥ Popular' : '↓ Recent'}
-              </button>
-            ))}
-          </div>
+        {/* Section tabs */}
+        <div className="flex justify-center gap-2 mb-8">
+          {sections.map(s => (
+            <button
+              key={s.key}
+              onClick={() => { setSection(s.key); setActiveStyle('all') }}
+              className={`px-6 py-2.5 rounded-full text-sm font-semibold tracking-wide transition-all ${
+                section === s.key
+                  ? 'bg-gray-900 text-white shadow-sm'
+                  : 'bg-white text-gray-600 border border-gray-200 hover:border-gray-400'
+              }`}
+            >
+              {s.label}
+            </button>
+          ))}
         </div>
+
+        {/* Sub-filters (AI section only) */}
+        {section === 'ai' && (
+          <div className="flex flex-wrap items-center justify-between gap-4 mb-8">
+            <div className="flex flex-wrap gap-2">
+              {AI_STYLE_FILTERS.map(style => (
+                <button
+                  key={style}
+                  onClick={() => setActiveStyle(style)}
+                  className={`px-4 py-2 rounded-full text-sm font-medium transition-all ${
+                    activeStyle === style
+                      ? 'bg-gray-900 text-white'
+                      : 'bg-white text-gray-600 border border-gray-200 hover:border-gray-300'
+                  }`}
+                >
+                  {style === 'all' ? 'All' : style.charAt(0).toUpperCase() + style.slice(1)}
+                </button>
+              ))}
+            </div>
+            <div className="flex gap-2">
+              {(['popular', 'recent'] as const).map(s => (
+                <button
+                  key={s}
+                  onClick={() => setSortBy(s)}
+                  className={`text-xs font-medium px-3 py-1 rounded-md transition-colors ${
+                    sortBy === s ? 'bg-gray-200 text-gray-900' : 'text-gray-500 hover:text-gray-900'
+                  }`}
+                >
+                  {s === 'popular' ? '♥ Popular' : '↓ Recent'}
+                </button>
+              ))}
+            </div>
+          </div>
+        )}
 
         {/* Grid */}
         {loading ? (
@@ -104,38 +198,50 @@ export default function GalleryPage() {
           </div>
         ) : items.length === 0 ? (
           <div className="text-center py-20">
-            <p className="text-gray-400">No designs found</p>
+            <p className="text-gray-400">{t('gallery.noResults')}</p>
           </div>
         ) : (
           <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-5">
             {items.map(item => (
-              <div key={item.id} className="group cursor-pointer" onClick={() => router.push('/wallcraft/studio')}>
+              <div key={item.id} className="group cursor-pointer" onClick={() => handleCardClick(item)}>
                 <div className="aspect-[2/3] bg-gray-100 rounded-xl overflow-hidden relative">
                   <img
-                    src={item.imageUrl}
+                    src={item.thumbnailUrl || item.imageUrl}
                     alt={item.title}
                     className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                    loading="lazy"
                   />
-                  {item.isAiGenerated && (
+                  {item.type === 'ai-variant' && (
                     <div className="absolute top-2 left-2 z-10">
                       <span className="bg-purple-600/90 backdrop-blur-sm text-white text-[10px] font-semibold px-2 py-0.5 rounded-full tracking-wide uppercase">
-                        AI Generated
+                        AI
                       </span>
                     </div>
                   )}
                   <div className="absolute inset-0 bg-gradient-to-t from-black/30 via-transparent to-transparent sm:opacity-0 sm:group-hover:opacity-100 transition-opacity" />
                   <div className="absolute bottom-3 left-3 right-3 flex items-end justify-between sm:opacity-0 sm:group-hover:opacity-100 transition-opacity">
                     <span className="text-white text-xs font-medium bg-black/40 backdrop-blur-sm px-2 py-1 rounded-md">
-                      {t('gallery.viewDesign')}
+                      {item.type === 'market' ? t('gallery.viewArtwork') : t('gallery.viewDesign')}
                     </span>
-                    <span className="text-white text-xs bg-black/40 backdrop-blur-sm px-2 py-1 rounded-md flex items-center gap-1">
-                      ♥ {item.likesCount}
-                    </span>
+                    {item.type !== 'market' && (
+                      <span className="text-white text-xs bg-black/40 backdrop-blur-sm px-2 py-1 rounded-md flex items-center gap-1">
+                        ♥ {item.likesCount}
+                      </span>
+                    )}
+                    {item.type === 'market' && item.priceSEK != null && (
+                      <span className="text-white text-xs bg-black/40 backdrop-blur-sm px-2 py-1 rounded-md">
+                        {item.priceSEK} SEK
+                      </span>
+                    )}
                   </div>
                 </div>
                 <div className="mt-2.5">
                   <p className="text-sm font-medium text-gray-900 truncate">{item.title}</p>
-                  <p className="text-xs text-gray-400 capitalize">{item.style}</p>
+                  {item.type === 'market' && item.artistName ? (
+                    <p className="text-xs text-gray-400">{item.artistName}</p>
+                  ) : item.style ? (
+                    <p className="text-xs text-gray-400 capitalize">{item.style}</p>
+                  ) : null}
                 </div>
               </div>
             ))}
@@ -143,7 +249,7 @@ export default function GalleryPage() {
         )}
       </div>
 
-      {/* AI Art notice (Nivå 3 — discreet) */}
+      {/* AI Art notice */}
       <div className="max-w-6xl mx-auto px-6 mt-10">
         <p className="text-xs text-gray-400 text-center leading-relaxed">
           {t('legal.galleryNotice') !== 'legal.galleryNotice'

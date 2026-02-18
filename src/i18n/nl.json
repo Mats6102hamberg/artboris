@@ -83,7 +83,12 @@
   "gallery": {
     "title": "Galerie",
     "subtitle": "Laat je inspireren door ontwerpen van onze community",
-    "viewDesign": "Ontwerp bekijken"
+    "viewDesign": "Ontwerp bekijken",
+    "sectionAi": "AI",
+    "sectionPhotographers": "Fotografen",
+    "sectionArtists": "Kunstenaars",
+    "noResults": "Geen ontwerpen gevonden",
+    "viewArtwork": "Kunstwerk bekijken"
   },
   "credits": {
     "balance": "Tegoed",

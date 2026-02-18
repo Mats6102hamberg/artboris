@@ -83,7 +83,12 @@
   "gallery": {
     "title": "Galerie",
     "subtitle": "Lass dich von Designs unserer Community inspirieren",
-    "viewDesign": "Design ansehen"
+    "viewDesign": "Design ansehen",
+    "sectionAi": "AI",
+    "sectionPhotographers": "Fotografen",
+    "sectionArtists": "Künstler",
+    "noResults": "Keine Designs gefunden",
+    "viewArtwork": "Kunstwerk ansehen"
   },
   "credits": {
     "balance": "Guthaben",
