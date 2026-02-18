@@ -237,6 +237,110 @@
     "sendConfirmation": "Skicka orderbekräftelse",
     "sent": "Skickat!"
   },
+  "home": {
+    "nav": {
+      "createAccount": "Skapa konto"
+    },
+    "badge": "Nu i beta — prova gratis",
+    "hero": {
+      "title": "Konst som passar",
+      "titleHighlight": "just din vägg",
+      "subtitle": "Skapa AI-genererad konst, upptäck lokala konstnärer eller ladda upp ditt eget foto. Se hur det ser ut på din vägg — innan du beställer.",
+      "cta": "Kom igång gratis",
+      "ctaSecondary": "Se hur det fungerar"
+    },
+    "trust": {
+      "free": "Gratis att testa",
+      "noCard": "Inget kort krävs",
+      "printLocal": "Tryck & leverans i Sverige"
+    },
+    "steps": {
+      "title": "Så fungerar det",
+      "subtitle": "Från idé till tavla på väggen — på bara några minuter.",
+      "s1": { "title": "Skapa konto", "desc": "Registrera dig gratis och få tillgång till alla verktyg." },
+      "s2": { "title": "Utforska & skapa", "desc": "Generera AI-konst, bläddra i galleriet eller ladda upp eget." },
+      "s3": { "title": "Prova på din vägg", "desc": "Ladda upp ett foto av ditt rum och se tavlan live på väggen." },
+      "s4": { "title": "Beställ & njut", "desc": "Välj ram och storlek. Vi trycker och levererar hem till dig." }
+    },
+    "features": {
+      "title": "Allt du behöver för väggkonst",
+      "subtitle": "Sex kraftfulla verktyg — från AI-generering till konstanalys.",
+      "explore": "Utforska",
+      "wallcraftStudio": { "title": "Wallcraft Studio", "desc": "Skapa AI-genererad väggkonst. Ladda upp ditt rum, välj stil och se tavlan på din vägg i realtid." },
+      "artMarket": { "title": "Art Market", "desc": "Upptäck unik konst från lokala konstnärer och fotografer. Prova verket på din vägg innan du köper." },
+      "creativeTools": { "title": "Kreativa verktyg", "desc": "Mandala Maker, Pattern Studio, Abstract Painter och Color Field Studio — skapa din egen konst." },
+      "printYourOwn": { "title": "Print Your Own", "desc": "Ladda upp ditt eget foto och se hur det tar sig på din vägg. Beställ som poster med ram." },
+      "artScanner": { "title": "Art Scanner", "desc": "Hitta undervärderade konstverk på auktioner. AI-driven analys med vinstpotential och risknivå." },
+      "borisAI": { "title": "Boris AI — Konstexpert", "desc": "Din personliga konstexpert. Analyserar verk, kommenterar placeringar och ger investeringsråd." }
+    },
+    "boris": {
+      "badge": "AI-driven",
+      "title1": "Möt",
+      "title2": "Boris",
+      "title3": "— din personliga konstexpert",
+      "desc": "Boris analyserar konstverk, kommenterar hur en tavla passar på din vägg, ger investeringsråd och hjälper dig hitta rätt stil. Allt drivet av AI.",
+      "artAnalysis": "Konstanalys",
+      "artAnalysisDesc": "Analyserar stil, teknik, marknadsvärde och potential.",
+      "wallComments": "Väggkommentarer",
+      "wallCommentsDesc": "Kommenterar hur tavlan passar i ditt rum — färger, proportioner, stil.",
+      "investmentAdvice": "Investeringsråd",
+      "investmentAdviceDesc": "Hjälper dig hitta undervärderade verk med vinstpotential.",
+      "chatMockup1": "Det här verket har en stark komposition med djupa blåtoner som skulle passa utmärkt mot din ljusa vägg. Jag rekommenderar storlek 50×70 cm med en vit ram för bästa effekt.",
+      "chatMockup2": "Vad tror du om den som investering?",
+      "chatMockup3": "Konstnären har en stigande trend. Liknande verk såldes för 40% mer förra året. Jag bedömer risken som låg med god potential.",
+      "chatPlaceholder": "Fråga Boris om konst..."
+    },
+    "wallPreview": {
+      "title": "Se tavlan på din vägg",
+      "titleFaded": "innan du köper",
+      "desc": "Ladda upp ett foto av ditt rum, markera väggen och se direkt hur konstverket tar sig. Dra, zooma och byt ram i realtid. Boris ger dig dessutom sin expertkommentar om hur tavlan passar i rummet.",
+      "realtime": "Realtid",
+      "realtimeDesc": "Dra & zooma live",
+      "frames": "5+",
+      "framesDesc": "Ramval att välja",
+      "cmExact": "cm-exakt",
+      "cmExactDesc": "Verklig storlek",
+      "borisComment": "Boris",
+      "borisCommentDesc": "AI-kommentar",
+      "tryNow": "Prova nu",
+      "perfectFit": "Perfekt passform!",
+      "perfectFitSize": "50×70 cm — vit ram"
+    },
+    "artistCta": {
+      "title": "Är du konstnär eller fotograf?",
+      "desc": "Ladda upp dina verk till Art Market och nå nya köpare. Vi hanterar tryck, ram och leverans. Du sätter priset — vi delar vinsten 50/50.",
+      "register": "Registrera dig som konstnär",
+      "browseGallery": "Bläddra i galleriet",
+      "split": "50/50",
+      "splitLabel": "Vinstdelning",
+      "cost": "0 kr",
+      "costLabel": "Att komma igång",
+      "delivery": "Hela Sverige",
+      "deliveryLabel": "Leverans & tryck"
+    },
+    "signup": {
+      "title": "Redo att börja?",
+      "desc": "Skapa ett gratis konto och få tillgång till alla verktyg. Ingen bindningstid, inget kort.",
+      "emailLabel": "E-post",
+      "emailPlaceholder": "din@email.se",
+      "passwordLabel": "Lösenord",
+      "passwordPlaceholder": "Minst 8 tecken",
+      "submit": "Skapa konto",
+      "terms": "Genom att registrera dig godkänner du våra",
+      "termsLink": "villkor"
+    },
+    "footer": {
+      "tagline": "Din kreativa plattform för väggkonst. Skapa, upptäck och beställ.",
+      "tools": "Verktyg",
+      "creativeTools": "Kreativa verktyg",
+      "forArtists": "För konstnärer",
+      "artistPortal": "Konstnärsportal",
+      "gallery": "Galleri",
+      "allRights": "Alla rättigheter förbehållna.",
+      "privacy": "Integritetspolicy",
+      "terms": "Villkor"
+    }
+  },
   "legal": {
     "studioNotice": "AI-genererade motiv skapas i ArtBoris studio och säljs som tryck för privat bruk. ArtBoris kan visa dessa motiv i sitt galleri.",
     "studioConsent": "Genom att generera ett motiv godkänner du våra villkor.",

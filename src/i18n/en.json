@@ -237,6 +237,110 @@
     "sendConfirmation": "Send order confirmation",
     "sent": "Sent!"
   },
+  "home": {
+    "nav": {
+      "createAccount": "Create account"
+    },
+    "badge": "Now in beta — try for free",
+    "hero": {
+      "title": "Art that fits",
+      "titleHighlight": "your wall",
+      "subtitle": "Create AI-generated art, discover local artists or upload your own photo. See how it looks on your wall — before you order.",
+      "cta": "Get started free",
+      "ctaSecondary": "See how it works"
+    },
+    "trust": {
+      "free": "Free to try",
+      "noCard": "No card required",
+      "printLocal": "Print & delivery in Sweden"
+    },
+    "steps": {
+      "title": "How it works",
+      "subtitle": "From idea to art on the wall — in just a few minutes.",
+      "s1": { "title": "Create an account", "desc": "Sign up for free and get access to all tools." },
+      "s2": { "title": "Explore & create", "desc": "Generate AI art, browse the gallery or upload your own." },
+      "s3": { "title": "Try on your wall", "desc": "Upload a photo of your room and see the artwork live on the wall." },
+      "s4": { "title": "Order & enjoy", "desc": "Choose frame and size. We print and deliver to your door." }
+    },
+    "features": {
+      "title": "Everything you need for wall art",
+      "subtitle": "Six powerful tools — from AI generation to art analysis.",
+      "explore": "Explore",
+      "wallcraftStudio": { "title": "Wallcraft Studio", "desc": "Create AI-generated wall art. Upload your room, choose a style and see the artwork on your wall in real time." },
+      "artMarket": { "title": "Art Market", "desc": "Discover unique art from local artists and photographers. Try the artwork on your wall before you buy." },
+      "creativeTools": { "title": "Creative Tools", "desc": "Mandala Maker, Pattern Studio, Abstract Painter and Color Field Studio — create your own art." },
+      "printYourOwn": { "title": "Print Your Own", "desc": "Upload your own photo and see how it looks on your wall. Order as a poster with frame." },
+      "artScanner": { "title": "Art Scanner", "desc": "Find undervalued artworks at auctions. AI-driven analysis with profit potential and risk level." },
+      "borisAI": { "title": "Boris AI — Art Expert", "desc": "Your personal art expert. Analyzes works, comments on placements and gives investment advice." }
+    },
+    "boris": {
+      "badge": "AI-driven",
+      "title1": "Meet",
+      "title2": "Boris",
+      "title3": "— your personal art expert",
+      "desc": "Boris analyzes artworks, comments on how a painting fits on your wall, gives investment advice and helps you find the right style. All powered by AI.",
+      "artAnalysis": "Art analysis",
+      "artAnalysisDesc": "Analyzes style, technique, market value and potential.",
+      "wallComments": "Wall comments",
+      "wallCommentsDesc": "Comments on how the artwork fits in your room — colors, proportions, style.",
+      "investmentAdvice": "Investment advice",
+      "investmentAdviceDesc": "Helps you find undervalued works with profit potential.",
+      "chatMockup1": "This work has a strong composition with deep blue tones that would fit perfectly against your light wall. I recommend size 50×70 cm with a white frame for the best effect.",
+      "chatMockup2": "What do you think about it as an investment?",
+      "chatMockup3": "The artist has a rising trend. Similar works sold for 40% more last year. I assess the risk as low with good potential.",
+      "chatPlaceholder": "Ask Boris about art..."
+    },
+    "wallPreview": {
+      "title": "See the artwork on your wall",
+      "titleFaded": "before you buy",
+      "desc": "Upload a photo of your room, mark the wall and see instantly how the artwork looks. Drag, zoom and change frame in real time. Boris also gives you his expert comment on how the artwork fits in the room.",
+      "realtime": "Real time",
+      "realtimeDesc": "Drag & zoom live",
+      "frames": "5+",
+      "framesDesc": "Frame options",
+      "cmExact": "cm-exact",
+      "cmExactDesc": "Real size",
+      "borisComment": "Boris",
+      "borisCommentDesc": "AI comment",
+      "tryNow": "Try now",
+      "perfectFit": "Perfect fit!",
+      "perfectFitSize": "50×70 cm — white frame"
+    },
+    "artistCta": {
+      "title": "Are you an artist or photographer?",
+      "desc": "Upload your works to Art Market and reach new buyers. We handle printing, framing and delivery. You set the price — we split the profit 50/50.",
+      "register": "Register as an artist",
+      "browseGallery": "Browse the gallery",
+      "split": "50/50",
+      "splitLabel": "Profit split",
+      "cost": "0 kr",
+      "costLabel": "To get started",
+      "delivery": "All of Sweden",
+      "deliveryLabel": "Delivery & printing"
+    },
+    "signup": {
+      "title": "Ready to start?",
+      "desc": "Create a free account and get access to all tools. No commitment, no card.",
+      "emailLabel": "Email",
+      "emailPlaceholder": "your@email.com",
+      "passwordLabel": "Password",
+      "passwordPlaceholder": "At least 8 characters",
+      "submit": "Create account",
+      "terms": "By signing up you agree to our",
+      "termsLink": "terms"
+    },
+    "footer": {
+      "tagline": "Your creative platform for wall art. Create, discover and order.",
+      "tools": "Tools",
+      "creativeTools": "Creative Tools",
+      "forArtists": "For artists",
+      "artistPortal": "Artist Portal",
+      "gallery": "Gallery",
+      "allRights": "All rights reserved.",
+      "privacy": "Privacy policy",
+      "terms": "Terms"
+    }
+  },
   "legal": {
     "studioNotice": "AI-generated designs are created within the ArtBoris studio and are sold as physical prints for personal use. ArtBoris may display these designs in its gallery.",
     "studioConsent": "By generating a design you agree to our terms.",

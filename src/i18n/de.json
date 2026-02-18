@@ -237,6 +237,84 @@
     "sendConfirmation": "Bestellbestätigung senden",
     "sent": "Gesendet!"
   },
+  "home": {
+    "nav": { "createAccount": "Konto erstellen" },
+    "badge": "Jetzt in der Beta — kostenlos testen",
+    "hero": {
+      "title": "Kunst, die passt",
+      "titleHighlight": "zu deiner Wand",
+      "subtitle": "Erstelle KI-generierte Kunst, entdecke lokale Künstler oder lade dein eigenes Foto hoch. Sieh, wie es an deiner Wand aussieht — bevor du bestellst.",
+      "cta": "Kostenlos starten",
+      "ctaSecondary": "So funktioniert es"
+    },
+    "trust": { "free": "Kostenlos testen", "noCard": "Keine Karte nötig", "printLocal": "Druck & Lieferung in Schweden" },
+    "steps": {
+      "title": "So funktioniert es",
+      "subtitle": "Von der Idee zum Bild an der Wand — in nur wenigen Minuten.",
+      "s1": { "title": "Konto erstellen", "desc": "Registriere dich kostenlos und erhalte Zugang zu allen Werkzeugen." },
+      "s2": { "title": "Entdecken & erstellen", "desc": "Generiere KI-Kunst, durchstöbere die Galerie oder lade eigene Bilder hoch." },
+      "s3": { "title": "An deiner Wand testen", "desc": "Lade ein Foto deines Raums hoch und sieh das Kunstwerk live an der Wand." },
+      "s4": { "title": "Bestellen & genießen", "desc": "Wähle Rahmen und Größe. Wir drucken und liefern zu dir nach Hause." }
+    },
+    "features": {
+      "title": "Alles, was du für Wandkunst brauchst",
+      "subtitle": "Sechs leistungsstarke Werkzeuge — von KI-Generierung bis Kunstanalyse.",
+      "explore": "Entdecken",
+      "wallcraftStudio": { "title": "Wallcraft Studio", "desc": "Erstelle KI-generierte Wandkunst. Lade dein Zimmer hoch, wähle einen Stil und sieh das Bild in Echtzeit an deiner Wand." },
+      "artMarket": { "title": "Art Market", "desc": "Entdecke einzigartige Kunst von lokalen Künstlern und Fotografen. Teste das Werk an deiner Wand, bevor du kaufst." },
+      "creativeTools": { "title": "Kreative Werkzeuge", "desc": "Mandala Maker, Pattern Studio, Abstract Painter und Color Field Studio — erstelle deine eigene Kunst." },
+      "printYourOwn": { "title": "Print Your Own", "desc": "Lade dein eigenes Foto hoch und sieh, wie es an deiner Wand aussieht. Bestelle als Poster mit Rahmen." },
+      "artScanner": { "title": "Art Scanner", "desc": "Finde unterbewertete Kunstwerke bei Auktionen. KI-gestützte Analyse mit Gewinnpotenzial und Risikoniveau." },
+      "borisAI": { "title": "Boris AI — Kunstexperte", "desc": "Dein persönlicher Kunstexperte. Analysiert Werke, kommentiert Platzierungen und gibt Anlageberatung." }
+    },
+    "boris": {
+      "badge": "KI-gestützt",
+      "title1": "Triff",
+      "title2": "Boris",
+      "title3": "— deinen persönlichen Kunstexperten",
+      "desc": "Boris analysiert Kunstwerke, kommentiert, wie ein Bild an deine Wand passt, gibt Anlageberatung und hilft dir, den richtigen Stil zu finden. Alles KI-gestützt.",
+      "artAnalysis": "Kunstanalyse", "artAnalysisDesc": "Analysiert Stil, Technik, Marktwert und Potenzial.",
+      "wallComments": "Wandkommentare", "wallCommentsDesc": "Kommentiert, wie das Bild in deinen Raum passt — Farben, Proportionen, Stil.",
+      "investmentAdvice": "Anlageberatung", "investmentAdviceDesc": "Hilft dir, unterbewertete Werke mit Gewinnpotenzial zu finden.",
+      "chatMockup1": "Dieses Werk hat eine starke Komposition mit tiefen Blautönen, die perfekt zu deiner hellen Wand passen würden. Ich empfehle Größe 50×70 cm mit weißem Rahmen.",
+      "chatMockup2": "Was denkst du als Investition?",
+      "chatMockup3": "Der Künstler hat einen steigenden Trend. Ähnliche Werke wurden letztes Jahr für 40% mehr verkauft. Ich schätze das Risiko als gering ein.",
+      "chatPlaceholder": "Frag Boris über Kunst..."
+    },
+    "wallPreview": {
+      "title": "Sieh das Bild an deiner Wand",
+      "titleFaded": "bevor du kaufst",
+      "desc": "Lade ein Foto deines Raums hoch, markiere die Wand und sieh sofort, wie das Kunstwerk aussieht. Ziehen, zoomen und Rahmen wechseln in Echtzeit.",
+      "realtime": "Echtzeit", "realtimeDesc": "Ziehen & zoomen live",
+      "frames": "5+", "framesDesc": "Rahmenoptionen",
+      "cmExact": "cm-genau", "cmExactDesc": "Echte Größe",
+      "borisComment": "Boris", "borisCommentDesc": "KI-Kommentar",
+      "tryNow": "Jetzt testen",
+      "perfectFit": "Perfekte Passform!", "perfectFitSize": "50×70 cm — weißer Rahmen"
+    },
+    "artistCta": {
+      "title": "Bist du Künstler oder Fotograf?",
+      "desc": "Lade deine Werke auf den Art Market hoch und erreiche neue Käufer. Wir kümmern uns um Druck, Rahmen und Lieferung. Du bestimmst den Preis — wir teilen den Gewinn 50/50.",
+      "register": "Als Künstler registrieren", "browseGallery": "Galerie durchstöbern",
+      "split": "50/50", "splitLabel": "Gewinnaufteilung",
+      "cost": "0 kr", "costLabel": "Zum Starten",
+      "delivery": "Ganz Schweden", "deliveryLabel": "Lieferung & Druck"
+    },
+    "signup": {
+      "title": "Bereit loszulegen?",
+      "desc": "Erstelle ein kostenloses Konto und erhalte Zugang zu allen Werkzeugen. Keine Bindung, keine Karte.",
+      "emailLabel": "E-Mail", "emailPlaceholder": "deine@email.de",
+      "passwordLabel": "Passwort", "passwordPlaceholder": "Mindestens 8 Zeichen",
+      "submit": "Konto erstellen",
+      "terms": "Mit der Registrierung stimmst du unseren", "termsLink": "Nutzungsbedingungen"
+    },
+    "footer": {
+      "tagline": "Deine kreative Plattform für Wandkunst. Erstellen, entdecken und bestellen.",
+      "tools": "Werkzeuge", "creativeTools": "Kreative Werkzeuge",
+      "forArtists": "Für Künstler", "artistPortal": "Künstlerportal", "gallery": "Galerie",
+      "allRights": "Alle Rechte vorbehalten.", "privacy": "Datenschutz", "terms": "Nutzungsbedingungen"
+    }
+  },
   "legal": {
     "studioNotice": "KI-generierte Motive werden im ArtBoris Studio erstellt und als Drucke für den privaten Gebrauch verkauft. ArtBoris kann diese Motive in seiner Galerie zeigen.",
     "studioConsent": "Mit der Generierung eines Motivs stimmst du unseren Nutzungsbedingungen zu.",

@@ -2,114 +2,30 @@
 
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
+import { useTranslation } from '@/lib/i18n/context'
+import LanguageSwitcher from '@/components/ui/LanguageSwitcher'
 
-const FEATURES = [
-  {
-    title: 'Wallcraft Studio',
-    description: 'Skapa AI-genererad väggkonst. Ladda upp ditt rum, välj stil och se tavlan på din vägg i realtid.',
-    icon: (
-      <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9.53 16.122a3 3 0 00-5.78 1.128 2.25 2.25 0 01-2.4 2.245 4.5 4.5 0 008.4-2.245c0-.399-.078-.78-.22-1.128zm0 0a15.998 15.998 0 003.388-1.62m-5.043-.025a15.994 15.994 0 011.622-3.395m3.42 3.42a15.995 15.995 0 004.764-4.648l3.876-5.814a1.151 1.151 0 00-1.597-1.597L14.146 6.32a15.996 15.996 0 00-4.649 4.763m3.42 3.42a6.776 6.776 0 00-3.42-3.42" />
-      </svg>
-    ),
-    href: '/wallcraft/studio',
-    color: 'from-emerald-500 to-teal-600',
-    bgLight: 'from-emerald-50 to-teal-50',
-    borderColor: 'border-emerald-200/60',
-  },
-  {
-    title: 'Art Market',
-    description: 'Upptäck unik konst från lokala konstnärer och fotografer. Prova verket på din vägg innan du köper.',
-    icon: (
-      <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M2.25 15.75l5.159-5.159a2.25 2.25 0 013.182 0l5.159 5.159m-1.5-1.5l1.409-1.409a2.25 2.25 0 013.182 0l2.909 2.909M3.75 21h16.5A2.25 2.25 0 0022.5 18.75V5.25A2.25 2.25 0 0020.25 3H3.75A2.25 2.25 0 001.5 5.25v13.5A2.25 2.25 0 003.75 21z" />
-      </svg>
-    ),
-    href: '/market',
-    color: 'from-rose-500 to-pink-600',
-    bgLight: 'from-rose-50 to-pink-50',
-    borderColor: 'border-rose-200/60',
-  },
-  {
-    title: 'Kreativa verktyg',
-    description: 'Mandala Maker, Pattern Studio, Abstract Painter och Color Field Studio — skapa din egen konst.',
-    icon: (
-      <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M4.098 19.902a3.75 3.75 0 005.304 0l6.401-6.402M6.75 21A3.75 3.75 0 013 17.25V4.125C3 3.504 3.504 3 4.125 3h5.25c.621 0 1.125.504 1.125 1.125v4.072M6.75 21a3.75 3.75 0 003.75-3.75V8.197M6.75 21h13.125c.621 0 1.125-.504 1.125-1.125v-5.25c0-.621-.504-1.125-1.125-1.125h-4.072M10.5 8.197l2.88-2.88c.438-.439 1.15-.439 1.59 0l3.712 3.713c.44.44.44 1.152 0 1.59l-2.879 2.88M6.75 17.25h.008v.008H6.75v-.008z" />
-      </svg>
-    ),
-    href: '/wallcraft',
-    color: 'from-violet-500 to-purple-600',
-    bgLight: 'from-violet-50 to-purple-50',
-    borderColor: 'border-violet-200/60',
-  },
-  {
-    title: 'Print Your Own',
-    description: 'Ladda upp ditt eget foto och se hur det tar sig på din vägg. Beställ som poster med ram.',
-    icon: (
-      <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M6.827 6.175A2.31 2.31 0 015.186 7.23c-.38.054-.757.112-1.134.175C2.999 7.58 2.25 8.507 2.25 9.574V18a2.25 2.25 0 002.25 2.25h15A2.25 2.25 0 0021.75 18V9.574c0-1.067-.75-1.994-1.802-2.169a47.865 47.865 0 00-1.134-.175 2.31 2.31 0 01-1.64-1.055l-.822-1.316a2.192 2.192 0 00-1.736-1.039 48.774 48.774 0 00-5.232 0 2.192 2.192 0 00-1.736 1.039l-.821 1.316z" />
-        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M16.5 12.75a4.5 4.5 0 11-9 0 4.5 4.5 0 019 0z" />
-      </svg>
-    ),
-    href: '/wallcraft/print-your-own',
-    color: 'from-amber-500 to-orange-600',
-    bgLight: 'from-amber-50 to-orange-50',
-    borderColor: 'border-amber-200/60',
-  },
-  {
-    title: 'Art Scanner',
-    description: 'Hitta undervärderade konstverk på auktioner. AI-driven analys med vinstpotential och risknivå.',
-    icon: (
-      <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z" />
-      </svg>
-    ),
-    href: '/scanner',
-    color: 'from-blue-500 to-indigo-600',
-    bgLight: 'from-blue-50 to-indigo-50',
-    borderColor: 'border-blue-200/60',
-  },
-  {
-    title: 'Boris AI — Konstexpert',
-    description: 'Din personliga konstexpert. Analyserar verk, kommenterar placeringar och ger investeringsråd.',
-    icon: (
-      <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9.813 15.904L9 18.75l-.813-2.846a4.5 4.5 0 00-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 003.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 003.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 00-3.09 3.09zM18.259 8.715L18 9.75l-.259-1.035a3.375 3.375 0 00-2.455-2.456L14.25 6l1.036-.259a3.375 3.375 0 002.455-2.456L18 2.25l.259 1.035a3.375 3.375 0 002.455 2.456L21.75 6l-1.036.259a3.375 3.375 0 00-2.455 2.456z" />
-      </svg>
-    ),
-    href: '/scanner',
-    color: 'from-fuchsia-500 to-purple-600',
-    bgLight: 'from-fuchsia-50 to-purple-50',
-    borderColor: 'border-fuchsia-200/60',
-  },
+const FEATURE_ICONS = [
+  <svg key="0" className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9.53 16.122a3 3 0 00-5.78 1.128 2.25 2.25 0 01-2.4 2.245 4.5 4.5 0 008.4-2.245c0-.399-.078-.78-.22-1.128zm0 0a15.998 15.998 0 003.388-1.62m-5.043-.025a15.994 15.994 0 011.622-3.395m3.42 3.42a15.995 15.995 0 004.764-4.648l3.876-5.814a1.151 1.151 0 00-1.597-1.597L14.146 6.32a15.996 15.996 0 00-4.649 4.763m3.42 3.42a6.776 6.776 0 00-3.42-3.42" /></svg>,
+  <svg key="1" className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M2.25 15.75l5.159-5.159a2.25 2.25 0 013.182 0l5.159 5.159m-1.5-1.5l1.409-1.409a2.25 2.25 0 013.182 0l2.909 2.909M3.75 21h16.5A2.25 2.25 0 0022.5 18.75V5.25A2.25 2.25 0 0020.25 3H3.75A2.25 2.25 0 001.5 5.25v13.5A2.25 2.25 0 003.75 21z" /></svg>,
+  <svg key="2" className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M4.098 19.902a3.75 3.75 0 005.304 0l6.401-6.402M6.75 21A3.75 3.75 0 013 17.25V4.125C3 3.504 3.504 3 4.125 3h5.25c.621 0 1.125.504 1.125 1.125v4.072M6.75 21a3.75 3.75 0 003.75-3.75V8.197M6.75 21h13.125c.621 0 1.125-.504 1.125-1.125v-5.25c0-.621-.504-1.125-1.125-1.125h-4.072M10.5 8.197l2.88-2.88c.438-.439 1.15-.439 1.59 0l3.712 3.713c.44.44.44 1.152 0 1.59l-2.879 2.88M6.75 17.25h.008v.008H6.75v-.008z" /></svg>,
+  <svg key="3" className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M6.827 6.175A2.31 2.31 0 015.186 7.23c-.38.054-.757.112-1.134.175C2.999 7.58 2.25 8.507 2.25 9.574V18a2.25 2.25 0 002.25 2.25h15A2.25 2.25 0 0021.75 18V9.574c0-1.067-.75-1.994-1.802-2.169a47.865 47.865 0 00-1.134-.175 2.31 2.31 0 01-1.64-1.055l-.822-1.316a2.192 2.192 0 00-1.736-1.039 48.774 48.774 0 00-5.232 0 2.192 2.192 0 00-1.736 1.039l-.821 1.316z" /><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M16.5 12.75a4.5 4.5 0 11-9 0 4.5 4.5 0 019 0z" /></svg>,
+  <svg key="4" className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z" /></svg>,
+  <svg key="5" className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9.813 15.904L9 18.75l-.813-2.846a4.5 4.5 0 00-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 003.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 003.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 00-3.09 3.09zM18.259 8.715L18 9.75l-.259-1.035a3.375 3.375 0 00-2.455-2.456L14.25 6l1.036-.259a3.375 3.375 0 002.455-2.456L18 2.25l.259 1.035a3.375 3.375 0 002.455 2.456L21.75 6l-1.036.259a3.375 3.375 0 00-2.455 2.456z" /></svg>,
 ]
 
-const STEPS = [
-  {
-    step: '01',
-    title: 'Skapa konto',
-    description: 'Registrera dig gratis och få tillgång till alla verktyg.',
-  },
-  {
-    step: '02',
-    title: 'Utforska & skapa',
-    description: 'Generera AI-konst, bläddra i galleriet eller ladda upp eget.',
-  },
-  {
-    step: '03',
-    title: 'Prova på din vägg',
-    description: 'Ladda upp ett foto av ditt rum och se tavlan live på väggen.',
-  },
-  {
-    step: '04',
-    title: 'Beställ & njut',
-    description: 'Välj ram och storlek. Vi trycker och levererar hem till dig.',
-  },
+const FEATURE_META = [
+  { key: 'wallcraftStudio', href: '/wallcraft/studio', color: 'from-emerald-500 to-teal-600', bgLight: 'from-emerald-50 to-teal-50', borderColor: 'border-emerald-200/60' },
+  { key: 'artMarket', href: '/market', color: 'from-rose-500 to-pink-600', bgLight: 'from-rose-50 to-pink-50', borderColor: 'border-rose-200/60' },
+  { key: 'creativeTools', href: '/wallcraft', color: 'from-violet-500 to-purple-600', bgLight: 'from-violet-50 to-purple-50', borderColor: 'border-violet-200/60' },
+  { key: 'printYourOwn', href: '/wallcraft/print-your-own', color: 'from-amber-500 to-orange-600', bgLight: 'from-amber-50 to-orange-50', borderColor: 'border-amber-200/60' },
+  { key: 'artScanner', href: '/scanner', color: 'from-blue-500 to-indigo-600', bgLight: 'from-blue-50 to-indigo-50', borderColor: 'border-blue-200/60' },
+  { key: 'borisAI', href: '/scanner', color: 'from-fuchsia-500 to-purple-600', bgLight: 'from-fuchsia-50 to-purple-50', borderColor: 'border-fuchsia-200/60' },
 ]
 
 export default function Home() {
   const router = useRouter()
+  const { t } = useTranslation()
   const [heroVisible, setHeroVisible] = useState(false)
   const [stepsVisible, setStepsVisible] = useState(false)
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
@@ -133,11 +49,12 @@ export default function Home() {
             <a href="/wallcraft" className="text-sm font-medium text-gray-500 hover:text-gray-900 transition-colors">Wallcraft</a>
             <a href="/market" className="text-sm font-medium text-gray-500 hover:text-gray-900 transition-colors">Art Market</a>
             <a href="/scanner" className="text-sm font-medium text-gray-500 hover:text-gray-900 transition-colors">Scanner</a>
+            <LanguageSwitcher />
             <a
               href="#skapa-konto"
               className="text-sm font-medium text-white bg-gray-900 px-5 py-2.5 rounded-xl hover:bg-gray-800 transition-colors"
             >
-              Skapa konto
+              {t('home.nav.createAccount')}
             </a>
           </div>
           <button
@@ -156,8 +73,9 @@ export default function Home() {
             <a href="/wallcraft" className="block text-base font-medium text-gray-700 py-2">Wallcraft</a>
             <a href="/market" className="block text-base font-medium text-gray-700 py-2">Art Market</a>
             <a href="/scanner" className="block text-base font-medium text-gray-700 py-2">Scanner</a>
+            <div className="py-2"><LanguageSwitcher /></div>
             <a href="#skapa-konto" className="block text-base font-medium text-white bg-gray-900 text-center py-3 rounded-xl mt-2">
-              Skapa konto
+              {t('home.nav.createAccount')}
             </a>
           </div>
         )}
@@ -176,20 +94,19 @@ export default function Home() {
             <div className="max-w-2xl">
               <div className="inline-flex items-center gap-2 bg-white/60 backdrop-blur-sm border border-gray-200/60 rounded-full px-4 py-1.5 mb-8">
                 <span className="w-2 h-2 bg-emerald-500 rounded-full animate-pulse" />
-                <span className="text-xs font-medium text-gray-600 tracking-wide uppercase">Nu i beta — prova gratis</span>
+                <span className="text-xs font-medium text-gray-600 tracking-wide uppercase">{t('home.badge')}</span>
               </div>
 
               <h1 className="text-5xl sm:text-6xl lg:text-7xl font-light tracking-tight text-gray-900 leading-[1.08]">
-                Konst som passar
+                {t('home.hero.title')}
                 <br />
                 <span className="bg-gradient-to-r from-emerald-600 via-teal-600 to-cyan-600 bg-clip-text text-transparent">
-                  just din vägg
+                  {t('home.hero.titleHighlight')}
                 </span>
               </h1>
 
               <p className="mt-8 text-lg sm:text-xl text-gray-500 max-w-2xl leading-relaxed">
-                Skapa AI-genererad konst, upptäck lokala konstnärer eller ladda upp ditt eget foto.
-                Se hur det ser ut på din vägg — innan du beställer.
+                {t('home.hero.subtitle')}
               </p>
 
               <div className="mt-10 flex flex-wrap gap-4">
@@ -197,7 +114,7 @@ export default function Home() {
                   href="#skapa-konto"
                   className="inline-flex items-center gap-2 bg-gray-900 text-white px-8 py-4 rounded-xl text-base font-medium hover:bg-gray-800 transition-all hover:shadow-lg hover:shadow-gray-900/10"
                 >
-                  Kom igång gratis
+                  {t('home.hero.cta')}
                   <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" />
                   </svg>
@@ -206,7 +123,7 @@ export default function Home() {
                   href="/wallcraft"
                   className="inline-flex items-center gap-2 bg-white text-gray-700 px-8 py-4 rounded-xl text-base font-medium border border-gray-200 hover:border-gray-300 hover:shadow-md transition-all"
                 >
-                  Se hur det fungerar
+                  {t('home.hero.ctaSecondary')}
                 </a>
               </div>
 
@@ -216,19 +133,19 @@ export default function Home() {
                   <svg className="w-4 h-4 text-emerald-500" fill="currentColor" viewBox="0 0 20 20">
                     <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
                   </svg>
-                  Gratis att testa
+                  {t('home.trust.free')}
                 </div>
                 <div className="flex items-center gap-2">
                   <svg className="w-4 h-4 text-emerald-500" fill="currentColor" viewBox="0 0 20 20">
                     <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
                   </svg>
-                  Inget kort krävs
+                  {t('home.trust.noCard')}
                 </div>
                 <div className="flex items-center gap-2">
                   <svg className="w-4 h-4 text-emerald-500" fill="currentColor" viewBox="0 0 20 20">
                     <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
                   </svg>
-                  Tryck & leverans i Sverige
+                  {t('home.trust.printLocal')}
                 </div>
               </div>
             </div>
@@ -288,25 +205,25 @@ export default function Home() {
         <div className="max-w-7xl mx-auto px-6">
           <div className="text-center mb-16">
             <h2 className="text-3xl sm:text-4xl font-light tracking-tight text-gray-900">
-              Så fungerar det
+              {t('home.steps.title')}
             </h2>
             <p className="mt-4 text-gray-500 max-w-xl mx-auto">
-              Från idé till tavla på väggen — på bara några minuter.
+              {t('home.steps.subtitle')}
             </p>
           </div>
 
           <div className={`grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8 transition-all duration-1000 ${stepsVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'}`}>
-            {STEPS.map((step, i) => (
-              <div key={i} className="relative">
-                {i < STEPS.length - 1 && (
+            {(['s1', 's2', 's3', 's4'] as const).map((s, i) => (
+              <div key={s} className="relative">
+                {i < 3 && (
                   <div className="hidden lg:block absolute top-8 left-[calc(50%+40px)] w-[calc(100%-80px)] h-px bg-gradient-to-r from-gray-200 to-gray-100" />
                 )}
                 <div className="text-center">
                   <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-gray-900 text-white text-lg font-light mb-6">
-                    {step.step}
+                    {String(i + 1).padStart(2, '0')}
                   </div>
-                  <h3 className="text-lg font-medium text-gray-900 mb-2">{step.title}</h3>
-                  <p className="text-sm text-gray-500 leading-relaxed">{step.description}</p>
+                  <h3 className="text-lg font-medium text-gray-900 mb-2">{t(`home.steps.${s}.title`)}</h3>
+                  <p className="text-sm text-gray-500 leading-relaxed">{t(`home.steps.${s}.desc`)}</p>
                 </div>
               </div>
             ))}
@@ -319,27 +236,27 @@ export default function Home() {
         <div className="max-w-7xl mx-auto px-6">
           <div className="text-center mb-16">
             <h2 className="text-3xl sm:text-4xl font-light tracking-tight text-gray-900">
-              Allt du behöver för väggkonst
+              {t('home.features.title')}
             </h2>
             <p className="mt-4 text-gray-500 max-w-xl mx-auto">
-              Sex kraftfulla verktyg — från AI-generering till konstanalys.
+              {t('home.features.subtitle')}
             </p>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {FEATURES.map((feature, i) => (
+            {FEATURE_META.map((f, i) => (
               <a
-                key={i}
-                href={feature.href}
-                className={`group relative bg-gradient-to-br ${feature.bgLight} border ${feature.borderColor} rounded-2xl p-8 hover:shadow-xl hover:shadow-gray-200/50 transition-all duration-300 hover:-translate-y-1`}
+                key={f.key}
+                href={f.href}
+                className={`group relative bg-gradient-to-br ${f.bgLight} border ${f.borderColor} rounded-2xl p-8 hover:shadow-xl hover:shadow-gray-200/50 transition-all duration-300 hover:-translate-y-1`}
               >
-                <div className={`inline-flex items-center justify-center w-14 h-14 rounded-xl bg-gradient-to-br ${feature.color} text-white mb-6 shadow-lg shadow-gray-200/50 group-hover:scale-110 transition-transform`}>
-                  {feature.icon}
+                <div className={`inline-flex items-center justify-center w-14 h-14 rounded-xl bg-gradient-to-br ${f.color} text-white mb-6 shadow-lg shadow-gray-200/50 group-hover:scale-110 transition-transform`}>
+                  {FEATURE_ICONS[i]}
                 </div>
-                <h3 className="text-xl font-medium text-gray-900 mb-3">{feature.title}</h3>
-                <p className="text-sm text-gray-600 leading-relaxed">{feature.description}</p>
+                <h3 className="text-xl font-medium text-gray-900 mb-3">{t(`home.features.${f.key}.title`)}</h3>
+                <p className="text-sm text-gray-600 leading-relaxed">{t(`home.features.${f.key}.desc`)}</p>
                 <div className="mt-6 flex items-center gap-1 text-sm font-medium text-gray-400 group-hover:text-gray-700 transition-colors">
-                  Utforska
+                  {t('home.features.explore')}
                   <svg className="w-4 h-4 group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
                   </svg>
@@ -362,17 +279,16 @@ export default function Home() {
                 <svg className="w-4 h-4 text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9.813 15.904L9 18.75l-.813-2.846a4.5 4.5 0 00-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 003.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 003.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 00-3.09 3.09z" />
                 </svg>
-                <span className="text-xs font-medium text-gray-300 tracking-wide uppercase">AI-driven</span>
+                <span className="text-xs font-medium text-gray-300 tracking-wide uppercase">{t('home.boris.badge')}</span>
               </div>
 
               <h2 className="text-3xl sm:text-4xl font-light tracking-tight leading-tight">
-                Möt <span className="text-purple-400">Boris</span> — din
-                <br />personliga konstexpert
+                {t('home.boris.title1')} <span className="text-purple-400">{t('home.boris.title2')}</span>
+                <br />{t('home.boris.title3')}
               </h2>
 
               <p className="mt-6 text-gray-400 leading-relaxed max-w-lg">
-                Boris analyserar konstverk, kommenterar hur en tavla passar på din vägg,
-                ger investeringsråd och hjälper dig hitta rätt stil. Allt drivet av AI.
+                {t('home.boris.desc')}
               </p>
 
               <div className="mt-8 space-y-4">
@@ -383,8 +299,8 @@ export default function Home() {
                     </svg>
                   </div>
                   <div>
-                    <p className="text-sm font-medium text-white">Konstanalys</p>
-                    <p className="text-sm text-gray-400">Analyserar stil, teknik, marknadsvärde och potential.</p>
+                    <p className="text-sm font-medium text-white">{t('home.boris.artAnalysis')}</p>
+                    <p className="text-sm text-gray-400">{t('home.boris.artAnalysisDesc')}</p>
                   </div>
                 </div>
                 <div className="flex items-start gap-3">
@@ -394,8 +310,8 @@ export default function Home() {
                     </svg>
                   </div>
                   <div>
-                    <p className="text-sm font-medium text-white">Väggkommentarer</p>
-                    <p className="text-sm text-gray-400">Kommenterar hur tavlan passar i ditt rum — färger, proportioner, stil.</p>
+                    <p className="text-sm font-medium text-white">{t('home.boris.wallComments')}</p>
+                    <p className="text-sm text-gray-400">{t('home.boris.wallCommentsDesc')}</p>
                   </div>
                 </div>
                 <div className="flex items-start gap-3">
@@ -405,8 +321,8 @@ export default function Home() {
                     </svg>
                   </div>
                   <div>
-                    <p className="text-sm font-medium text-white">Investeringsråd</p>
-                    <p className="text-sm text-gray-400">Hjälper dig hitta undervärderade verk med vinstpotential.</p>
+                    <p className="text-sm font-medium text-white">{t('home.boris.investmentAdvice')}</p>
+                    <p className="text-sm text-gray-400">{t('home.boris.investmentAdviceDesc')}</p>
                   </div>
                 </div>
               </div>
@@ -428,22 +344,22 @@ export default function Home() {
               <div className="space-y-4">
                 <div className="bg-gray-700/40 rounded-xl rounded-tl-sm p-4 max-w-[85%]">
                   <p className="text-sm text-gray-300 leading-relaxed">
-                    Det här verket har en stark komposition med djupa blåtoner som skulle passa utmärkt mot din ljusa vägg. Jag rekommenderar storlek 50×70 cm med en vit ram för bästa effekt.
+                    {t('home.boris.chatMockup1')}
                   </p>
                 </div>
                 <div className="bg-purple-600/30 rounded-xl rounded-tr-sm p-4 max-w-[75%] ml-auto">
-                  <p className="text-sm text-purple-200">Vad tror du om den som investering?</p>
+                  <p className="text-sm text-purple-200">{t('home.boris.chatMockup2')}</p>
                 </div>
                 <div className="bg-gray-700/40 rounded-xl rounded-tl-sm p-4 max-w-[85%]">
                   <p className="text-sm text-gray-300 leading-relaxed">
-                    Konstnären har en stigande trend. Liknande verk såldes för 40% mer förra året. Jag bedömer risken som låg med god potential.
+                    {t('home.boris.chatMockup3')}
                   </p>
                 </div>
               </div>
 
               <div className="mt-6 flex items-center gap-2">
                 <div className="flex-1 bg-gray-700/30 border border-gray-600/30 rounded-xl px-4 py-3 text-sm text-gray-500">
-                  Fråga Boris om konst...
+                  {t('home.boris.chatPlaceholder')}
                 </div>
                 <button className="w-10 h-10 rounded-xl bg-purple-600 flex items-center justify-center hover:bg-purple-500 transition-colors">
                   <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -485,41 +401,39 @@ export default function Home() {
                   </svg>
                 </div>
                 <div>
-                  <p className="text-sm font-medium text-gray-900">Perfekt passform!</p>
-                  <p className="text-xs text-gray-500">50×70 cm — vit ram</p>
+                  <p className="text-sm font-medium text-gray-900">{t('home.wallPreview.perfectFit')}</p>
+                  <p className="text-xs text-gray-500">{t('home.wallPreview.perfectFitSize')}</p>
                 </div>
               </div>
             </div>
 
             <div>
               <h2 className="text-3xl sm:text-4xl font-light tracking-tight text-gray-900 leading-tight">
-                Se tavlan på din vägg
+                {t('home.wallPreview.title')}
                 <br />
-                <span className="text-gray-400">innan du köper</span>
+                <span className="text-gray-400">{t('home.wallPreview.titleFaded')}</span>
               </h2>
 
               <p className="mt-6 text-gray-500 leading-relaxed max-w-lg">
-                Ladda upp ett foto av ditt rum, markera väggen och se direkt hur konstverket
-                tar sig. Dra, zooma och byt ram i realtid. Boris ger dig dessutom sin
-                expertkommentar om hur tavlan passar i rummet.
+                {t('home.wallPreview.desc')}
               </p>
 
               <div className="mt-8 grid grid-cols-2 gap-4">
                 <div className="bg-white rounded-xl border border-gray-200/60 p-4">
-                  <p className="text-2xl font-light text-gray-900">Realtid</p>
-                  <p className="text-sm text-gray-500 mt-1">Dra & zooma live</p>
+                  <p className="text-2xl font-light text-gray-900">{t('home.wallPreview.realtime')}</p>
+                  <p className="text-sm text-gray-500 mt-1">{t('home.wallPreview.realtimeDesc')}</p>
                 </div>
                 <div className="bg-white rounded-xl border border-gray-200/60 p-4">
-                  <p className="text-2xl font-light text-gray-900">5+</p>
-                  <p className="text-sm text-gray-500 mt-1">Ramval att välja</p>
+                  <p className="text-2xl font-light text-gray-900">{t('home.wallPreview.frames')}</p>
+                  <p className="text-sm text-gray-500 mt-1">{t('home.wallPreview.framesDesc')}</p>
                 </div>
                 <div className="bg-white rounded-xl border border-gray-200/60 p-4">
-                  <p className="text-2xl font-light text-gray-900">cm-exakt</p>
-                  <p className="text-sm text-gray-500 mt-1">Verklig storlek</p>
+                  <p className="text-2xl font-light text-gray-900">{t('home.wallPreview.cmExact')}</p>
+                  <p className="text-sm text-gray-500 mt-1">{t('home.wallPreview.cmExactDesc')}</p>
                 </div>
                 <div className="bg-white rounded-xl border border-gray-200/60 p-4">
-                  <p className="text-2xl font-light text-gray-900">Boris</p>
-                  <p className="text-sm text-gray-500 mt-1">AI-kommentar</p>
+                  <p className="text-2xl font-light text-gray-900">{t('home.wallPreview.borisComment')}</p>
+                  <p className="text-sm text-gray-500 mt-1">{t('home.wallPreview.borisCommentDesc')}</p>
                 </div>
               </div>
 
@@ -527,7 +441,7 @@ export default function Home() {
                 href="/wallcraft/studio"
                 className="mt-8 inline-flex items-center gap-2 bg-gray-900 text-white px-6 py-3 rounded-xl text-sm font-medium hover:bg-gray-800 transition-all"
               >
-                Prova nu
+                {t('home.wallPreview.tryNow')}
                 <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" />
                 </svg>
@@ -541,11 +455,10 @@ export default function Home() {
       <section className="py-20 sm:py-28 bg-gradient-to-br from-rose-50 via-pink-50 to-fuchsia-50">
         <div className="max-w-4xl mx-auto px-6 text-center">
           <h2 className="text-3xl sm:text-4xl font-light tracking-tight text-gray-900">
-            Är du konstnär eller fotograf?
+            {t('home.artistCta.title')}
           </h2>
           <p className="mt-6 text-gray-500 max-w-2xl mx-auto leading-relaxed">
-            Ladda upp dina verk till Art Market och nå nya köpare. Vi hanterar tryck, ram och leverans.
-            Du sätter priset — vi delar vinsten 50/50.
+            {t('home.artistCta.desc')}
           </p>
 
           <div className="mt-10 flex flex-wrap justify-center gap-4">
@@ -553,7 +466,7 @@ export default function Home() {
               href="/market/artist"
               className="inline-flex items-center gap-2 bg-gray-900 text-white px-8 py-4 rounded-xl text-base font-medium hover:bg-gray-800 transition-all hover:shadow-lg"
             >
-              Registrera dig som konstnär
+              {t('home.artistCta.register')}
               <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" />
               </svg>
@@ -562,22 +475,22 @@ export default function Home() {
               href="/market"
               className="inline-flex items-center gap-2 bg-white text-gray-700 px-8 py-4 rounded-xl text-base font-medium border border-gray-200 hover:border-gray-300 hover:shadow-md transition-all"
             >
-              Bläddra i galleriet
+              {t('home.artistCta.browseGallery')}
             </a>
           </div>
 
           <div className="mt-12 grid grid-cols-1 sm:grid-cols-3 gap-6 max-w-2xl mx-auto">
             <div>
-              <p className="text-3xl font-light text-gray-900">50/50</p>
-              <p className="text-sm text-gray-500 mt-1">Vinstdelning</p>
+              <p className="text-3xl font-light text-gray-900">{t('home.artistCta.split')}</p>
+              <p className="text-sm text-gray-500 mt-1">{t('home.artistCta.splitLabel')}</p>
             </div>
             <div>
-              <p className="text-3xl font-light text-gray-900">0 kr</p>
-              <p className="text-sm text-gray-500 mt-1">Att komma igång</p>
+              <p className="text-3xl font-light text-gray-900">{t('home.artistCta.cost')}</p>
+              <p className="text-sm text-gray-500 mt-1">{t('home.artistCta.costLabel')}</p>
             </div>
             <div>
-              <p className="text-3xl font-light text-gray-900">Hela Sverige</p>
-              <p className="text-sm text-gray-500 mt-1">Leverans & tryck</p>
+              <p className="text-3xl font-light text-gray-900">{t('home.artistCta.delivery')}</p>
+              <p className="text-sm text-gray-500 mt-1">{t('home.artistCta.deliveryLabel')}</p>
             </div>
           </div>
         </div>
@@ -587,39 +500,39 @@ export default function Home() {
       <section id="skapa-konto" className="py-20 sm:py-28 bg-gray-900 text-white">
         <div className="max-w-3xl mx-auto px-6 text-center">
           <h2 className="text-3xl sm:text-4xl font-light tracking-tight">
-            Redo att börja?
+            {t('home.signup.title')}
           </h2>
           <p className="mt-4 text-gray-400 max-w-xl mx-auto">
-            Skapa ett gratis konto och få tillgång till alla verktyg. Ingen bindningstid, inget kort.
+            {t('home.signup.desc')}
           </p>
 
           <div className="mt-10 max-w-md mx-auto">
             <div className="bg-gray-800/50 backdrop-blur-sm border border-gray-700/50 rounded-2xl p-8">
               <div className="space-y-4">
                 <div>
-                  <label className="block text-sm font-medium text-gray-300 mb-2 text-left">E-post</label>
+                  <label className="block text-sm font-medium text-gray-300 mb-2 text-left">{t('home.signup.emailLabel')}</label>
                   <input
                     type="email"
-                    placeholder="din@email.se"
+                    placeholder={t('home.signup.emailPlaceholder')}
                     className="w-full px-4 py-3 bg-gray-700/50 border border-gray-600/50 rounded-xl text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-emerald-500/50 focus:border-emerald-500/50 transition-all"
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-300 mb-2 text-left">Lösenord</label>
+                  <label className="block text-sm font-medium text-gray-300 mb-2 text-left">{t('home.signup.passwordLabel')}</label>
                   <input
                     type="password"
-                    placeholder="Minst 8 tecken"
+                    placeholder={t('home.signup.passwordPlaceholder')}
                     className="w-full px-4 py-3 bg-gray-700/50 border border-gray-600/50 rounded-xl text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-emerald-500/50 focus:border-emerald-500/50 transition-all"
                   />
                 </div>
                 <button
                   className="w-full bg-gradient-to-r from-emerald-500 to-teal-600 text-white px-6 py-3.5 rounded-xl font-medium hover:from-emerald-600 hover:to-teal-700 transition-all hover:shadow-lg hover:shadow-emerald-500/20"
                 >
-                  Skapa konto
+                  {t('home.signup.submit')}
                 </button>
               </div>
               <p className="mt-4 text-xs text-gray-500 text-center">
-                Genom att registrera dig godkänner du våra <a href="#" className="text-gray-400 underline">villkor</a>.
+                {t('home.signup.terms')} <a href="/terms" className="text-gray-400 underline">{t('home.signup.termsLink')}</a>.
               </p>
             </div>
           </div>
@@ -633,11 +546,11 @@ export default function Home() {
             <div className="col-span-2 md:col-span-1">
               <span className="text-lg font-semibold tracking-[0.2em] uppercase text-gray-900">Artboris</span>
               <p className="mt-3 text-sm text-gray-500 leading-relaxed">
-                Din kreativa plattform för väggkonst. Skapa, upptäck och beställ.
+                {t('home.footer.tagline')}
               </p>
             </div>
             <div>
-              <h4 className="text-sm font-semibold text-gray-900 mb-4">Verktyg</h4>
+              <h4 className="text-sm font-semibold text-gray-900 mb-4">{t('home.footer.tools')}</h4>
               <div className="space-y-2">
                 <a href="/wallcraft/studio" className="block text-sm text-gray-500 hover:text-gray-900 transition-colors">Wallcraft Studio</a>
                 <a href="/market" className="block text-sm text-gray-500 hover:text-gray-900 transition-colors">Art Market</a>
@@ -646,7 +559,7 @@ export default function Home() {
               </div>
             </div>
             <div>
-              <h4 className="text-sm font-semibold text-gray-900 mb-4">Kreativa verktyg</h4>
+              <h4 className="text-sm font-semibold text-gray-900 mb-4">{t('home.footer.creativeTools')}</h4>
               <div className="space-y-2">
                 <a href="/wallcraft/mandala" className="block text-sm text-gray-500 hover:text-gray-900 transition-colors">Mandala Maker</a>
                 <a href="/wallcraft/pattern" className="block text-sm text-gray-500 hover:text-gray-900 transition-colors">Pattern Studio</a>
@@ -655,19 +568,19 @@ export default function Home() {
               </div>
             </div>
             <div>
-              <h4 className="text-sm font-semibold text-gray-900 mb-4">För konstnärer</h4>
+              <h4 className="text-sm font-semibold text-gray-900 mb-4">{t('home.footer.forArtists')}</h4>
               <div className="space-y-2">
-                <a href="/market/artist" className="block text-sm text-gray-500 hover:text-gray-900 transition-colors">Konstnärsportal</a>
-                <a href="/market" className="block text-sm text-gray-500 hover:text-gray-900 transition-colors">Galleri</a>
+                <a href="/market/artist" className="block text-sm text-gray-500 hover:text-gray-900 transition-colors">{t('home.footer.artistPortal')}</a>
+                <a href="/market" className="block text-sm text-gray-500 hover:text-gray-900 transition-colors">{t('home.footer.gallery')}</a>
               </div>
             </div>
           </div>
 
           <div className="mt-12 pt-8 border-t border-gray-200/60 flex flex-col sm:flex-row items-center justify-between gap-4">
-            <p className="text-sm text-gray-400">&copy; {new Date().getFullYear()} Artboris. Alla rättigheter förbehållna.</p>
+            <p className="text-sm text-gray-400">&copy; {new Date().getFullYear()} Artboris. {t('home.footer.allRights')}</p>
             <div className="flex items-center gap-6">
-              <a href="#" className="text-sm text-gray-400 hover:text-gray-600 transition-colors">Integritetspolicy</a>
-              <a href="#" className="text-sm text-gray-400 hover:text-gray-600 transition-colors">Villkor</a>
+              <a href="#" className="text-sm text-gray-400 hover:text-gray-600 transition-colors">{t('home.footer.privacy')}</a>
+              <a href="#" className="text-sm text-gray-400 hover:text-gray-600 transition-colors">{t('home.footer.terms')}</a>
             </div>
           </div>
         </div>

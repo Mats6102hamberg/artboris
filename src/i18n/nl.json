@@ -237,6 +237,84 @@
     "sendConfirmation": "Orderbevestiging versturen",
     "sent": "Verzonden!"
   },
+  "home": {
+    "nav": { "createAccount": "Account aanmaken" },
+    "badge": "Nu in bèta — gratis proberen",
+    "hero": {
+      "title": "Kunst die past",
+      "titleHighlight": "bij jouw muur",
+      "subtitle": "Maak AI-gegenereerde kunst, ontdek lokale kunstenaars of upload je eigen foto. Bekijk hoe het eruitziet op je muur — voordat je bestelt.",
+      "cta": "Gratis beginnen",
+      "ctaSecondary": "Hoe het werkt"
+    },
+    "trust": { "free": "Gratis uitproberen", "noCard": "Geen kaart nodig", "printLocal": "Print & levering in Zweden" },
+    "steps": {
+      "title": "Hoe het werkt",
+      "subtitle": "Van idee tot kunst aan de muur — in slechts enkele minuten.",
+      "s1": { "title": "Account aanmaken", "desc": "Registreer gratis en krijg toegang tot alle tools." },
+      "s2": { "title": "Ontdekken & maken", "desc": "Genereer AI-kunst, blader door de galerie of upload je eigen werk." },
+      "s3": { "title": "Probeer op je muur", "desc": "Upload een foto van je kamer en bekijk het kunstwerk live op de muur." },
+      "s4": { "title": "Bestellen & genieten", "desc": "Kies lijst en formaat. Wij printen en leveren aan huis." }
+    },
+    "features": {
+      "title": "Alles wat je nodig hebt voor wandkunst",
+      "subtitle": "Zes krachtige tools — van AI-generatie tot kunstanalyse.",
+      "explore": "Ontdekken",
+      "wallcraftStudio": { "title": "Wallcraft Studio", "desc": "Maak AI-gegenereerde wandkunst. Upload je kamer, kies een stijl en bekijk het werk in real-time op je muur." },
+      "artMarket": { "title": "Art Market", "desc": "Ontdek unieke kunst van lokale kunstenaars en fotografen. Probeer het werk op je muur voordat je koopt." },
+      "creativeTools": { "title": "Creatieve tools", "desc": "Mandala Maker, Pattern Studio, Abstract Painter en Color Field Studio — maak je eigen kunst." },
+      "printYourOwn": { "title": "Print Your Own", "desc": "Upload je eigen foto en bekijk hoe het eruitziet op je muur. Bestel als poster met lijst." },
+      "artScanner": { "title": "Art Scanner", "desc": "Vind ondergewaardeerde kunstwerken op veilingen. AI-analyse met winstpotentieel en risiconiveau." },
+      "borisAI": { "title": "Boris AI — Kunstexpert", "desc": "Je persoonlijke kunstexpert. Analyseert werken, becommentarieert plaatsingen en geeft beleggingsadvies." }
+    },
+    "boris": {
+      "badge": "AI-aangedreven",
+      "title1": "Ontmoet",
+      "title2": "Boris",
+      "title3": "— je persoonlijke kunstexpert",
+      "desc": "Boris analyseert kunstwerken, becommentarieert hoe een schilderij bij je muur past, geeft beleggingsadvies en helpt je de juiste stijl te vinden. Alles aangedreven door AI.",
+      "artAnalysis": "Kunstanalyse", "artAnalysisDesc": "Analyseert stijl, techniek, marktwaarde en potentieel.",
+      "wallComments": "Muurcommentaar", "wallCommentsDesc": "Becommentarieert hoe het werk in je kamer past — kleuren, verhoudingen, stijl.",
+      "investmentAdvice": "Beleggingsadvies", "investmentAdviceDesc": "Helpt je ondergewaardeerde werken met winstpotentieel te vinden.",
+      "chatMockup1": "Dit werk heeft een sterke compositie met diepe blauwtinten die perfect zouden passen bij je lichte muur. Ik raad formaat 50×70 cm aan met een witte lijst.",
+      "chatMockup2": "Wat denk je ervan als investering?",
+      "chatMockup3": "De kunstenaar heeft een stijgende trend. Vergelijkbare werken werden vorig jaar voor 40% meer verkocht. Ik schat het risico als laag in met goed potentieel.",
+      "chatPlaceholder": "Vraag Boris over kunst..."
+    },
+    "wallPreview": {
+      "title": "Bekijk het werk op je muur",
+      "titleFaded": "voordat je koopt",
+      "desc": "Upload een foto van je kamer, markeer de muur en bekijk direct hoe het kunstwerk eruitziet. Sleep, zoom en wissel van lijst in real-time.",
+      "realtime": "Real-time", "realtimeDesc": "Slepen & zoomen live",
+      "frames": "5+", "framesDesc": "Lijstopties",
+      "cmExact": "cm-exact", "cmExactDesc": "Werkelijk formaat",
+      "borisComment": "Boris", "borisCommentDesc": "AI-commentaar",
+      "tryNow": "Nu proberen",
+      "perfectFit": "Perfecte pasvorm!", "perfectFitSize": "50×70 cm — witte lijst"
+    },
+    "artistCta": {
+      "title": "Ben je kunstenaar of fotograaf?",
+      "desc": "Upload je werken naar Art Market en bereik nieuwe kopers. Wij regelen print, lijst en levering. Jij bepaalt de prijs — wij delen de winst 50/50.",
+      "register": "Registreer als kunstenaar", "browseGallery": "Blader door de galerie",
+      "split": "50/50", "splitLabel": "Winstverdeling",
+      "cost": "0 kr", "costLabel": "Om te beginnen",
+      "delivery": "Heel Zweden", "deliveryLabel": "Levering & print"
+    },
+    "signup": {
+      "title": "Klaar om te beginnen?",
+      "desc": "Maak een gratis account aan en krijg toegang tot alle tools. Geen binding, geen kaart.",
+      "emailLabel": "E-mail", "emailPlaceholder": "jouw@email.nl",
+      "passwordLabel": "Wachtwoord", "passwordPlaceholder": "Minimaal 8 tekens",
+      "submit": "Account aanmaken",
+      "terms": "Door je te registreren ga je akkoord met onze", "termsLink": "voorwaarden"
+    },
+    "footer": {
+      "tagline": "Je creatieve platform voor wandkunst. Maak, ontdek en bestel.",
+      "tools": "Tools", "creativeTools": "Creatieve tools",
+      "forArtists": "Voor kunstenaars", "artistPortal": "Kunstenaarsportaal", "gallery": "Galerie",
+      "allRights": "Alle rechten voorbehouden.", "privacy": "Privacybeleid", "terms": "Voorwaarden"
+    }
+  },
   "legal": {
     "studioNotice": "AI-gegenereerde motieven worden gemaakt in de ArtBoris studio en verkocht als prints voor persoonlijk gebruik. ArtBoris kan deze motieven in zijn galerie tonen.",
     "studioConsent": "Door een motief te genereren ga je akkoord met onze voorwaarden.",

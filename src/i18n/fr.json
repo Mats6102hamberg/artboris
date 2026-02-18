@@ -237,6 +237,84 @@
     "sendConfirmation": "Envoyer la confirmation",
     "sent": "Envoyé !"
   },
+  "home": {
+    "nav": { "createAccount": "Créer un compte" },
+    "badge": "En bêta — essayez gratuitement",
+    "hero": {
+      "title": "L'art qui s'adapte",
+      "titleHighlight": "à votre mur",
+      "subtitle": "Créez de l'art généré par IA, découvrez des artistes locaux ou téléchargez votre propre photo. Voyez le résultat sur votre mur — avant de commander.",
+      "cta": "Commencer gratuitement",
+      "ctaSecondary": "Comment ça marche"
+    },
+    "trust": { "free": "Gratuit à essayer", "noCard": "Pas de carte requise", "printLocal": "Impression & livraison en Suède" },
+    "steps": {
+      "title": "Comment ça marche",
+      "subtitle": "De l'idée à l'œuvre sur le mur — en quelques minutes.",
+      "s1": { "title": "Créer un compte", "desc": "Inscrivez-vous gratuitement et accédez à tous les outils." },
+      "s2": { "title": "Explorer & créer", "desc": "Générez de l'art IA, parcourez la galerie ou téléchargez le vôtre." },
+      "s3": { "title": "Essayer sur votre mur", "desc": "Téléchargez une photo de votre pièce et voyez l'œuvre en direct sur le mur." },
+      "s4": { "title": "Commander & profiter", "desc": "Choisissez cadre et taille. Nous imprimons et livrons chez vous." }
+    },
+    "features": {
+      "title": "Tout ce qu'il faut pour l'art mural",
+      "subtitle": "Six outils puissants — de la génération IA à l'analyse d'art.",
+      "explore": "Explorer",
+      "wallcraftStudio": { "title": "Wallcraft Studio", "desc": "Créez de l'art mural généré par IA. Téléchargez votre pièce, choisissez un style et voyez l'œuvre sur votre mur en temps réel." },
+      "artMarket": { "title": "Art Market", "desc": "Découvrez de l'art unique d'artistes et photographes locaux. Essayez l'œuvre sur votre mur avant d'acheter." },
+      "creativeTools": { "title": "Outils créatifs", "desc": "Mandala Maker, Pattern Studio, Abstract Painter et Color Field Studio — créez votre propre art." },
+      "printYourOwn": { "title": "Print Your Own", "desc": "Téléchargez votre propre photo et voyez le résultat sur votre mur. Commandez en poster avec cadre." },
+      "artScanner": { "title": "Art Scanner", "desc": "Trouvez des œuvres sous-évaluées aux enchères. Analyse IA avec potentiel de profit et niveau de risque." },
+      "borisAI": { "title": "Boris AI — Expert en art", "desc": "Votre expert en art personnel. Analyse les œuvres, commente les placements et donne des conseils d'investissement." }
+    },
+    "boris": {
+      "badge": "Propulsé par l'IA",
+      "title1": "Rencontrez",
+      "title2": "Boris",
+      "title3": "— votre expert en art personnel",
+      "desc": "Boris analyse les œuvres, commente comment un tableau s'adapte à votre mur, donne des conseils d'investissement et vous aide à trouver le bon style. Le tout propulsé par l'IA.",
+      "artAnalysis": "Analyse d'art", "artAnalysisDesc": "Analyse le style, la technique, la valeur marchande et le potentiel.",
+      "wallComments": "Commentaires muraux", "wallCommentsDesc": "Commente comment l'œuvre s'adapte à votre pièce — couleurs, proportions, style.",
+      "investmentAdvice": "Conseils d'investissement", "investmentAdviceDesc": "Vous aide à trouver des œuvres sous-évaluées avec un potentiel de profit.",
+      "chatMockup1": "Cette œuvre a une composition forte avec des tons bleus profonds qui iraient parfaitement sur votre mur clair. Je recommande le format 50×70 cm avec un cadre blanc.",
+      "chatMockup2": "Qu'en pensez-vous comme investissement ?",
+      "chatMockup3": "L'artiste a une tendance à la hausse. Des œuvres similaires se sont vendues 40% plus cher l'année dernière. J'estime le risque comme faible avec un bon potentiel.",
+      "chatPlaceholder": "Demandez à Boris sur l'art..."
+    },
+    "wallPreview": {
+      "title": "Voyez l'œuvre sur votre mur",
+      "titleFaded": "avant d'acheter",
+      "desc": "Téléchargez une photo de votre pièce, marquez le mur et voyez instantanément le résultat. Glissez, zoomez et changez de cadre en temps réel.",
+      "realtime": "Temps réel", "realtimeDesc": "Glisser & zoomer en direct",
+      "frames": "5+", "framesDesc": "Options de cadre",
+      "cmExact": "cm-exact", "cmExactDesc": "Taille réelle",
+      "borisComment": "Boris", "borisCommentDesc": "Commentaire IA",
+      "tryNow": "Essayer maintenant",
+      "perfectFit": "Ajustement parfait !", "perfectFitSize": "50×70 cm — cadre blanc"
+    },
+    "artistCta": {
+      "title": "Êtes-vous artiste ou photographe ?",
+      "desc": "Téléchargez vos œuvres sur Art Market et atteignez de nouveaux acheteurs. Nous gérons l'impression, l'encadrement et la livraison. Vous fixez le prix — nous partageons les bénéfices 50/50.",
+      "register": "S'inscrire comme artiste", "browseGallery": "Parcourir la galerie",
+      "split": "50/50", "splitLabel": "Partage des bénéfices",
+      "cost": "0 kr", "costLabel": "Pour commencer",
+      "delivery": "Toute la Suède", "deliveryLabel": "Livraison & impression"
+    },
+    "signup": {
+      "title": "Prêt à commencer ?",
+      "desc": "Créez un compte gratuit et accédez à tous les outils. Sans engagement, sans carte.",
+      "emailLabel": "E-mail", "emailPlaceholder": "votre@email.fr",
+      "passwordLabel": "Mot de passe", "passwordPlaceholder": "Au moins 8 caractères",
+      "submit": "Créer un compte",
+      "terms": "En vous inscrivant, vous acceptez nos", "termsLink": "conditions"
+    },
+    "footer": {
+      "tagline": "Votre plateforme créative pour l'art mural. Créez, découvrez et commandez.",
+      "tools": "Outils", "creativeTools": "Outils créatifs",
+      "forArtists": "Pour les artistes", "artistPortal": "Portail artiste", "gallery": "Galerie",
+      "allRights": "Tous droits réservés.", "privacy": "Politique de confidentialité", "terms": "Conditions"
+    }
+  },
   "legal": {
     "studioNotice": "Les motifs générés par IA sont créés dans le studio ArtBoris et vendus sous forme d'impressions pour un usage personnel. ArtBoris peut afficher ces motifs dans sa galerie.",
     "studioConsent": "En générant un motif, vous acceptez nos conditions d'utilisation.",
