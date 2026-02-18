@@ -113,6 +113,19 @@ const DEMO_IMAGES: Record<string, string[]> = {
 
 export const DEMO_ROOM_IMAGE = '/assets/demo/room-sample.svg'
 
+/**
+ * Pre-defined wall corners for the demo room SVG.
+ * Matches the back wall area (above sofa, below crown molding).
+ * Coordinates are normalized 0–1 relative to the SVG viewBox (150 60 900 480).
+ * Order: [topLeft, topRight, bottomRight, bottomLeft]
+ */
+export const DEMO_WALL_CORNERS = [
+  { x: 0.07, y: 0.10 },   // top-left  (wall x=200 → (200-150)/900 ≈ 0.056, y=108 → (108-60)/480 ≈ 0.10)
+  { x: 0.93, y: 0.10 },   // top-right (wall x=1000 → (1000-150)/900 ≈ 0.944)
+  { x: 0.93, y: 0.73 },   // bottom-right (sofa top y=370 → (370-60)/480 ≈ 0.646, with margin ≈ 0.73)
+  { x: 0.07, y: 0.73 },   // bottom-left
+]
+
 export function isDemoMode(): boolean {
   return !process.env.REPLICATE_API_TOKEN && !process.env.OPENAI_API_KEY
 }

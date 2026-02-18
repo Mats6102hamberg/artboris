@@ -11,7 +11,7 @@ import CreditBadge from '@/components/poster/CreditBadge'
 import BorisButton from '@/components/boris/BorisButton'
 import { type StylePreset } from '@/types/design'
 
-const DEMO_ROOM_IMAGE = '/assets/demo/room-sample.svg'
+import { DEMO_ROOM_IMAGE, DEMO_WALL_CORNERS } from '@/lib/demo/demoImages'
 
 export default function StudioPage() {
   const { t } = useTranslation()
@@ -28,7 +28,8 @@ export default function StudioPage() {
   const startWithDemo = () => {
     setRoomImageUrl(DEMO_ROOM_IMAGE)
     setRoomId('demo-room')
-    setStep('mark-wall')
+    setWallCorners(DEMO_WALL_CORNERS)
+    setStep('pick-style')
   }
 
   const handleRoomUpload = async (localUrl: string, file: File) => {

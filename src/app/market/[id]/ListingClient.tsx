@@ -9,6 +9,7 @@ import { calculateMarketPrice, formatPriceSEK } from '@/lib/pricing/market'
 import { cropToCSS } from '@/lib/image/crop'
 import MockupPreview from '@/components/poster/MockupPreview'
 import WallMarker from '@/components/poster/WallMarker'
+import { DEMO_WALL_CORNERS } from '@/lib/demo/demoImages'
 import CreativeToolsSection from '@/components/wallcraft/CreativeToolsSection'
 
 interface ListingDetail {
@@ -619,7 +620,8 @@ export default function ListingDetailPage() {
           <button
             onClick={() => {
               setRoomImageUrl('/assets/demo/room-sample.svg')
-              setStep('mark-wall')
+              setWallCorners(DEMO_WALL_CORNERS)
+              setStep('preview')
             }}
             className="block mx-auto text-sm text-gray-500 hover:text-gray-900 underline underline-offset-4 transition-colors"
           >

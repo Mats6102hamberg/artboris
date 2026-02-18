@@ -9,7 +9,7 @@ import StylePicker from '@/components/poster/StylePicker'
 import CreditBadge from '@/components/poster/CreditBadge'
 import { StylePreset } from '@/types/design'
 
-const DEMO_ROOM_IMAGE = '/assets/demo/room-sample.svg'
+import { DEMO_ROOM_IMAGE, DEMO_WALL_CORNERS } from '@/lib/demo/demoImages'
 
 export default function PosterLabPage() {
   const router = useRouter()
@@ -32,7 +32,8 @@ export default function PosterLabPage() {
     if (useDemo) {
       setRoomImageUrl(DEMO_ROOM_IMAGE)
       setRoomId('demo-room')
-      setStep('mark-wall')
+      setWallCorners(DEMO_WALL_CORNERS)
+      setStep('pick-style')
     }
     setMode('create')
   }
@@ -469,7 +470,8 @@ export default function PosterLabPage() {
                   onClick={() => {
                     setRoomImageUrl(DEMO_ROOM_IMAGE)
                     setRoomId('demo-room')
-                    setStep('mark-wall')
+                    setWallCorners(DEMO_WALL_CORNERS)
+                    setStep('pick-style')
                   }}
                   className="px-6 py-3 border-2 border-dashed border-blue-300 text-blue-600 rounded-xl hover:bg-blue-50 hover:border-blue-400 transition-all font-medium"
                 >

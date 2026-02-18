@@ -10,7 +10,7 @@ import WallMarker from '@/components/poster/WallMarker'
 import CreditBadge from '@/components/poster/CreditBadge'
 import BorisButton from '@/components/boris/BorisButton'
 
-const DEMO_ROOM_IMAGE = '/assets/demo/room-sample.svg'
+import { DEMO_ROOM_IMAGE, DEMO_WALL_CORNERS } from '@/lib/demo/demoImages'
 
 export default function PrintYourOwnPage() {
   const { t } = useTranslation()
@@ -33,6 +33,7 @@ export default function PrintYourOwnPage() {
 
   const startWithDemoRoom = () => {
     setRoomImageUrl(DEMO_ROOM_IMAGE)
+    setWallCorners(DEMO_WALL_CORNERS)
     setStep('mark-wall')
   }
 

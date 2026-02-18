@@ -116,9 +116,9 @@ function solveLinearSystem(A: number[][], b: number[]): number[] | null {
 
 /**
  * Assumed visible wall width in cm for realistic poster sizing.
- * The visible wall area in a typical room photo is ~200 cm wide.
+ * A close-up room photo typically shows ~160 cm of wall width.
  */
-const ASSUMED_WALL_WIDTH_CM = 200
+const ASSUMED_WALL_WIDTH_CM = 160
 
 /**
  * Calculate poster position and size within wall area.
