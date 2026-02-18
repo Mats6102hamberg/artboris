@@ -6,7 +6,7 @@
 - **GitHub:** `https://github.com/Mats6102hamberg/artboris.git`
 - **Branch:** `main`
 - **Deploy:** Vercel (kopplat till GitHub-repot)
-- **Senaste commit:** `b54a706`
+- **Senaste commit:** `fbc1c3b`
 
 ## Tech Stack
 - Next.js 16, React 19, TypeScript
@@ -158,6 +158,13 @@
 ### 19. AI-förbättring av konstverksbilder vid uppladdning
 - Senaste commit: AI-baserad bildförbättring vid artwork upload
 
+### 20. i18n utbyggt till 5 språk
+- **Nya språk:** Tyska (DE), Franska (FR), Nederländska (NL) — utöver befintliga Engelska (EN) + Svenska (SV)
+- **Nya filer:** `src/i18n/de.json`, `src/i18n/fr.json`, `src/i18n/nl.json`
+- **Uppdaterade:** `src/lib/i18n/index.ts` (Locale-typ + dictionaries), `src/components/ui/LanguageSwitcher.tsx` (5 knappar)
+- **Terms-sida:** `/terms` har nu alla 8 sektioner på 5 språk med SV/EN/DE/FR/NL toggle
+- **Skalbart:** Nytt språk = 1 JSON-fil + 3 rader kod
+
 ## Kända issues / TODO
 - Market checkout saknar orderbekräftelse-mejlval (bara Wallcraft + Poster Lab har det)
 - Crimson-priser (costSEK) behöver fyllas i efter avtal med Crimson
@@ -165,6 +172,10 @@
 
 ## Git-historik (senaste 20)
 ```
+fbc1c3b feat: lägg till nederländska (NL) som femte språk
+7893db3 feat: lägg till franska (FR) som fjärde språk
+29855d8 feat: lägg till tyska (DE) som tredje språk
+d7caff0 docs: uppdatera SESSION_SUMMARY + HANDOVER
 b54a706 feat: AI-förbättring av konstverksbilder vid uppladdning
 1d2392e feat: lägg till logga in/konto-knapp i GlobalNav
 711770e fix: ta bort rotation på hero-illustrationen

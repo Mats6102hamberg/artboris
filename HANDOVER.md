@@ -191,11 +191,14 @@ Upload photo → Pick style (18 styles) + transformation strength (0.2–0.95)
 
 ### i18n System
 
-- Dictionaries: `src/i18n/en.json`, `src/i18n/sv.json`
+- **5 språk:** EN, SV, DE, FR, NL
+- Dictionaries: `src/i18n/en.json`, `sv.json`, `de.json`, `fr.json`, `nl.json`
 - Provider: `src/lib/i18n/context.tsx` → `I18nProvider` + `useTranslation()` hook
 - Locale stored in `localStorage('wallcraft-locale')`
-- All Wallcraft pages use English strings (translated from Swedish)
+- LanguageSwitcher: 5 knappar (EN/SV/DE/FR/NL)
+- Terms-sida (`/terms`): egen språkväxlare med alla 5 språk
 - **Legal keys:** `legal.studioNotice`, `legal.studioConsent`, `legal.galleryNotice`, `legal.checkoutNotice`, `legal.termsCheckbox`
+- **Skalbart:** Nytt språk = 1 JSON-fil + 3 rader kod (import, Locale-typ, SUPPORTED_LOCALES)
 
 ### Database Models (Prisma)
 
@@ -358,6 +361,7 @@ No edge middleware (removed due to Vercel 1MB edge function limit with next-auth
 - [x] **termsAcceptedAt** — DateTime + version tracked on User model at registration.
 - [x] **Hero image** — CSS-based room scene on landing page.
 - [x] **GlobalNav login** — Login/account button in navigation.
+- [x] **i18n 5 språk** — EN, SV, DE, FR, NL. LanguageSwitcher + Terms-sida på alla 5 språk.
 
 ### For Production
 - [x] **Auth** — NextAuth with JWT sessions, Google + Credentials providers, admin role check via layout
@@ -426,4 +430,4 @@ Push: `git push origin main`
 
 ---
 
-*Last updated: 2026-02-18 (session 4) · Built with Cascade*
+*Last updated: 2026-02-18 (session 5) · Built with Cascade*
