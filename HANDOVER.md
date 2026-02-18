@@ -382,6 +382,11 @@ No edge middleware (removed due to Vercel 1MB edge function limit with next-auth
 - [ ] **Social sharing** — Share designs to social media
 - [ ] **Connect MyArtworks → Art Market** — "Sell on Market" button that creates ArtworkListing from Artwork
 
+### Gallery / listGallery — förbättringar vid skala
+- [ ] **Dynamisk trustScore** — Beräkna baserat på antal köp, reviews, AI-moderation-status, `printQuality` istället för hårdkodat 98/95
+- [ ] **Paginering** — Nuvarande approach hämtar `limit` items per källa och mergar. Vid stora volymer → cursor-baserad paginering eller gemensam DB-view
+- [ ] **likesCount vs views** — Market-items mappar `views` till `likesCount`. Överväg att byta till `popularity: number` eller lägga till separat `views`-fält i interfacet
+
 ---
 
 ## Test Suite
