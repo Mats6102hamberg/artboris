@@ -2,6 +2,7 @@
 
 import { Suspense, useState, useEffect } from 'react'
 import { useSearchParams, useRouter } from 'next/navigation'
+import { useTranslation } from '@/lib/i18n/context'
 import VariantsGrid from '@/components/poster/VariantsGrid'
 import ControlsPanel from '@/components/poster/ControlsPanel'
 import CreditBadge from '@/components/poster/CreditBadge'
@@ -19,6 +20,7 @@ interface Variant {
 function ResultContent() {
   const router = useRouter()
   const searchParams = useSearchParams()
+  const { t } = useTranslation()
 
   const designId = searchParams.get('designId') || ''
   const roomImageUrl = searchParams.get('roomImageUrl') || ''
@@ -127,9 +129,9 @@ function ResultContent() {
         <div className="max-w-6xl mx-auto px-4 py-4 flex items-center justify-between">
           <div className="flex items-center gap-3">
             <button onClick={() => router.back()} className="text-gray-400 hover:text-gray-600 text-sm">
-              &larr; Tillbaka
+              &larr; {t('posterLab.back')}
             </button>
-            <h1 className="text-xl font-bold text-gray-900">Välj favorit</h1>
+            <h1 className="text-xl font-bold text-gray-900">{t('posterLab.chooseFavorite')}</h1>
           </div>
           <CreditBadge />
         </div>
@@ -140,8 +142,8 @@ function ResultContent() {
           {/* Variants */}
           <div className="lg:col-span-2">
             <div className="mb-4">
-              <h2 className="text-xl sm:text-2xl font-bold text-gray-900">Dina förslag</h2>
-              <p className="text-sm sm:text-base text-gray-600 mt-1">Välj den variant du gillar bäst, eller förfina med kontrollerna</p>
+              <h2 className="text-xl sm:text-2xl font-bold text-gray-900">{t('posterLab.yourSuggestions')}</h2>
+              <p className="text-sm sm:text-base text-gray-600 mt-1">{t('posterLab.chooseFavoriteDesc')}</p>
             </div>
             <VariantsGrid
               variants={variants}
@@ -167,7 +169,7 @@ function ResultContent() {
               disabled={selectedIndex === null}
               className="hidden lg:block w-full py-3.5 bg-gradient-to-r from-purple-600 to-blue-600 text-white rounded-xl hover:from-purple-700 hover:to-blue-700 disabled:from-gray-300 disabled:to-gray-300 disabled:cursor-not-allowed transition-all font-medium shadow-lg shadow-blue-200 text-lg"
             >
-              {selectedIndex !== null ? 'Gå till editorn →' : 'Välj en variant först'}
+              {selectedIndex !== null ? t('posterLab.goToEditor') : t('posterLab.selectVariantFirst')}
             </button>
           </div>
         </div>
@@ -180,7 +182,7 @@ function ResultContent() {
           disabled={selectedIndex === null}
           className="w-full py-3.5 bg-gradient-to-r from-purple-600 to-blue-600 text-white rounded-xl hover:from-purple-700 hover:to-blue-700 disabled:from-gray-300 disabled:to-gray-300 disabled:cursor-not-allowed transition-all font-semibold shadow-lg shadow-blue-200 text-base"
         >
-          {selectedIndex !== null ? 'Gå till editorn →' : 'Välj en variant först'}
+          {selectedIndex !== null ? t('posterLab.goToEditor') : t('posterLab.selectVariantFirst')}
         </button>
       </div>
     </div>

@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useRef, useCallback } from 'react'
 import { useParams, useRouter } from 'next/navigation'
+import { useTranslation } from '@/lib/i18n/context'
 import { POSTER_SIZES } from '@/lib/image/resize'
 import { FRAME_OPTIONS, calculatePrintPrice } from '@/lib/pricing/prints'
 import { calculateMarketPrice, formatPriceSEK } from '@/lib/pricing/market'
@@ -39,6 +40,7 @@ type Step = 'details' | 'upload-room' | 'mark-wall' | 'preview' | 'checkout'
 export default function ListingDetailPage() {
   const { id } = useParams<{ id: string }>()
   const router = useRouter()
+  const { t } = useTranslation()
 
   const [listing, setListing] = useState<ListingDetail | null>(null)
   const [loading, setLoading] = useState(true)
@@ -157,8 +159,8 @@ export default function ListingDetailPage() {
     return (
       <div className="min-h-screen bg-[#FAFAF8] flex items-center justify-center">
         <div className="text-center">
-          <p className="text-gray-500 text-lg">Konstverk hittades inte.</p>
-          <a href="/market" className="text-blue-600 hover:underline mt-4 inline-block">← Tillbaka till galleriet</a>
+          <p className="text-gray-500 text-lg">{t('market.artworkNotFound')}</p>
+          <a href="/market" className="text-blue-600 hover:underline mt-4 inline-block">← {t('market.backToGallery')}</a>
         </div>
       </div>
     )
@@ -192,10 +194,10 @@ export default function ListingDetailPage() {
         if (data.url) {
           window.location.href = data.url
         } else {
-          setCheckoutError(data.error || 'Något gick fel. Försök igen.')
+          setCheckoutError(data.error || t('market.somethingWentWrong'))
         }
       } catch {
-        setCheckoutError('Nätverksfel. Kontrollera din anslutning och försök igen.')
+        setCheckoutError(t('market.networkError'))
       } finally {
         setIsProcessing(false)
       }
@@ -581,15 +583,15 @@ export default function ListingDetailPage() {
         <nav className="bg-white border-b border-gray-100">
           <div className="max-w-5xl mx-auto px-6 py-4 flex items-center justify-between">
             <button onClick={() => setStep('details')} className="text-gray-500 hover:text-gray-900 text-sm">
-              ← Tillbaka
+              ← {t('market.back')}
             </button>
-            <span className="font-medium text-gray-900">Ladda upp ditt rum</span>
+            <span className="font-medium text-gray-900">{t('market.uploadRoom')}</span>
             <div className="w-16" />
           </div>
         </nav>
         <div className="max-w-2xl mx-auto px-6 py-16 text-center space-y-8">
           <div>
-            <h2 className="text-2xl font-light text-gray-900">Ladda upp ett foto av ditt rum</h2>
+            <h2 className="text-2xl font-light text-gray-900">{t('market.uploadRoomDesc')}</h2>
             <p className="text-gray-500 mt-2">
               Ta ett foto av väggen där du vill hänga &quot;{listing.title}&quot;
             </p>
@@ -611,7 +613,7 @@ export default function ListingDetailPage() {
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" />
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M15 13a3 3 0 11-6 0 3 3 0 016 0z" />
             </svg>
-            Välj foto
+            {t('market.choosePhoto')}
           </button>
 
           <button
@@ -621,7 +623,7 @@ export default function ListingDetailPage() {
             }}
             className="block mx-auto text-sm text-gray-500 hover:text-gray-900 underline underline-offset-4 transition-colors"
           >
-            Använd demo-rum istället
+            {t('market.useDemoRoom')}
           </button>
         </div>
       </div>
@@ -634,7 +636,7 @@ export default function ListingDetailPage() {
       <nav className="bg-white border-b border-gray-100">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex items-center justify-between">
           <a href="/market" className="text-gray-500 hover:text-gray-900 text-sm">
-            ← Tillbaka till galleriet
+            ← {t('market.backToGallery')}
           </a>
           <a href="/" className="text-lg font-semibold tracking-widest uppercase text-gray-900">
             Artboris
@@ -721,7 +723,7 @@ export default function ListingDetailPage() {
                 <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M2.25 15.75l5.159-5.159a2.25 2.25 0 013.182 0l5.159 5.159m-1.5-1.5l1.409-1.409a2.25 2.25 0 013.182 0l2.909 2.909M3.75 21h16.5a1.5 1.5 0 001.5-1.5V6a1.5 1.5 0 00-1.5-1.5H3.75A1.5 1.5 0 002.25 6v13.5A1.5 1.5 0 003.75 21z" />
                 </svg>
-                Prova på min vägg
+                {t('market.tryOnWall')}
               </button>
 
               <button

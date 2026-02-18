@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import { useTranslation } from '@/lib/i18n/context'
 
 interface Message {
   id: string
@@ -18,10 +19,11 @@ interface BorisArtChatProps {
 }
 
 export default function BorisArtChat({ artworks, selectedArtwork, scannedItems, portfolio }: BorisArtChatProps) {
+  const { t } = useTranslation()
   const [messages, setMessages] = useState<Message[]>([
     {
       id: '1',
-      text: 'Hej! Jag är BorisArt AI, din personliga konstexpert. Jag kan hjälpa dig med att analysera konstverk, berätta historier, diskutera trender och ge investeringsråd. Jag kan även se vilka verk du har skannat och sparat i din portfölj. Vad vill du utforska idag?',
+      text: t('boris.artChat.greeting'),
       sender: 'boris',
       timestamp: new Date().toISOString(),
       type: 'opinion'
@@ -58,7 +60,7 @@ export default function BorisArtChat({ artworks, selectedArtwork, scannedItems, 
       
       const errorMessage: Message = {
         id: Date.now().toString(),
-        text: 'Tyvärr kunde jag inte bearbeta din förfrågan just nu. Försök igen lite senare.',
+        text: t('boris.artChat.errorResponse'),
         sender: 'boris',
         timestamp: new Date().toISOString()
       }
@@ -100,7 +102,7 @@ export default function BorisArtChat({ artworks, selectedArtwork, scannedItems, 
         } else {
           const userMessage: Message = {
             id: Date.now().toString(),
-            text: 'Vänligen välj ett konstverk först så kan jag berätta dess historia.',
+            text: t('boris.artChat.selectArtworkFirst'),
             sender: 'boris',
             timestamp: new Date().toISOString(),
             type: 'opinion'
@@ -117,7 +119,7 @@ export default function BorisArtChat({ artworks, selectedArtwork, scannedItems, 
         } else {
           const userMessage: Message = {
             id: Date.now().toString(),
-            text: 'Du behöver ha några konstverk i din portfölj eller från skanning för att jag ska kunna analysera dem. Prova att skanna några konstverk först!',
+            text: t('boris.artChat.needArtworks'),
             sender: 'boris',
             timestamp: new Date().toISOString(),
             type: 'opinion'
@@ -165,8 +167,8 @@ export default function BorisArtChat({ artworks, selectedArtwork, scannedItems, 
             <span className="text-white text-sm font-bold">BA</span>
           </div>
           <div>
-            <h3 className="font-semibold text-gray-900">BorisArt AI</h3>
-            <p className="text-xs text-gray-500">Din konstexpert</p>
+            <h3 className="font-semibold text-gray-900">{t('boris.artChat.title')}</h3>
+            <p className="text-xs text-gray-500">{t('boris.artChat.subtitle')}</p>
           </div>
         </div>
         <div className="flex space-x-1">
@@ -181,26 +183,26 @@ export default function BorisArtChat({ artworks, selectedArtwork, scannedItems, 
           disabled={!selectedArtwork}
           className="px-3 py-1 bg-purple-100 text-purple-700 rounded text-sm hover:bg-purple-200 disabled:opacity-50 disabled:cursor-not-allowed"
         >
-          📖 Berättelse
+          📖 {t('boris.artChat.story')}
         </button>
         <button
           onClick={() => handleQuickAction('analyze-artworks')}
           disabled={(!portfolio || portfolio.length === 0) && (!scannedItems || scannedItems.length === 0)}
           className="px-3 py-1 bg-blue-100 text-blue-700 rounded text-sm hover:bg-blue-200 disabled:opacity-50 disabled:cursor-not-allowed"
         >
-          📊 Analysera
+          📊 {t('boris.artChat.analyze')}
         </button>
         <button
           onClick={() => handleQuickAction('get-trends')}
           className="px-3 py-1 bg-green-100 text-green-700 rounded text-sm hover:bg-green-200"
         >
-          📈 Trender
+          📈 {t('boris.artChat.trends')}
         </button>
         <button
           onClick={() => handleQuickAction('get-opinion')}
           className="px-3 py-1 bg-orange-100 text-orange-700 rounded text-sm hover:bg-orange-200"
         >
-          💭 Åsikt
+          💭 {t('boris.artChat.opinion')}
         </button>
       </div>
 
@@ -226,10 +228,10 @@ export default function BorisArtChat({ artworks, selectedArtwork, scannedItems, 
                   <p className="text-sm whitespace-pre-wrap">{message.text}</p>
                   {message.type && (
                     <p className={`text-xs mt-1 ${message.sender === 'user' ? 'text-blue-200' : getTypeColor(message.type)}`}>
-                      {message.type === 'story' ? 'Berättelse' :
-                       message.type === 'analysis' ? 'Analys' :
-                       message.type === 'trend' ? 'Trend' :
-                       message.type === 'opinion' ? 'Åsikt' : 'Svar'}
+                      {message.type === 'story' ? t('boris.artChat.story') :
+                       message.type === 'analysis' ? t('boris.artChat.analysis') :
+                       message.type === 'trend' ? t('boris.artChat.trend') :
+                       message.type === 'opinion' ? t('boris.artChat.opinion') : t('boris.artChat.answer')}
                     </p>
                   )}
                 </div>
@@ -264,7 +266,7 @@ export default function BorisArtChat({ artworks, selectedArtwork, scannedItems, 
           value={inputText}
           onChange={(e) => setInputText(e.target.value)}
           onKeyPress={(e) => e.key === 'Enter' && handleSendMessage()}
-          placeholder="Fråga Boris om konst..."
+          placeholder={t('boris.artChat.inputPlaceholder')}
           className="flex-1 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white text-gray-900 placeholder-gray-500"
           disabled={isTyping}
         />
@@ -273,7 +275,7 @@ export default function BorisArtChat({ artworks, selectedArtwork, scannedItems, 
           disabled={!inputText.trim() || isTyping}
           className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:bg-gray-400 disabled:cursor-not-allowed"
         >
-          Skicka
+          {t('boris.artChat.send')}
         </button>
       </div>
     </div>

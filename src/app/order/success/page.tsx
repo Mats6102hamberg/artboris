@@ -4,9 +4,11 @@ import { Suspense } from 'react'
 import { useSearchParams } from 'next/navigation'
 import { useEffect, useState } from 'react'
 import Link from 'next/link'
+import { useTranslation } from '@/lib/i18n/context'
 
 function SuccessContent() {
   const searchParams = useSearchParams()
+  const { t } = useTranslation()
   const orderId = searchParams.get('orderId')
   const [showConfetti, setShowConfetti] = useState(true)
 
@@ -38,7 +40,7 @@ function SuccessContent() {
     if (!orderId) return
     const targetEmail = emailChoice === 'same' ? orderEmail : otherEmail
     if (!targetEmail || !targetEmail.includes('@')) {
-      setSendError('Ange en giltig e-postadress.')
+      setSendError(t('common.error'))
       return
     }
 
@@ -55,10 +57,10 @@ function SuccessContent() {
       if (data.ok) {
         setSent(true)
       } else {
-        setSendError(data.error || 'Något gick fel.')
+        setSendError(data.error || t('common.error'))
       }
     } catch {
-      setSendError('Nätverksfel. Försök igen.')
+      setSendError(t('market.networkError'))
     } finally {
       setSending(false)
     }
@@ -174,10 +176,10 @@ function SuccessContent() {
               {sending ? (
                 <span className="flex items-center justify-center gap-2">
                   <div className="w-3.5 h-3.5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                  Skickar...
+                  {t('order.sending')}
                 </span>
               ) : (
-                'Skicka orderbekräftelse'
+                t('order.sendConfirmation')
               )}
             </button>
           </div>

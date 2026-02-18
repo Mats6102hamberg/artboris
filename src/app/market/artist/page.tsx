@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect, useRef } from 'react'
+import { useTranslation } from '@/lib/i18n/context'
 import { MARKET_CATEGORIES, MARKET_TECHNIQUES, formatPriceSEK } from '@/lib/pricing/market'
 
 interface ArtistData {
@@ -24,16 +25,24 @@ interface Listing {
   createdAt: string
 }
 
-const STATUS_LABELS: Record<string, { label: string; color: string }> = {
-  PROCESSING: { label: 'Granskas', color: 'bg-amber-100 text-amber-800' },
-  NEEDS_REVIEW: { label: 'Manuell granskning', color: 'bg-orange-100 text-orange-800' },
-  APPROVED: { label: 'Publicerad', color: 'bg-emerald-100 text-emerald-800' },
-  REJECTED: { label: 'Avvisad', color: 'bg-red-100 text-red-800' },
+const STATUS_COLORS: Record<string, string> = {
+  PROCESSING: 'bg-amber-100 text-amber-800',
+  NEEDS_REVIEW: 'bg-orange-100 text-orange-800',
+  APPROVED: 'bg-emerald-100 text-emerald-800',
+  REJECTED: 'bg-red-100 text-red-800',
+}
+
+const STATUS_KEYS: Record<string, string> = {
+  PROCESSING: 'artist.statusProcessing',
+  NEEDS_REVIEW: 'artist.statusNeedsReview',
+  APPROVED: 'artist.statusApproved',
+  REJECTED: 'artist.statusRejected',
 }
 
 type View = 'login' | 'register' | 'dashboard'
 
 export default function ArtistPage() {
+  const { t } = useTranslation()
   const [view, setView] = useState<View>('login')
   const [artist, setArtist] = useState<ArtistData | null>(null)
   const [listings, setListings] = useState<Listing[]>([])
@@ -316,20 +325,20 @@ export default function ArtistPage() {
             <a href="/market" className="text-lg font-semibold tracking-widest uppercase text-gray-900">
               Artboris
             </a>
-            <h1 className="text-3xl font-light text-gray-900 mt-4">Konstnärsportal</h1>
-            <p className="text-gray-500 mt-2">Logga in för att hantera dina konstverk</p>
+            <h1 className="text-3xl font-light text-gray-900 mt-4">{t('artist.portal')}</h1>
+            <p className="text-gray-500 mt-2">{t('artist.loginDesc')}</p>
           </div>
 
           <form onSubmit={handleLogin} className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 space-y-4">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">E-post</label>
+              <label className="block text-sm font-medium text-gray-700 mb-1">{t('artist.email')}</label>
               <input
                 type="email"
                 required
                 value={loginEmail}
                 onChange={e => setLoginEmail(e.target.value)}
                 className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-gray-900 text-gray-900"
-                placeholder="din@email.se"
+                placeholder={t('artist.emailPlaceholder')}
               />
             </div>
             <button
@@ -337,15 +346,15 @@ export default function ArtistPage() {
               disabled={loading}
               className="w-full py-3 bg-gray-900 text-white rounded-xl hover:bg-gray-800 transition-colors disabled:opacity-50"
             >
-              {loading ? 'Loggar in...' : 'Logga in'}
+              {loading ? t('artist.loggingIn') : t('artist.logIn')}
             </button>
           </form>
 
           <div className="text-center mt-6">
             <p className="text-gray-500 text-sm">
-              Ny konstnär?{' '}
+              {t('artist.newArtist')}{' '}
               <button onClick={() => setView('register')} className="text-gray-900 font-medium hover:underline">
-                Registrera dig
+                {t('artist.register')}
               </button>
             </p>
           </div>
@@ -363,7 +372,7 @@ export default function ArtistPage() {
             <a href="/market" className="text-lg font-semibold tracking-widest uppercase text-gray-900">
               Artboris
             </a>
-            <h1 className="text-3xl font-light text-gray-900 mt-4">Bli konstnär på Artboris</h1>
+            <h1 className="text-3xl font-light text-gray-900 mt-4">{t('artist.registerTitle')}</h1>
             <p className="text-gray-500 mt-2">Sälj din konst direkt till köpare som kan prova verket på sin vägg</p>
           </div>
 
@@ -516,13 +525,13 @@ export default function ArtistPage() {
               disabled={loading}
               className="w-full py-3 bg-gray-900 text-white rounded-xl hover:bg-gray-800 transition-colors disabled:opacity-50"
             >
-              {loading ? 'Registrerar...' : 'Registrera mig'}
+              {loading ? t('artist.registering') : t('artist.createAccount')}
             </button>
           </form>
 
           <div className="text-center mt-6">
             <button onClick={() => setView('login')} className="text-gray-500 text-sm hover:text-gray-900">
-              Redan registrerad? Logga in
+              {t('artist.alreadyHaveAccount')} {t('artist.logIn')}
             </button>
           </div>
         </div>
@@ -546,7 +555,7 @@ export default function ArtistPage() {
           <div className="flex items-center gap-4">
             <span className="text-sm text-gray-500">{artist?.displayName}</span>
             <button onClick={handleLogout} className="text-sm text-gray-400 hover:text-gray-900">
-              Logga ut
+              {t('artist.logOut')}
             </button>
           </div>
         </div>
@@ -556,10 +565,10 @@ export default function ArtistPage() {
         {/* Stats */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
           {[
-            { label: 'Konstverk', value: listings.length },
-            { label: 'Visningar', value: totalViews },
-            { label: 'Provat på vägg', value: totalTryOns },
-            { label: 'Sålda', value: totalSold },
+            { label: t('artist.uploadArtwork'), value: listings.length },
+            { label: t('artist.views'), value: totalViews },
+            { label: t('market.tryOnWall'), value: totalTryOns },
+            { label: t('artist.sold'), value: totalSold },
           ].map(stat => (
             <div key={stat.label} className="bg-white rounded-xl border border-gray-100 p-4 text-center">
               <p className="text-2xl font-semibold text-gray-900">{stat.value}</p>
@@ -581,7 +590,7 @@ export default function ArtistPage() {
                   </svg>
                 </div>
                 <div>
-                  <p className="font-medium text-emerald-900">Stripe kopplat</p>
+                  <p className="font-medium text-emerald-900">{t('artist.stripeConnected')}</p>
                   <p className="text-sm text-emerald-700">Utbetalningar sker automatiskt vid varje försäljning.</p>
                 </div>
               </div>
@@ -602,7 +611,7 @@ export default function ArtistPage() {
                   </svg>
                 </div>
                 <div>
-                  <p className="font-medium text-amber-900">Stripe-registrering ej klar</p>
+                  <p className="font-medium text-amber-900">{t('artist.stripeOnboarding')}</p>
                   <p className="text-sm text-amber-700">Slutför din Stripe-registrering för att ta emot automatiska utbetalningar.</p>
                 </div>
               </div>
@@ -611,7 +620,7 @@ export default function ArtistPage() {
                 disabled={stripeLoading}
                 className="w-full sm:w-auto px-4 py-2.5 bg-amber-600 text-white rounded-lg hover:bg-amber-700 transition-colors disabled:opacity-50 text-sm font-medium"
               >
-                {stripeLoading ? 'Laddar...' : 'Slutför registrering'}
+                {stripeLoading ? t('common.loading') : t('artist.stripeOnboarding')}
               </button>
             </div>
           ) : (
@@ -623,7 +632,7 @@ export default function ArtistPage() {
                   </svg>
                 </div>
                 <div>
-                  <p className="font-medium text-gray-900">Koppla Stripe för utbetalningar</p>
+                  <p className="font-medium text-gray-900">{t('artist.stripeConnect')}</p>
                   <p className="text-sm text-gray-500">Få 50% av konstverkspriset automatiskt vid varje försäljning.</p>
                 </div>
               </div>
@@ -632,7 +641,7 @@ export default function ArtistPage() {
                 disabled={stripeLoading}
                 className="w-full sm:w-auto px-4 py-2.5 bg-gray-900 text-white rounded-lg hover:bg-gray-800 transition-colors disabled:opacity-50 text-sm font-medium"
               >
-                {stripeLoading ? 'Laddar...' : 'Koppla Stripe'}
+                {stripeLoading ? t('common.loading') : t('artist.stripeConnect')}
               </button>
             </div>
           )}
@@ -640,7 +649,7 @@ export default function ArtistPage() {
 
         {/* Actions */}
         <div className="flex items-center justify-between mb-6">
-          <h2 className="text-xl font-medium text-gray-900">Mina konstverk</h2>
+          <h2 className="text-xl font-medium text-gray-900">{t('artist.dashboard')}</h2>
           <button
             onClick={() => setShowUpload(true)}
             className="px-5 py-2.5 bg-gray-900 text-white rounded-xl hover:bg-gray-800 transition-colors flex items-center gap-2"
@@ -648,7 +657,7 @@ export default function ArtistPage() {
             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
             </svg>
-            Ladda upp konstverk
+            {t('artist.uploadArtwork')}
           </button>
         </div>
 
@@ -661,13 +670,13 @@ export default function ArtistPage() {
           </div>
         ) : listings.length === 0 ? (
           <div className="text-center py-16 bg-white rounded-2xl border border-gray-100">
-            <p className="text-gray-500 text-lg">Du har inga konstverk ännu.</p>
-            <p className="text-gray-400 text-sm mt-2">Ladda upp ditt första konstverk för att börja sälja!</p>
+            <p className="text-gray-500 text-lg">{t('artist.noArtworksYet')}</p>
+            <p className="text-gray-400 text-sm mt-2">{t('artist.uploadFirstArtwork')}</p>
             <button
               onClick={() => setShowUpload(true)}
               className="mt-6 px-6 py-3 bg-gray-900 text-white rounded-xl hover:bg-gray-800 transition-colors"
             >
-              Ladda upp konstverk
+              {t('artist.uploadArtwork')}
             </button>
           </div>
         ) : (
@@ -677,8 +686,8 @@ export default function ArtistPage() {
                 <div className="aspect-[3/4] bg-gray-100 relative">
                   <img src={listing.imageUrl} alt={listing.title} className="w-full h-full object-cover" />
                   {listing.reviewStatus && (
-                    <span className={`absolute top-2 left-2 text-xs font-medium px-2 py-0.5 rounded-full ${STATUS_LABELS[listing.reviewStatus]?.color || 'bg-gray-100 text-gray-600'}`}>
-                      {STATUS_LABELS[listing.reviewStatus]?.label || listing.reviewStatus}
+                    <span className={`absolute top-2 left-2 text-xs font-medium px-2 py-0.5 rounded-full ${STATUS_COLORS[listing.reviewStatus] || 'bg-gray-100 text-gray-600'}`}>
+                      {STATUS_KEYS[listing.reviewStatus] ? t(STATUS_KEYS[listing.reviewStatus]) : listing.reviewStatus}
                     </span>
                   )}
                 </div>

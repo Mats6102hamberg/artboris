@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useRef, useEffect } from 'react'
+import { useTranslation } from '@/lib/i18n/context'
 
 interface BorisButtonProps {
   /** Which Boris context to use */
@@ -29,6 +30,7 @@ export default function BorisButton({
   variant = 'floating',
   label,
 }: BorisButtonProps) {
+  const { t } = useTranslation()
   const [isOpen, setIsOpen] = useState(false)
   const [messages, setMessages] = useState<Message[]>([])
   const [input, setInput] = useState('')
@@ -72,7 +74,7 @@ export default function BorisButton({
         id: `b_${Date.now()}`,
         text: data.success
           ? data.response.message
-          : 'Tyvärr kunde jag inte svara just nu. Försök igen.',
+          : t('boris.errorResponse'),
         sender: 'boris',
         timestamp: new Date().toISOString(),
       }
@@ -82,7 +84,7 @@ export default function BorisButton({
         ...prev,
         {
           id: `e_${Date.now()}`,
-          text: 'Nätverksfel — kunde inte nå Boris. Försök igen.',
+          text: t('boris.networkError'),
           sender: 'boris',
           timestamp: new Date().toISOString(),
         },
@@ -111,7 +113,7 @@ export default function BorisButton({
               ? 'w-14 h-14 rounded-full bg-gray-900 text-white scale-90'
               : 'h-14 rounded-full bg-gradient-to-br from-amber-500 to-orange-600 text-white shadow-lg shadow-amber-500/25 hover:shadow-xl hover:shadow-amber-500/30 hover:scale-105 w-14 lg:w-auto lg:gap-2.5 lg:px-5 lg:rounded-2xl'
           }`}
-          title="Fråga Boris"
+          title={t('boris.askBoris')}
         >
           {isOpen ? (
             <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -120,7 +122,7 @@ export default function BorisButton({
           ) : (
             <>
               <span className="text-xl font-bold">B</span>
-              <span className="hidden lg:inline text-sm font-semibold">Fråga Boris</span>
+              <span className="hidden lg:inline text-sm font-semibold">{t('boris.askBoris')}</span>
             </>
           )}
         </button>
@@ -149,7 +151,7 @@ export default function BorisButton({
         <span className="w-6 h-6 rounded-full bg-gradient-to-br from-amber-500 to-orange-600 text-white flex items-center justify-center text-xs font-bold flex-shrink-0">
           B
         </span>
-        {label || 'Fråga Boris'}
+        {label || t('boris.askBoris')}
       </button>
 
       {isOpen && (
@@ -171,7 +173,7 @@ export default function BorisButton({
           </div>
           <div className="flex-1 min-w-0">
             <p className="text-sm font-semibold text-gray-900">Boris</p>
-            <p className="text-[11px] text-gray-400">Konst- & inredningsexpert</p>
+            <p className="text-[11px] text-gray-400">{t('boris.subtitle')}</p>
           </div>
           <div className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
         </div>
@@ -183,13 +185,13 @@ export default function BorisButton({
               <div className="w-12 h-12 rounded-full bg-gradient-to-br from-amber-100 to-orange-100 flex items-center justify-center mx-auto mb-3">
                 <span className="text-amber-600 text-lg font-bold">B</span>
               </div>
-              <p className="text-sm text-gray-500 mb-1">Hej! Jag är Boris.</p>
+              <p className="text-sm text-gray-500 mb-1">{t('boris.greeting')}</p>
               <p className="text-xs text-gray-400">
-                {action === 'style' && 'Fråga mig om vilken konststil som passar ditt rum.'}
-                {action === 'editor' && 'Fråga mig om storlek, ram och placering.'}
-                {action === 'print' && 'Fråga mig om tryck, kvalitet och inramning.'}
-                {action === 'variant' && 'Fråga mig vilken variant som passar bäst.'}
-                {action === 'chat' && 'Fråga mig om konst, inredning och design.'}
+                {action === 'style' && t('boris.actionStyle')}
+                {action === 'editor' && t('boris.actionEditor')}
+                {action === 'print' && t('boris.actionPrint')}
+                {action === 'variant' && t('boris.actionVariant')}
+                {action === 'chat' && t('boris.actionChat')}
               </p>
             </div>
           )}
@@ -248,7 +250,7 @@ export default function BorisButton({
               value={input}
               onChange={e => setInput(e.target.value)}
               onKeyDown={handleKeyDown}
-              placeholder="Skriv till Boris..."
+              placeholder={t('boris.inputPlaceholder')}
               disabled={isLoading}
               className="flex-1 px-3.5 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-amber-500/20 focus:border-amber-400 transition-colors disabled:opacity-50"
             />

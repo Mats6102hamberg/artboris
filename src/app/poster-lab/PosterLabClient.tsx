@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
+import { useTranslation } from '@/lib/i18n/context'
 import RoomUpload from '@/components/poster/RoomUpload'
 import WallMarker from '@/components/poster/WallMarker'
 import StylePicker from '@/components/poster/StylePicker'
@@ -12,6 +13,7 @@ const DEMO_ROOM_IMAGE = '/assets/demo/room-sample.svg'
 
 export default function PosterLabPage() {
   const router = useRouter()
+  const { t } = useTranslation()
   const [mode, setMode] = useState<'landing' | 'create'>('landing')
   const [step, setStep] = useState<'upload' | 'mark-wall' | 'pick-style'>('upload')
   const [roomImageUrl, setRoomImageUrl] = useState<string | null>(null)
@@ -397,13 +399,13 @@ export default function PosterLabPage() {
       <header className="bg-white/80 backdrop-blur-sm border-b border-gray-200 sticky top-0 z-30">
         <div className="max-w-6xl mx-auto px-4 py-4 flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <button onClick={() => setMode('landing')} className="text-gray-400 hover:text-gray-600 text-sm">&larr; Tillbaka</button>
+            <button onClick={() => setMode('landing')} className="text-gray-400 hover:text-gray-600 text-sm">&larr; {t('posterLab.back')}</button>
             <h1 className="text-2xl font-bold bg-gradient-to-r from-purple-600 to-blue-600 bg-clip-text text-transparent">
               Poster Lab
             </h1>
           </div>
           <div className="flex items-center gap-4">
-            <a href="/poster-lab/gallery" className="text-sm text-gray-600 hover:text-gray-900">Galleri</a>
+            <a href="/poster-lab/gallery" className="text-sm text-gray-600 hover:text-gray-900">{t('posterLab.gallery')}</a>
             <CreditBadge />
           </div>
         </div>

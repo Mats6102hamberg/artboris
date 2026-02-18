@@ -47,6 +47,27 @@ export function I18nProvider({ children, initialLocale }: { children: ReactNode;
 
 export function useTranslation() {
   const ctx = useContext(I18nContext)
-  if (!ctx) throw new Error('useTranslation must be used within I18nProvider')
-  return ctx
+  if (ctx) return ctx
+
+  // Safe fallback when no I18nProvider is present — reads locale from localStorage
+  const stored = typeof window !== 'undefined' ? localStorage.getItem('wallcraft-locale') as Locale | null : null
+  const locale = stored ?? DEFAULT_LOCALE
+  const dict = getDictionary(locale)
+
+  return {
+    locale,
+    setLocale: (newLocale: Locale) => {
+      if (typeof window !== 'undefined') localStorage.setItem('wallcraft-locale', newLocale)
+    },
+    t: (key: string) => getNestedValue(dict as unknown as Record<string, unknown>, key),
+    tArray: (key: string): string[] => {
+      const keys = key.split('.')
+      let current: unknown = dict
+      for (const k of keys) {
+        if (current === null || current === undefined || typeof current !== 'object') return []
+        current = (current as Record<string, unknown>)[k]
+      }
+      return Array.isArray(current) ? current as string[] : []
+    },
+  }
 }

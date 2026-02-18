@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useCallback, useRef } from 'react'
 import { useParams, useRouter } from 'next/navigation'
+import { useTranslation } from '@/lib/i18n/context'
 import MockupPreview from '@/components/poster/MockupPreview'
 import FramePicker from '@/components/poster/FramePicker'
 import SizePicker from '@/components/poster/SizePicker'
@@ -38,6 +39,7 @@ interface DesignData {
 export default function DesignPage() {
   const { id } = useParams<{ id: string }>()
   const router = useRouter()
+  const { t } = useTranslation()
 
   const [design, setDesign] = useState<DesignData | null>(null)
   const [loading, setLoading] = useState(true)
@@ -161,7 +163,7 @@ export default function DesignPage() {
       <div className="min-h-screen bg-gradient-to-br from-gray-50 to-blue-50 flex items-center justify-center">
         <div className="text-center">
           <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-blue-600 mx-auto" />
-          <p className="text-gray-500 mt-4">Laddar din design...</p>
+          <p className="text-gray-500 mt-4">{t('common.loading')}</p>
         </div>
       </div>
     )
@@ -171,12 +173,12 @@ export default function DesignPage() {
     return (
       <div className="min-h-screen bg-gradient-to-br from-gray-50 to-blue-50 flex items-center justify-center">
         <div className="text-center">
-          <p className="text-red-600 font-medium">{error || 'Design hittades inte.'}</p>
+          <p className="text-red-600 font-medium">{error || t('posterLab.designNotFound')}</p>
           <button
             onClick={() => router.push('/poster-lab')}
             className="mt-4 px-6 py-2 bg-blue-600 text-white rounded-lg"
           >
-            Tillbaka till Poster Lab
+            {t('posterLab.backToPosterLab')}
           </button>
         </div>
       </div>
