@@ -6,12 +6,14 @@ export async function POST(request: NextRequest) {
   try {
     const anonId = await getUserId()
     const body = await request.json()
-    const { imageUrl, roomImageUrl, wallCorners, imageWidth, imageHeight } = body as {
+    const { imageUrl, roomImageUrl, wallCorners, imageWidth, imageHeight, style: customStyle, title: customTitle } = body as {
       imageUrl: string
       roomImageUrl?: string
       wallCorners?: string
       imageWidth?: number
       imageHeight?: number
+      style?: string
+      title?: string
     }
 
     if (!imageUrl) {
@@ -22,10 +24,10 @@ export async function POST(request: NextRequest) {
     const design = await prisma.design.create({
       data: {
         userId: anonId,
-        title: 'My Photo',
+        title: customTitle || 'My Photo',
         description: '',
         imageUrl,
-        style: 'user-upload',
+        style: customStyle || 'user-upload',
         prompt: '',
         roomImageUrl: roomImageUrl || null,
         wallCorners: wallCorners || null,

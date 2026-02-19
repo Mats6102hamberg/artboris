@@ -350,27 +350,14 @@ function MandalaContent() {
       const imageUrl = uploadData.room?.imageUrl || ''
 
       // Create a design entry via generate endpoint with the mandala as a "manual" design
-      const res = await fetch('/api/designs/generate', {
+      const res = await fetch('/api/designs/create-from-upload', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          style: 'geometric',
-          controls: null,
-          userDescription: 'Hand-drawn mandala',
-        }),
+        body: JSON.stringify({ imageUrl, style: 'geometric', title: 'Mandala Design' }),
       })
       const data = await res.json()
 
       if (data.success && data.designId) {
-        // Update the design with the mandala image
-        await fetch(`/api/designs/${data.designId}`, {
-          method: 'PATCH',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            imageUrl,
-            title: 'Mandala Design',
-          }),
-        })
         router.push(`/wallcraft/design/${data.designId}`)
       } else {
         alert('Could not save design. Try again.')

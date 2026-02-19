@@ -512,18 +512,13 @@ function ColorFieldContent() {
       const uploadData = await uploadRes.json()
       if (!uploadData.success) throw new Error('Upload failed')
       const imageUrl = uploadData.room?.imageUrl || ''
-      const res = await fetch('/api/designs/generate', {
+      const res = await fetch('/api/designs/create-from-upload', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ style: 'minimalist', controls: null, userDescription: 'Color field composition' }),
+        body: JSON.stringify({ imageUrl, style: 'minimal', title: 'Color Field Composition' }),
       })
       const data = await res.json()
       if (data.success && data.designId) {
-        await fetch(`/api/designs/${data.designId}`, {
-          method: 'PATCH',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ imageUrl, title: 'Color Field Composition' }),
-        })
         router.push(`/wallcraft/design/${data.designId}`)
       } else {
         alert('Could not save design. Try again.')
