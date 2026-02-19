@@ -30,7 +30,7 @@ export function checkPromptSafety(prompt: string): SafetyCheckResult {
       console.warn(`[safety] Blocked pattern: ${pattern.source} matched in prompt: "${prompt.substring(0, 200)}..."`)
       return {
         safe: false,
-        reason: `Prompten innehåller otillåtet innehåll.`,
+        reason: `Prompten blockerades av säkerhetsfilter (${pattern.source}). Kontakta support om detta är felaktigt.`,
         blockedTerm: pattern.source,
       }
     }
