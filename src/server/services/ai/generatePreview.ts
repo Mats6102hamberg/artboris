@@ -53,7 +53,9 @@ export async function generatePreview(input: GeneratePreviewInput): Promise<Gene
       createdAt: new Date().toISOString(),
     }))
   } else {
+    console.log(`[generatePreview] Running safety check on prompt (${prompt.length} chars): "${prompt.substring(0, 100)}..."`)
     const safetyCheck = checkPromptSafety(prompt)
+    console.log(`[generatePreview] Safety check result: safe=${safetyCheck.safe}, reason=${safetyCheck.reason || 'none'}, blockedTerm=${safetyCheck.blockedTerm || 'none'}`)
     if (!safetyCheck.safe) {
       return {
         success: false,
