@@ -6,7 +6,7 @@
 - **GitHub:** `https://github.com/Mats6102hamberg/artboris.git`
 - **Branch:** `main`
 - **Deploy:** Vercel (kopplat till GitHub-repot)
-- **Senaste commit:** `eaa2d4f`
+- **Senaste commit:** `9d188fa`
 
 ## Tech Stack
 - Next.js 16, React 19, TypeScript
@@ -205,6 +205,28 @@
   - wallcraft/print-your-own → pre-fyller corners
   - market/[id] → hoppar direkt till preview
 
+### 24. Prompt Safety — false positive fix
+- **Commit:** `7db2959`
+- **BLOCKED_TERMS → BLOCKED_PATTERNS:** Bytte från `includes()` till regex med `\b` word boundaries
+- **Fixar:** "what" matchade inte längre "hat", "skilled" matchade inte "kill" etc.
+- **sanitizePrompt:** Uppdaterad att använda BLOCKED_PATTERNS
+- **Fil:** `src/lib/prompts/safety.ts`
+
+### 25. Boris AI quick-generate knappar
+- **Commit:** `7db2959` (wallcraft) + `5525049` (poster-lab)
+- **Wallcraft:** "Boris skapar åt dig"-knapp i Creative Tools-sektionen — slumpar stil, genererar 4 varianter, navigerar till resultat
+- **Poster Lab:** Boris-knapp under "Se den på min vägg" i hero — visar kostnad (5 credits) + signup-prompt (20 gratis credits)
+- **Filer:** `WallcraftClient.tsx`, `PosterLabClient.tsx`
+
+### 26. Internationalisering av startsidan
+- **Commit:** `9d188fa`
+- **LanguageSwitcher** tillagd i nav (desktop + mobil) på `/` (page.tsx)
+- **~50 hårdkodade svenska strängar** ersatta med `t()`-anrop
+- **`home.*` i18n-nycklar** i alla 5 språkfiler (en/sv/de/fr/nl)
+- **Sektioner:** nav, hero, trust strip, steg, funktioner, Boris-showcase, väggförhandsvisning, konstnärs-CTA, registrering, footer
+- **Refaktor:** FEATURES/STEPS → FEATURE_META + FEATURE_ICONS för att kunna använda `t()` inuti komponenten
+- **Filer:** `src/app/page.tsx`, `src/i18n/{en,sv,de,fr,nl}.json`
+
 ## Kända issues / TODO
 - Market checkout saknar orderbekräftelse-mejlval (bara Wallcraft + Poster Lab har det)
 - Crimson-priser (costSEK) behöver fyllas i efter avtal med Crimson
@@ -212,6 +234,10 @@
 
 ## Git-historik (senaste 20)
 ```
+9d188fa feat: internationalize landing page with LanguageSwitcher
+5525049 feat: Boris AI quick-generate button in Poster Lab hero
+7db2959 fix: safety check false positives + Boris quick-generate button
+63397be docs: uppdatera SESSION_SUMMARY med i18n-komponenter + demo-rum förbättringar
 eaa2d4f demo room: zoom in closer to sofa/wall, pre-defined wall corners, larger poster
 d8c8b01 i18n: internationalize all customer-facing components (boris, market, artist, posterLab, order)
 fbc1c3b feat: lägg till nederländska (NL) som femte språk
