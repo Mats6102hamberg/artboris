@@ -27,6 +27,7 @@ export interface SafetyCheckResult {
 export function checkPromptSafety(prompt: string): SafetyCheckResult {
   for (const pattern of BLOCKED_PATTERNS) {
     if (pattern.test(prompt)) {
+      console.warn(`[safety] Blocked pattern: ${pattern.source} matched in prompt: "${prompt.substring(0, 200)}..."`)
       return {
         safe: false,
         reason: `Prompten innehåller otillåtet innehåll.`,
