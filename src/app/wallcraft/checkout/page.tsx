@@ -3,14 +3,29 @@
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { useCart } from '@/lib/cart/CartContext'
-import { formatSEK } from '@/lib/pricing/prints'
+import { formatSEK, getAddonPrice, calculatePrintPrice } from '@/lib/pricing/prints'
 
 const SHIPPING_COST = 99
 const VAT_RATE = 0.25
 
 export default function CheckoutPage() {
   const router = useRouter()
-  const { items, totalPriceSEK, clearCart } = useCart()
+  const { items, totalPriceSEK, clearCart, updateItemAddons } = useCart()
+
+  const toggleAddon = (itemId: string, addon: 'mat' | 'acrylic') => {
+    const item = items.find(i => i.id === itemId)
+    if (!item) return
+    const newMat = addon === 'mat' ? !item.matEnabled : item.matEnabled
+    const newAcrylic = addon === 'acrylic' ? !item.acrylicGlass : item.acrylicGlass
+    const pricing = calculatePrintPrice(item.sizeId, item.frameId, { matEnabled: newMat, acrylicGlass: newAcrylic })
+    updateItemAddons(itemId, {
+      matEnabled: newMat,
+      acrylicGlass: newAcrylic,
+      matPriceSEK: pricing.matPriceSEK,
+      acrylicPriceSEK: pricing.acrylicPriceSEK,
+      totalPriceSEK: pricing.totalPriceSEK,
+    })
+  }
 
   const [form, setForm] = useState({
     firstName: '',
@@ -50,6 +65,8 @@ export default function CheckoutPage() {
         productType: 'POSTER' as const,
         sizeCode: item.sizeId,
         frameColor: item.frameId === 'none' ? 'NONE' : item.frameId.toUpperCase(),
+        matEnabled: item.matEnabled,
+        acrylicGlass: item.acrylicGlass,
         quantity: item.quantity,
         unitPriceCents: item.totalPriceSEK * 100,
       }))
@@ -252,6 +269,103 @@ export default function CheckoutPage() {
               </div>
             </div>
 
+            {/* Addons — Akrylglas & Passepartout */}
+            <div className="bg-white rounded-2xl p-6 border border-gray-200/60">
+              <h2 className="text-base font-semibold text-gray-900 mb-2">Förhöj din beställning</h2>
+              <p className="text-xs text-gray-500 mb-5">Lägg till tillval för en ännu bättre upplevelse.</p>
+
+              {items.map((item) => (
+                <div key={item.id} className="mb-5 last:mb-0">
+                  {items.length > 1 && (
+                    <p className="text-xs font-medium text-gray-500 mb-3">{item.style || 'Eget foto'} — {item.sizeLabel}</p>
+                  )}
+
+                  {/* Akrylglas toggle */}
+                  <button
+                    type="button"
+                    onClick={() => toggleAddon(item.id, 'acrylic')}
+                    className={`w-full flex items-start gap-4 p-4 rounded-xl border transition-all mb-3 text-left ${
+                      item.acrylicGlass
+                        ? 'border-emerald-400 bg-emerald-50/50 shadow-sm'
+                        : 'border-gray-200 hover:border-gray-300'
+                    }`}
+                  >
+                    <div className={`w-5 h-5 rounded-md border-2 flex items-center justify-center flex-shrink-0 mt-0.5 transition-colors ${
+                      item.acrylicGlass ? 'bg-emerald-500 border-emerald-500' : 'border-gray-300'
+                    }`}>
+                      {item.acrylicGlass && (
+                        <svg className="w-3 h-3 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
+                        </svg>
+                      )}
+                    </div>
+                    <div className="flex-1">
+                      <div className="flex items-center justify-between">
+                        <span className="text-sm font-medium text-gray-900">Akrylglas</span>
+                        <span className="text-sm font-medium text-gray-900">+{formatSEK(getAddonPrice('acrylic', item.sizeId))}</span>
+                      </div>
+                      <p className="text-xs text-gray-500 mt-1 leading-relaxed">
+                        Splittersäkert, ultralätt och UV-skydd som bevarar färgerna. Optisk klarhet som får motivet att lysa.
+                      </p>
+                    </div>
+                  </button>
+
+                  {/* Passepartout toggle */}
+                  <button
+                    type="button"
+                    onClick={() => toggleAddon(item.id, 'mat')}
+                    className={`w-full flex items-start gap-4 p-4 rounded-xl border transition-all text-left ${
+                      item.matEnabled
+                        ? 'border-emerald-400 bg-emerald-50/50 shadow-sm'
+                        : 'border-gray-200 hover:border-gray-300'
+                    }`}
+                  >
+                    <div className={`w-5 h-5 rounded-md border-2 flex items-center justify-center flex-shrink-0 mt-0.5 transition-colors ${
+                      item.matEnabled ? 'bg-emerald-500 border-emerald-500' : 'border-gray-300'
+                    }`}>
+                      {item.matEnabled && (
+                        <svg className="w-3 h-3 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
+                        </svg>
+                      )}
+                    </div>
+                    <div className="flex-1">
+                      <div className="flex items-center justify-between">
+                        <span className="text-sm font-medium text-gray-900">Passepartout</span>
+                        <span className="text-sm font-medium text-gray-900">+{formatSEK(getAddonPrice('mat', item.sizeId))}</span>
+                      </div>
+                      <p className="text-xs text-gray-500 mt-1 leading-relaxed">
+                        Skapar gallerikänsla med visuellt djup. Skyddar motivet och ger en lyxig, professionell inramning.
+                      </p>
+                    </div>
+                  </button>
+                </div>
+              ))}
+            </div>
+
+            {/* Support info block */}
+            <div className="bg-gradient-to-br from-amber-50 to-orange-50 rounded-2xl p-6 border border-amber-200/60">
+              <div className="flex items-start gap-3">
+                <div className="w-10 h-10 rounded-xl bg-amber-100 flex items-center justify-center flex-shrink-0">
+                  <svg className="w-5 h-5 text-amber-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M8.625 12a.375.375 0 11-.75 0 .375.375 0 01.75 0zm0 0H8.25m4.125 0a.375.375 0 11-.75 0 .375.375 0 01.75 0zm0 0H12m4.125 0a.375.375 0 11-.75 0 .375.375 0 01.75 0zm0 0h-.375M21 12c0 4.556-4.03 8.25-9 8.25a9.764 9.764 0 01-2.555-.337A5.972 5.972 0 015.41 20.97a5.969 5.969 0 01-.474-.065 4.48 4.48 0 00.978-2.025c.09-.457-.133-.901-.467-1.226C3.93 16.178 3 14.189 3 12c0-4.556 4.03-8.25 9-8.25s9 3.694 9 8.25z" />
+                  </svg>
+                </div>
+                <div>
+                  <h3 className="text-sm font-semibold text-gray-900">Vi hjälper dig hela vägen</h3>
+                  <p className="text-xs text-gray-600 mt-1 leading-relaxed">
+                    Osäker på storlek, ram eller kombination? Vårt team av inredningsexperter ger dig personlig rådgivning.
+                  </p>
+                  <a href="mailto:support@artboris.se" className="inline-flex items-center gap-1 text-xs font-medium text-amber-800 mt-2 hover:text-amber-900 transition-colors">
+                    support@artboris.se
+                    <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" />
+                    </svg>
+                  </a>
+                </div>
+              </div>
+            </div>
+
             {/* Payment info */}
             <div className="bg-white rounded-2xl p-6 border border-gray-200/60">
               <h2 className="text-base font-semibold text-gray-900 mb-5">Betalning</h2>
@@ -298,6 +412,11 @@ export default function CheckoutPage() {
                     <div className="flex-1 min-w-0">
                       <p className="text-sm font-medium text-gray-900 truncate">{item.style || 'Eget foto'}</p>
                       <p className="text-xs text-gray-500">{item.widthCm}×{item.heightCm} cm · {item.frameLabel}</p>
+                      {(item.matEnabled || item.acrylicGlass) && (
+                        <p className="text-xs text-emerald-600 mt-0.5">
+                          {[item.acrylicGlass && 'Akrylglas', item.matEnabled && 'Passepartout'].filter(Boolean).join(' + ')}
+                        </p>
+                      )}
                       <p className="text-xs font-medium text-gray-900 mt-1">{item.quantity} st — {formatSEK(item.totalPriceSEK * item.quantity)}</p>
                     </div>
                   </div>

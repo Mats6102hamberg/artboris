@@ -329,6 +329,10 @@ export default function WallcraftDesignPage() {
       frameColor: fr?.color || 'transparent',
       basePriceSEK: pricing.basePriceSEK,
       framePriceSEK: pricing.framePriceSEK,
+      matEnabled: false,
+      acrylicGlass: false,
+      matPriceSEK: 0,
+      acrylicPriceSEK: 0,
       totalPriceSEK: pricing.totalPriceSEK,
     })
   }

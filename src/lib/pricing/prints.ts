@@ -16,8 +16,39 @@ export interface PrintPricing {
   sizeLabel: string
   basePriceSEK: number
   framePriceSEK: number
+  matPriceSEK: number
+  acrylicPriceSEK: number
   totalPriceSEK: number
   creditsNeeded: number
+}
+
+// ── Addon pricing per size tier ──
+
+export const ACRYLIC_PRICES_SEK: Record<string, number> = {
+  a5: 149,
+  a4: 149,
+  a3: 199,
+  '30x40': 199,
+  '40x50': 199,
+  '50x70': 249,
+  '61x91': 349,
+  '70x100': 349,
+}
+
+export const MAT_PRICES_SEK: Record<string, number> = {
+  a5: 79,
+  a4: 79,
+  a3: 99,
+  '30x40': 99,
+  '40x50': 99,
+  '50x70': 129,
+  '61x91': 149,
+  '70x100': 149,
+}
+
+export function getAddonPrice(addon: 'acrylic' | 'mat', sizeId: string): number {
+  if (addon === 'acrylic') return ACRYLIC_PRICES_SEK[sizeId] || 199
+  return MAT_PRICES_SEK[sizeId] || 99
 }
 
 const BASE_PRICES_SEK: Record<string, number> = {
@@ -33,19 +64,27 @@ const BASE_PRICES_SEK: Record<string, number> = {
 
 // ── Client-side: synkron beräkning med hårdkodade fallback-priser ──
 
-export function calculatePrintPrice(sizeId: string, frameId: string): PrintPricing {
+export function calculatePrintPrice(
+  sizeId: string,
+  frameId: string,
+  options?: { matEnabled?: boolean; acrylicGlass?: boolean },
+): PrintPricing {
   const size = POSTER_SIZES.find(s => s.id === sizeId)
   const frame = FRAME_OPTIONS.find(f => f.id === frameId)
 
   const basePriceSEK = BASE_PRICES_SEK[sizeId] || 199
   const frameMultiplier = frame?.priceMultiplier || 1.0
   const framePriceSEK = Math.round(basePriceSEK * (frameMultiplier - 1))
-  const totalPriceSEK = basePriceSEK + framePriceSEK
+  const matPriceSEK = options?.matEnabled ? getAddonPrice('mat', sizeId) : 0
+  const acrylicPriceSEK = options?.acrylicGlass ? getAddonPrice('acrylic', sizeId) : 0
+  const totalPriceSEK = basePriceSEK + framePriceSEK + matPriceSEK + acrylicPriceSEK
 
   return {
     sizeLabel: size?.label || sizeId,
     basePriceSEK,
     framePriceSEK,
+    matPriceSEK,
+    acrylicPriceSEK,
     totalPriceSEK,
     creditsNeeded: size?.priceCredits || 10,
   }
@@ -124,6 +163,7 @@ export function calculateServerPrice(
   sizeId: string,
   frameId: string,
   paperType?: string,
+  options?: { matEnabled?: boolean; acrylicGlass?: boolean },
 ): PrintPricing {
   const sizeConfig = config.sizes.find(s => s.id === sizeId)
   const frameConfig = config.frames.find(f => f.id === frameId)
@@ -132,7 +172,9 @@ export function calculateServerPrice(
   const basePriceSEK = sizeConfig?.baseSEK || BASE_PRICES_SEK[sizeId] || 199
   const framePriceSEK = frameConfig?.priceSEK || 0
   const paperPriceSEK = paperConfig?.priceSEK || 0
-  const totalPriceSEK = basePriceSEK + framePriceSEK + paperPriceSEK
+  const matPriceSEK = options?.matEnabled ? getAddonPrice('mat', sizeId) : 0
+  const acrylicPriceSEK = options?.acrylicGlass ? getAddonPrice('acrylic', sizeId) : 0
+  const totalPriceSEK = basePriceSEK + framePriceSEK + paperPriceSEK + matPriceSEK + acrylicPriceSEK
 
   const size = POSTER_SIZES.find(s => s.id === sizeId)
 
@@ -140,6 +182,8 @@ export function calculateServerPrice(
     sizeLabel: sizeConfig?.label || size?.label || sizeId,
     basePriceSEK,
     framePriceSEK: framePriceSEK + paperPriceSEK,
+    matPriceSEK,
+    acrylicPriceSEK,
     totalPriceSEK,
     creditsNeeded: size?.priceCredits || 10,
   }

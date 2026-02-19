@@ -19,6 +19,10 @@ export interface CartItem {
   frameColor: string
   basePriceSEK: number
   framePriceSEK: number
+  matEnabled: boolean
+  acrylicGlass: boolean
+  matPriceSEK: number
+  acrylicPriceSEK: number
   totalPriceSEK: number
   quantity: number
 }
@@ -30,6 +34,7 @@ interface CartContextType {
   addItem: (item: Omit<CartItem, 'id' | 'quantity'>) => void
   removeItem: (id: string) => void
   updateQuantity: (id: string, quantity: number) => void
+  updateItemAddons: (id: string, addons: { matEnabled: boolean; acrylicGlass: boolean; matPriceSEK: number; acrylicPriceSEK: number; totalPriceSEK: number }) => void
   clearCart: () => void
   totalItems: number
   totalPriceSEK: number
@@ -62,6 +67,10 @@ export function CartProvider({ children }: { children: ReactNode }) {
     setItems(prev => prev.map(item => item.id === id ? { ...item, quantity } : item))
   }, [])
 
+  const updateItemAddons = useCallback((id: string, addons: { matEnabled: boolean; acrylicGlass: boolean; matPriceSEK: number; acrylicPriceSEK: number; totalPriceSEK: number }) => {
+    setItems(prev => prev.map(item => item.id === id ? { ...item, ...addons } : item))
+  }, [])
+
   const clearCart = useCallback(() => {
     setItems([])
   }, [])
@@ -70,7 +79,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
   const totalPriceSEK = items.reduce((sum, item) => sum + item.totalPriceSEK * item.quantity, 0)
 
   return (
-    <CartContext.Provider value={{ items, isOpen, setIsOpen, addItem, removeItem, updateQuantity, clearCart, totalItems, totalPriceSEK }}>
+    <CartContext.Provider value={{ items, isOpen, setIsOpen, addItem, removeItem, updateQuantity, updateItemAddons, clearCart, totalItems, totalPriceSEK }}>
       {children}
     </CartContext.Provider>
   )

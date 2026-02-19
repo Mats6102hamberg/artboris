@@ -24,6 +24,8 @@ interface CheckoutItem {
   sizeCode: string
   frameColor?: string
   paperType?: string
+  matEnabled?: boolean
+  acrylicGlass?: boolean
   quantity?: number
   unitPriceCents: number
 }
@@ -153,7 +155,10 @@ export async function POST(req: Request) {
     // Calculate server-side price per item and override client-sent unitPriceCents
     for (const item of orderItems) {
       const frameId = (item.frameColor ?? 'none').toLowerCase()
-      const serverPrice = calculateServerPrice(pricingConfig, item.sizeCode, frameId, item.paperType)
+      const serverPrice = calculateServerPrice(pricingConfig, item.sizeCode, frameId, item.paperType, {
+        matEnabled: item.matEnabled ?? false,
+        acrylicGlass: item.acrylicGlass ?? false,
+      })
       const serverPriceCents = serverPrice.totalPriceSEK * 100
 
       // Log if client price diverges significantly (> 100 öre / 1 kr)
@@ -194,6 +199,8 @@ export async function POST(req: Request) {
             sizeCode: item.sizeCode,
             frameColor: item.frameColor as any,
             paperType: item.paperType as any,
+            matEnabled: item.matEnabled ?? false,
+            acrylicGlass: item.acrylicGlass ?? false,
             quantity: item.quantity || 1,
             unitPriceCents: item.unitPriceCents,
             lineTotalCents: item.unitPriceCents * (item.quantity || 1),

@@ -320,6 +320,7 @@ model OrderItem {
   frameColor    FrameColor @default(NONE)
   frameWidthMm  Int?
   matEnabled    Boolean   @default(false)
+  acrylicGlass  Boolean   @default(false)
 
   quantity      Int      @default(1)
 
