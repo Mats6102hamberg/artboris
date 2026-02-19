@@ -63,6 +63,8 @@ export default function WallcraftDesignPage() {
   const [showCreditsModal, setShowCreditsModal] = useState(false)
   const [shuffleCooldown, setShuffleCooldown] = useState(false)
   const [realisticMode, setRealisticMode] = useState<boolean | undefined>(undefined)
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false)
+  const [isDeleting, setIsDeleting] = useState(false)
   const lastShuffleTime = useRef(0)
 
   // Boris curator voice
@@ -612,6 +614,14 @@ export default function WallcraftDesignPage() {
             >
               {t('studio.editor.addToCart')} — {formatSEK(pricing.totalPriceSEK)}
             </Button>
+
+            {/* Delete design */}
+            <button
+              onClick={() => setShowDeleteConfirm(true)}
+              className="w-full text-xs text-gray-400 hover:text-red-500 transition-colors py-2"
+            >
+              Ta bort design
+            </button>
           </div>
         </div>
       </main>
@@ -627,6 +637,53 @@ export default function WallcraftDesignPage() {
           {t('studio.editor.addToCart')} — {formatSEK(pricing.totalPriceSEK)}
         </Button>
       </div>
+
+      {/* Delete confirmation modal */}
+      {showDeleteConfirm && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm">
+          <div className="bg-white rounded-2xl p-8 max-w-sm mx-4 shadow-2xl text-center">
+            <div className="w-14 h-14 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
+              <svg className="w-7 h-7 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+              </svg>
+            </div>
+            <h3 className="text-lg font-semibold text-gray-900">Ta bort design?</h3>
+            <p className="text-sm text-gray-500 mt-2">Designen och alla varianter raderas permanent. Detta kan inte ångras.</p>
+            <div className="mt-6 flex flex-col gap-2">
+              <button
+                onClick={async () => {
+                  setIsDeleting(true)
+                  try {
+                    const res = await fetch(`/api/designs/${id}`, { method: 'DELETE' })
+                    const data = await res.json()
+                    if (data.success) {
+                      router.push('/wallcraft')
+                    } else {
+                      alert('Kunde inte ta bort designen.')
+                      setShowDeleteConfirm(false)
+                    }
+                  } catch {
+                    alert('Kunde inte ta bort designen.')
+                    setShowDeleteConfirm(false)
+                  } finally {
+                    setIsDeleting(false)
+                  }
+                }}
+                disabled={isDeleting}
+                className="w-full py-3 bg-red-600 hover:bg-red-700 text-white text-sm font-medium rounded-xl transition-colors disabled:opacity-50"
+              >
+                {isDeleting ? 'Tar bort...' : 'Ja, ta bort permanent'}
+              </button>
+              <button
+                onClick={() => setShowDeleteConfirm(false)}
+                className="w-full py-3 text-sm text-gray-500 hover:text-gray-700 transition-colors"
+              >
+                Avbryt
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Out of credits modal */}
       {showCreditsModal && (

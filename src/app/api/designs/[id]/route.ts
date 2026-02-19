@@ -27,6 +27,32 @@ export async function GET(
   }
 }
 
+// DELETE — remove a design and its variants
+export async function DELETE(
+  request: NextRequest,
+  { params }: { params: Promise<{ id: string }> }
+) {
+  try {
+    const { id } = await params
+    const anonId = await getUserId()
+
+    const existing = await prisma.design.findUnique({ where: { id } })
+    if (!existing) {
+      return NextResponse.json({ error: 'Design not found.' }, { status: 404 })
+    }
+    if (existing.userId !== anonId) {
+      return NextResponse.json({ error: 'Unauthorized.' }, { status: 403 })
+    }
+
+    await prisma.design.delete({ where: { id } })
+
+    return NextResponse.json({ success: true })
+  } catch (error) {
+    console.error('[designs/[id]] DELETE error:', error)
+    return NextResponse.json({ error: 'Could not delete design.' }, { status: 500 })
+  }
+}
+
 // PATCH — update editor state (position, scale, frame, size, selectedVariant)
 export async function PATCH(
   request: NextRequest,
