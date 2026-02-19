@@ -6,7 +6,7 @@
 - **GitHub:** `https://github.com/Mats6102hamberg/artboris.git`
 - **Branch:** `main`
 - **Deploy:** Vercel (kopplat till GitHub-repot)
-- **Senaste commit:** `9d188fa`
+- **Senaste commit:** `1c73c82`
 
 ## Tech Stack
 - Next.js 16, React 19, TypeScript
@@ -227,6 +227,21 @@
 - **Refaktor:** FEATURES/STEPS → FEATURE_META + FEATURE_ICONS för att kunna använda `t()` inuti komponenten
 - **Filer:** `src/app/page.tsx`, `src/i18n/{en,sv,de,fr,nl}.json`
 
+### 27. Akrylglas + Passepartout tillval i checkout
+- **Commit:** `1c73c82`
+- **Prisma:** `acrylicGlass Boolean @default(false)` tillagd i `OrderItem`
+- **Addon-priser per storlek:** Akrylglas 149–349 kr, Passepartout 79–149 kr
+- **prints.ts:** `ACRYLIC_PRICES_SEK`, `MAT_PRICES_SEK`, `getAddonPrice()` — storleksbaserade priser
+- **calculatePrintPrice + calculateServerPrice:** Utökade med `options?: { matEnabled, acrylicGlass }`
+- **CartItem:** Nya fält `matEnabled`, `acrylicGlass`, `matPriceSEK`, `acrylicPriceSEK`
+- **CartContext:** `updateItemAddons()` för live-toggle i checkout
+- **Checkout UI:** Toggle-knappar med pris + beskrivning per item, kundsupport-block med e-postlänk
+- **Ordersammanfattning:** Visar valda tillval ("Akrylglas + Passepartout")
+- **API checkout:** Skickar `matEnabled` + `acrylicGlass` till server, sparar i OrderItem
+- **Server-side prisvalidering:** Inkluderar tillval i beräkningen
+- **Kombinerbart:** Båda tillval kan väljas samtidigt
+- **Filer:** `prisma/schema.prisma`, `src/lib/pricing/prints.ts`, `src/lib/cart/CartContext.tsx`, `src/app/api/checkout/route.ts`, `src/app/wallcraft/checkout/page.tsx`, `src/app/wallcraft/design/[id]/page.tsx`
+
 ## Kända issues / TODO
 - Market checkout saknar orderbekräftelse-mejlval (bara Wallcraft + Poster Lab har det)
 - Crimson-priser (costSEK) behöver fyllas i efter avtal med Crimson
@@ -234,6 +249,7 @@
 
 ## Git-historik (senaste 20)
 ```
+1c73c82 feat: akrylglas + passepartout tillval i checkout
 9d188fa feat: internationalize landing page with LanguageSwitcher
 5525049 feat: Boris AI quick-generate button in Poster Lab hero
 7db2959 fix: safety check false positives + Boris quick-generate button
