@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
+import { useRouter } from 'next/navigation'
 
 interface CreditBadgeProps {
   balance?: number
@@ -8,6 +9,7 @@ interface CreditBadgeProps {
 }
 
 export default function CreditBadge({ onClick }: CreditBadgeProps) {
+  const router = useRouter()
   const [remaining, setRemaining] = useState<number | null>(null)
   const [limit, setLimit] = useState(5)
 
@@ -28,7 +30,7 @@ export default function CreditBadge({ onClick }: CreditBadgeProps) {
 
   return (
     <button
-      onClick={onClick}
+      onClick={onClick || (() => router.push('/wallcraft/credits'))}
       className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-sm font-medium shadow-sm hover:shadow-md transition-all ${
         isEmpty
           ? 'bg-red-100 text-red-700 border border-red-200'
