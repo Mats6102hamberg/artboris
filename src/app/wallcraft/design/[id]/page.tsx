@@ -594,6 +594,24 @@ export default function WallcraftDesignPage() {
               </div>
             </div>
 
+            {/* Create new art from this motif */}
+            {selectedVariant && (
+              <button
+                onClick={() => router.push(`/wallcraft/create?from=${encodeURIComponent(selectedVariant.imageUrl)}&style=${design.style || 'abstract'}`)}
+                className="w-full bg-gradient-to-r from-purple-600 to-fuchsia-600 text-white rounded-2xl p-5 flex items-center gap-4 hover:shadow-lg hover:shadow-purple-500/20 hover:scale-[1.01] active:scale-[0.99] transition-all"
+              >
+                <div className="w-10 h-10 rounded-xl bg-white/20 flex items-center justify-center flex-shrink-0">
+                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9.813 15.904L9 18.75l-.813-2.846a4.5 4.5 0 00-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 003.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 003.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 00-3.09 3.09z" />
+                  </svg>
+                </div>
+                <div className="text-left">
+                  <span className="text-sm font-semibold block">Skapa ny konst från detta motiv</span>
+                  <span className="text-xs text-white/70">Använd som grund för AI-generering</span>
+                </div>
+              </button>
+            )}
+
             {/* Boris AI Advisor */}
             <div className="bg-white rounded-2xl p-5 border border-gray-200/60">
               <BorisButton

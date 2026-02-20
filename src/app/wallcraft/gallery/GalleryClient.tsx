@@ -219,20 +219,36 @@ export default function GalleryPage() {
                     </div>
                   )}
                   <div className="absolute inset-0 bg-gradient-to-t from-black/30 via-transparent to-transparent sm:opacity-0 sm:group-hover:opacity-100 transition-opacity" />
-                  <div className="absolute bottom-3 left-3 right-3 flex items-end justify-between sm:opacity-0 sm:group-hover:opacity-100 transition-opacity">
-                    <span className="text-white text-xs font-medium bg-black/40 backdrop-blur-sm px-2 py-1 rounded-md">
-                      {item.type === 'market' ? t('gallery.viewArtwork') : t('gallery.viewDesign')}
-                    </span>
+                  <div className="absolute bottom-3 left-3 right-3 flex flex-col gap-2 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity">
                     {item.type !== 'market' && (
-                      <span className="text-white text-xs bg-black/40 backdrop-blur-sm px-2 py-1 rounded-md flex items-center gap-1">
-                        ♥ {item.likesCount}
-                      </span>
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation()
+                          router.push(`/wallcraft/create?from=${encodeURIComponent(item.imageUrl)}&style=${item.style || 'abstract'}`)
+                        }}
+                        className="w-full text-white text-xs font-semibold bg-gradient-to-r from-purple-600/90 to-fuchsia-600/90 backdrop-blur-sm px-3 py-2 rounded-lg flex items-center justify-center gap-1.5 hover:from-purple-600 hover:to-fuchsia-600 transition-all"
+                      >
+                        <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.813 15.904L9 18.75l-.813-2.846a4.5 4.5 0 00-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 003.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 003.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 00-3.09 3.09z" />
+                        </svg>
+                        Skapa ny konst från detta
+                      </button>
                     )}
-                    {item.type === 'market' && item.priceSEK != null && (
-                      <span className="text-white text-xs bg-black/40 backdrop-blur-sm px-2 py-1 rounded-md">
-                        {item.priceSEK} SEK
+                    <div className="flex items-end justify-between">
+                      <span className="text-white text-xs font-medium bg-black/40 backdrop-blur-sm px-2 py-1 rounded-md">
+                        {item.type === 'market' ? t('gallery.viewArtwork') : t('gallery.viewDesign')}
                       </span>
-                    )}
+                      {item.type !== 'market' && (
+                        <span className="text-white text-xs bg-black/40 backdrop-blur-sm px-2 py-1 rounded-md flex items-center gap-1">
+                          ♥ {item.likesCount}
+                        </span>
+                      )}
+                      {item.type === 'market' && item.priceSEK != null && (
+                        <span className="text-white text-xs bg-black/40 backdrop-blur-sm px-2 py-1 rounded-md">
+                          {item.priceSEK} SEK
+                        </span>
+                      )}
+                    </div>
                   </div>
                 </div>
                 <div className="mt-2.5">
