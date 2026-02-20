@@ -72,7 +72,7 @@ const navItems = [
   },
 ];
 
-const hiddenPrefixes = ['/admin', '/auth', '/checkout', '/result'];
+const hiddenPrefixes = ['/admin', '/auth', '/checkout', '/result', '/boris'];
 
 export default function GlobalNav() {
   const pathname = usePathname();

@@ -30,7 +30,7 @@ export default function WallcraftLanding() {
     clearTimeout(ref.timer)
     if (ref.count >= 5) {
       ref.count = 0
-      router.push('/admin/boris')
+      router.push('/boris')
       return
     }
     ref.timer = window.setTimeout(() => { ref.count = 0 }, 1500)
