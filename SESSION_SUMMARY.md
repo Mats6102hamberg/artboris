@@ -6,7 +6,7 @@
 - **GitHub:** `https://github.com/Mats6102hamberg/artboris.git`
 - **Branch:** `main`
 - **Deploy:** Vercel (kopplat till GitHub-repot)
-- **Senaste commit:** `441e3aa`
+- **Senaste commit:** `3561cfd`
 
 ## Tech Stack
 - Next.js 16, React 19, TypeScript
@@ -276,6 +276,29 @@
 - **AI-läge:** Befintligt flöde (StylePicker → Boris → textarea → generera)
 - **Upload-läge:** PrintYourOwn-komponent med DPI-analys → skapar design via `create-from-upload` med rum + väggkoordinater → redirect till design-editor
 - **Fil:** `src/app/wallcraft/studio/page.tsx`
+
+### 33. Boris M — Maskinist & Omvärldsbevakare
+- **Commits:** `57ff58f`, `3561cfd`
+- **Prisma-modeller:** `TelemetryEvent`, `BorisMemory` (INCIDENT/UX_LEARNING/PATTERN), `BorisInsight`
+- **Telemetri-klient:** `src/lib/boris/telemetry.ts` — batched event tracking (3s intervall, max 20/batch), session/device/locale auto-detect
+- **Hook:** `src/hooks/useTelemetry.ts` — auto PAGE_VIEW + funnel/error/slow helpers
+- **Instrumenterade sidor:** Studio (UPLOAD_ROOM, GENERATE_ART, UPLOAD_OWN_ARTWORK), Design editor (ADD_TO_CART), Checkout (START_CHECKOUT, CHECKOUT_FAIL)
+- **Auto-incident:** `src/lib/boris/autoIncident.ts` — `borisLogIncident()` + `borisLogLearning()`, deduplisering 24h
+- **Integrerat i:** `/api/designs/generate` + `/api/checkout` (loggar automatiskt vid fel)
+- **API:er (alla admin-skyddade via x-admin-key):**
+  - `POST/GET /api/boris/telemetry` — batch-insert + query events
+  - `GET /api/boris/funnel` — funnel-analys med drop-off per steg, segmenterat device/locale
+  - `GET/POST/PATCH /api/boris/memory` — CRUD för Boris minne
+  - `GET/POST/PATCH /api/boris/insights` — CRUD för insights
+  - `GET /api/boris/trends` — försäljningsdata, stilar, storlekar, konverteringsmetrik
+  - `GET /api/boris/report` — veckorapport med rekommendationer
+- **Admin dashboard:** `/admin/boris` — 6 flikar:
+  - 📊 Funnel — konverteringstratt med drop-off-bars
+  - 📡 Events — event-fördelning
+  - 📈 Trends — intäkter, bästsäljare, populäraste storlekar, AI vs upload
+  - 💡 Insights — flow doctor insights med status/risk
+  - 🧠 Memory — incidenter, UX-lärdomar, patterns
+  - 📋 Rapport — veckosammanfattning, rekommendationer, felöversikt
 
 ## Kända issues / TODO
 - Market checkout saknar orderbekräftelse-mejlval (bara Wallcraft + Poster Lab har det)
