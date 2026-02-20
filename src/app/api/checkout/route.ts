@@ -5,6 +5,7 @@ import { getUserId } from '@/lib/auth/getUserId'
 import { getPricingConfig, calculateServerPrice } from '@/lib/pricing/prints'
 import { reportApiError } from '@/lib/crashcatcher'
 import { sendErrorAdminAlert } from '@/server/services/email/adminAlert'
+import { borisLogIncident } from '@/lib/boris/autoIncident'
 
 const VALID_PRODUCT_TYPES = ['POSTER', 'CANVAS', 'METAL', 'FRAMED_POSTER'] as const
 const VALID_FRAME_COLORS = ['NONE', 'BLACK', 'WHITE', 'OAK', 'WALNUT', 'GOLD'] as const
@@ -297,7 +298,13 @@ export async function POST(req: Request) {
 
     const message = err?.message || 'Okänt fel'
 
-    // Report to CrashCatcher + admin alert
+    // Report to Boris + CrashCatcher + admin alert
+    borisLogIncident({
+      title: `Checkout failed at step: ${step}`,
+      description: message,
+      tags: ['checkout', 'stripe', 'error', step],
+      data: { step, orderId, error: message },
+    })
     reportApiError('checkout', err, 'CRITICAL', { userId: anonId, orderId: orderId ?? undefined })
     sendErrorAdminAlert({
       route: `checkout (step: ${step})`,

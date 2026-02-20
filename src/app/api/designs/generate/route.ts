@@ -4,6 +4,7 @@ import { StylePreset, DesignControls } from '@/types/design'
 import { getStyleDefinition } from '@/lib/prompts/styles'
 import { getUserId } from '@/lib/auth/getUserId'
 import { getUsage, incrementGeneration } from '@/server/services/usage/dailyUsage'
+import { borisLogIncident } from '@/lib/boris/autoIncident'
 
 export const maxDuration = 60
 
@@ -93,6 +94,12 @@ export async function POST(request: NextRequest) {
   } catch (error) {
     const msg = error instanceof Error ? error.message : String(error)
     console.error('[designs/generate] Error:', msg, error)
+    borisLogIncident({
+      title: 'AI generation failed',
+      description: `Generate endpoint threw: ${msg}`,
+      tags: ['generate', 'ai', 'error'],
+      data: { error: msg },
+    })
     return NextResponse.json(
       { error: `Generering misslyckades: ${msg}` },
       { status: 500 }

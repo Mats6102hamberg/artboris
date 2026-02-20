@@ -59,7 +59,7 @@ function headers() {
 export default function BorisDashboard() {
   const [adminKey, setAdminKey] = useState('')
   const [authenticated, setAuthenticated] = useState(false)
-  const [tab, setTab] = useState<'funnel' | 'events' | 'insights' | 'memory'>('funnel')
+  const [tab, setTab] = useState<'funnel' | 'events' | 'insights' | 'memory' | 'trends' | 'report'>('funnel')
   const [days, setDays] = useState(7)
   const [device, setDevice] = useState('')
   const [locale, setLocale] = useState('')
@@ -69,6 +69,10 @@ export default function BorisDashboard() {
   const [eventSummary, setEventSummary] = useState<EventSummary[]>([])
   const [memories, setMemories] = useState<BorisMemory[]>([])
   const [insights, setInsights] = useState<BorisInsight[]>([])
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const [trendsData, setTrendsData] = useState<any>(null)
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const [reportData, setReportData] = useState<any>(null)
   const [loading, setLoading] = useState(false)
 
   useEffect(() => {
@@ -141,13 +145,35 @@ export default function BorisDashboard() {
     setLoading(false)
   }, [authHeaders])
 
+  const loadTrends = useCallback(async () => {
+    setLoading(true)
+    try {
+      const res = await fetch(`/api/boris/trends?days=${days}`, { headers: authHeaders() })
+      const data = await res.json()
+      if (data.revenue) setTrendsData(data)
+    } catch { /* silent */ }
+    setLoading(false)
+  }, [days, authHeaders])
+
+  const loadReport = useCallback(async () => {
+    setLoading(true)
+    try {
+      const res = await fetch(`/api/boris/report?days=${days}`, { headers: authHeaders() })
+      const data = await res.json()
+      if (data.summary) setReportData(data)
+    } catch { /* silent */ }
+    setLoading(false)
+  }, [days, authHeaders])
+
   useEffect(() => {
     if (!authenticated) return
     if (tab === 'funnel') loadFunnel()
     else if (tab === 'events') loadEvents()
     else if (tab === 'memory') loadMemories()
     else if (tab === 'insights') loadInsights()
-  }, [tab, authenticated, loadFunnel, loadEvents, loadMemories, loadInsights])
+    else if (tab === 'trends') loadTrends()
+    else if (tab === 'report') loadReport()
+  }, [tab, authenticated, loadFunnel, loadEvents, loadMemories, loadInsights, loadTrends, loadReport])
 
   if (!authenticated) {
     return (
@@ -211,17 +237,23 @@ export default function BorisDashboard() {
       {/* Tabs */}
       <div className="max-w-7xl mx-auto px-6 pt-4">
         <div className="flex gap-1 bg-gray-100 rounded-xl p-1 w-fit">
-          {(['funnel', 'events', 'insights', 'memory'] as const).map((t) => (
-            <button
-              key={t}
-              onClick={() => setTab(t)}
-              className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
-                tab === t ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-500 hover:text-gray-700'
-              }`}
-            >
-              {t === 'funnel' ? '📊 Funnel' : t === 'events' ? '📡 Events' : t === 'insights' ? '💡 Insights' : '🧠 Memory'}
-            </button>
-          ))}
+          {(['funnel', 'events', 'trends', 'insights', 'memory', 'report'] as const).map((t) => {
+            const labels: Record<string, string> = {
+              funnel: '📊 Funnel', events: '📡 Events', trends: '📈 Trends',
+              insights: '💡 Insights', memory: '🧠 Memory', report: '📋 Rapport',
+            }
+            return (
+              <button
+                key={t}
+                onClick={() => setTab(t)}
+                className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
+                  tab === t ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-500 hover:text-gray-700'
+                }`}
+              >
+                {labels[t]}
+              </button>
+            )
+          })}
         </div>
       </div>
 
@@ -407,6 +439,224 @@ export default function BorisDashboard() {
                   )}
                 </div>
               ))
+            )}
+          </div>
+        )}
+
+        {/* TRENDS TAB */}
+        {tab === 'trends' && trendsData && (
+          <div className="space-y-6">
+            {/* Revenue KPIs */}
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+              <div className="bg-white rounded-xl p-5 border border-gray-200">
+                <p className="text-sm text-gray-500">Intäkter</p>
+                <p className="text-2xl font-bold text-gray-900">{trendsData.revenue.totalSEK} kr</p>
+                <p className="text-xs text-gray-400">{trendsData.revenue.totalOrders} ordrar</p>
+              </div>
+              <div className="bg-white rounded-xl p-5 border border-gray-200">
+                <p className="text-sm text-gray-500">Snittorder</p>
+                <p className="text-2xl font-bold text-gray-900">{trendsData.revenue.avgOrderSEK} kr</p>
+              </div>
+              <div className="bg-white rounded-xl p-5 border border-gray-200">
+                <p className="text-sm text-gray-500">AI-genererade</p>
+                <p className="text-2xl font-bold text-purple-600">{trendsData.revenue.aiGenerated}</p>
+              </div>
+              <div className="bg-white rounded-xl p-5 border border-gray-200">
+                <p className="text-sm text-gray-500">Uppladdade</p>
+                <p className="text-2xl font-bold text-blue-600">{trendsData.revenue.uploaded}</p>
+              </div>
+            </div>
+
+            {/* Top styles */}
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+              <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
+                <div className="px-5 py-4 border-b border-gray-100">
+                  <h2 className="font-semibold text-gray-900">Bästsäljande stilar</h2>
+                </div>
+                {trendsData.topStyles.length === 0 ? (
+                  <p className="px-5 py-6 text-sm text-gray-400 text-center">Ingen försäljningsdata ännu</p>
+                ) : (
+                  <div className="divide-y divide-gray-50">
+                    {trendsData.topStyles.map((s: { style: string; count: number; revenueSEK: number }) => (
+                      <div key={s.style} className="px-5 py-3 flex items-center justify-between">
+                        <span className="text-sm font-medium text-gray-900">{s.style}</span>
+                        <div className="text-right">
+                          <span className="text-sm text-gray-600">{s.count} st</span>
+                          <span className="text-xs text-gray-400 ml-2">{s.revenueSEK} kr</span>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+
+              <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
+                <div className="px-5 py-4 border-b border-gray-100">
+                  <h2 className="font-semibold text-gray-900">Populäraste storlekar</h2>
+                </div>
+                {trendsData.topSizes.length === 0 ? (
+                  <p className="px-5 py-6 text-sm text-gray-400 text-center">Ingen data</p>
+                ) : (
+                  <div className="divide-y divide-gray-50">
+                    {trendsData.topSizes.map((s: { size: string; count: number; revenueSEK: number }) => (
+                      <div key={s.size} className="px-5 py-3 flex items-center justify-between">
+                        <span className="text-sm font-medium text-gray-900">{s.size}</span>
+                        <div className="text-right">
+                          <span className="text-sm text-gray-600">{s.count} st</span>
+                          <span className="text-xs text-gray-400 ml-2">{s.revenueSEK} kr</span>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            </div>
+
+            {/* Popular generations */}
+            <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
+              <div className="px-5 py-4 border-b border-gray-100">
+                <h2 className="font-semibold text-gray-900">Mest genererade stilar (AI)</h2>
+              </div>
+              {trendsData.popularGenerations.length === 0 ? (
+                <p className="px-5 py-6 text-sm text-gray-400 text-center">Inga genereringar registrerade</p>
+              ) : (
+                <div className="divide-y divide-gray-50">
+                  {trendsData.popularGenerations.map((g: { style: string; generations: number }) => (
+                    <div key={g.style} className="px-5 py-3 flex items-center justify-between">
+                      <span className="text-sm font-medium text-gray-900">{g.style}</span>
+                      <span className="text-sm text-gray-500">{g.generations} genereringar</span>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+
+            {/* Conversion */}
+            <div className="bg-white rounded-xl border border-gray-200 p-5">
+              <h2 className="font-semibold text-gray-900 mb-3">Konverteringsmetrik</h2>
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+                <div>
+                  <p className="text-xs text-gray-500">Sidvisningar</p>
+                  <p className="text-lg font-bold">{trendsData.conversion.pageViews}</p>
+                </div>
+                <div>
+                  <p className="text-xs text-gray-500">Lägg i varukorg</p>
+                  <p className="text-lg font-bold">{trendsData.conversion.addToCart}</p>
+                </div>
+                <div>
+                  <p className="text-xs text-gray-500">Vy → Varukorg</p>
+                  <p className="text-lg font-bold text-blue-600">{trendsData.conversion.viewToCartRate}%</p>
+                </div>
+                <div>
+                  <p className="text-xs text-gray-500">Varukorg → Checkout</p>
+                  <p className="text-lg font-bold text-green-600">{trendsData.conversion.cartToCheckoutRate}%</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* REPORT TAB */}
+        {tab === 'report' && reportData && (
+          <div className="space-y-6">
+            {/* Summary */}
+            <div className="bg-white rounded-xl border border-gray-200 p-6">
+              <h2 className="font-semibold text-gray-900 text-lg mb-4">📋 Boris Veckorapport ({reportData.period.days} dagar)</h2>
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-6">
+                <div>
+                  <p className="text-xs text-gray-500">Sessioner</p>
+                  <p className="text-2xl font-bold">{reportData.summary.totalSessions}</p>
+                </div>
+                <div>
+                  <p className="text-xs text-gray-500">Ordrar</p>
+                  <p className="text-2xl font-bold">{reportData.summary.totalOrders}</p>
+                </div>
+                <div>
+                  <p className="text-xs text-gray-500">Intäkter</p>
+                  <p className="text-2xl font-bold text-green-600">{reportData.summary.revenueSEK} kr</p>
+                </div>
+                <div>
+                  <p className="text-xs text-gray-500">Konvertering</p>
+                  <p className="text-2xl font-bold text-blue-600">{reportData.summary.overallConversion}%</p>
+                </div>
+              </div>
+
+              {/* Worst drop-off */}
+              {reportData.worstDropOff.dropPercent > 0 && (
+                <div className="bg-red-50 rounded-lg p-4 mb-4">
+                  <p className="text-sm font-medium text-red-800">
+                    ⚠️ Största drop-off: {reportData.worstDropOff.dropPercent}% mellan {reportData.worstDropOff.from} → {reportData.worstDropOff.to}
+                  </p>
+                </div>
+              )}
+
+              {/* Device split */}
+              {reportData.deviceSplit.length > 0 && (
+                <div className="mb-4">
+                  <p className="text-sm font-medium text-gray-700 mb-2">Enhetsfördelning</p>
+                  <div className="flex gap-3">
+                    {reportData.deviceSplit.map((d: { device: string; count: number }) => (
+                      <span key={d.device} className="text-xs bg-gray-100 text-gray-700 px-3 py-1.5 rounded-lg">
+                        {d.device}: {d.count}
+                      </span>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Status */}
+              <div className="flex gap-4 text-sm">
+                <span className="text-gray-500">Öppna insights: <strong>{reportData.openInsights}</strong></span>
+                <span className="text-gray-500">Olösta incidenter: <strong>{reportData.unresolvedIncidents}</strong></span>
+                <span className="text-gray-500">Långsamma åtgärder: <strong>{reportData.slowActions}</strong></span>
+              </div>
+            </div>
+
+            {/* Top errors */}
+            {reportData.topErrors.length > 0 && (
+              <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
+                <div className="px-5 py-4 border-b border-gray-100">
+                  <h2 className="font-semibold text-gray-900">Vanligaste felen</h2>
+                </div>
+                <div className="divide-y divide-gray-50">
+                  {reportData.topErrors.map((e: { error: string; count: number }) => (
+                    <div key={e.error} className="px-5 py-3 flex items-center justify-between">
+                      <span className="text-sm font-medium text-red-700">{e.error}</span>
+                      <span className="text-sm text-gray-500">{e.count}x</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* Recommendations */}
+            <div className="bg-amber-50 rounded-xl border border-amber-200 p-5">
+              <h2 className="font-semibold text-amber-900 mb-3">🔧 Boris rekommendationer</h2>
+              <ul className="space-y-2">
+                {reportData.recommendations.map((rec: string, i: number) => (
+                  <li key={i} className="text-sm text-amber-800 flex items-start gap-2">
+                    <span className="mt-0.5">→</span>
+                    <span>{rec}</span>
+                  </li>
+                ))}
+              </ul>
+            </div>
+
+            {/* Top styles */}
+            {reportData.topStyles.length > 0 && (
+              <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
+                <div className="px-5 py-4 border-b border-gray-100">
+                  <h2 className="font-semibold text-gray-900">Populäraste stilar</h2>
+                </div>
+                <div className="divide-y divide-gray-50">
+                  {reportData.topStyles.map((s: { style: string; count: number }) => (
+                    <div key={s.style} className="px-5 py-3 flex items-center justify-between">
+                      <span className="text-sm font-medium text-gray-900">{s.style}</span>
+                      <span className="text-sm text-gray-500">{s.count} genereringar</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
             )}
           </div>
         )}
