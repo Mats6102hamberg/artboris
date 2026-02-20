@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useRef } from 'react'
 import { useRouter } from 'next/navigation'
 import { useTranslation } from '@/lib/i18n/context'
 import Button from '@/components/ui/Button'
@@ -22,6 +22,19 @@ export default function WallcraftLanding() {
   const [heroVisible, setHeroVisible] = useState(false)
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
   const [borisGenerating, setBorisGenerating] = useState(false)
+  const adminTapRef = useRef({ count: 0, timer: 0 })
+
+  const handleAdminTap = () => {
+    const ref = adminTapRef.current
+    ref.count++
+    clearTimeout(ref.timer)
+    if (ref.count >= 5) {
+      ref.count = 0
+      router.push('/admin/boris')
+      return
+    }
+    ref.timer = window.setTimeout(() => { ref.count = 0 }, 1500)
+  }
 
   useEffect(() => {
     setTimeout(() => setHeroVisible(true), 100)
@@ -62,7 +75,10 @@ export default function WallcraftLanding() {
           <span className="text-xl font-semibold tracking-widest uppercase text-gray-900">
             {t('brand.name')}
           </span>
-          <span className="text-[10px] tracking-wider text-gray-400 uppercase hidden sm:block">
+          <span
+            onClick={handleAdminTap}
+            className="text-[10px] tracking-wider text-gray-400 uppercase hidden sm:block cursor-default select-none"
+          >
             by Artboris
           </span>
         </div>
