@@ -694,3 +694,67 @@ model ScannerPortfolioItem {
   @@unique([userId, title, source])
   @@index([userId])
 }
+
+// ─── Boris M — Telemetry & Intelligence ─────────────────
+
+model TelemetryEvent {
+  id         String   @id @default(cuid())
+  event      String   // VIEW_PRODUCT, ADD_TO_CART, PAYMENT_SUCCESS, UI_ERROR_SHOWN, etc.
+  sessionId  String
+  userId     String?  // anonId or real userId
+  path       String   // /wallcraft/design/xxx
+  device     String?  // mobile, desktop, tablet
+  locale     String?  // sv, en, de, fr, nl
+  country    String?
+  metadata   Json?    // arbitrary payload (sizeId, frameId, errorCode, duration, etc.)
+  createdAt  DateTime @default(now())
+
+  @@index([event])
+  @@index([sessionId])
+  @@index([createdAt])
+  @@index([userId])
+}
+
+enum BorisMemoryType {
+  INCIDENT
+  UX_LEARNING
+  PATTERN
+}
+
+model BorisMemory {
+  id          String          @id @default(cuid())
+  type        BorisMemoryType
+  title       String
+  description String
+  data        Json?           // structured payload (root cause, fix, KPI delta, confidence, etc.)
+  tags        String[]        // ["checkout", "mobile", "stripe", "drop-off"]
+  confidence  Float           @default(0.5) // 0.0–1.0
+  resolved    Boolean         @default(false)
+  createdAt   DateTime        @default(now())
+  updatedAt   DateTime        @updatedAt
+
+  @@index([type])
+  @@index([tags])
+  @@index([createdAt])
+}
+
+model BorisInsight {
+  id              String   @id @default(cuid())
+  category        String   // flow_doctor, trend, bug, experiment
+  title           String
+  problem         String
+  segment         String?  // mobile, desktop, sv, en, etc.
+  dataSupport     Json?    // { volume, percentage, funnel step, etc. }
+  hypothesis      String?
+  recommendation  String?
+  experiment      Json?    // { variant, kpi, duration }
+  riskLevel       String   @default("low") // low, medium, high
+  status          String   @default("open") // open, testing, resolved, dismissed
+  resolvedAt      DateTime?
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  @@index([category])
+  @@index([status])
+  @@index([createdAt])
+}

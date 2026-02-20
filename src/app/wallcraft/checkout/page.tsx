@@ -4,6 +4,7 @@ import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { useCart } from '@/lib/cart/CartContext'
 import { formatSEK, getAddonPrice, calculatePrintPrice } from '@/lib/pricing/prints'
+import { useTelemetry } from '@/hooks/useTelemetry'
 
 const SHIPPING_COST = 99
 const VAT_RATE = 0.25
@@ -11,6 +12,7 @@ const VAT_RATE = 0.25
 export default function CheckoutPage() {
   const router = useRouter()
   const { items, totalPriceSEK, clearCart, updateItemAddons } = useCart()
+  const { funnel, error: trackErr } = useTelemetry()
 
   const toggleAddon = (itemId: string, addon: 'mat' | 'acrylic') => {
     const item = items.find(i => i.id === itemId)
@@ -56,6 +58,7 @@ export default function CheckoutPage() {
 
   const handlePlaceOrder = async () => {
     if (!isFormValid || items.length === 0) return
+    funnel('START_CHECKOUT', { itemCount: items.length, totalSEK: grandTotal })
     setIsProcessing(true)
     setCheckoutError(null)
 
@@ -90,9 +93,11 @@ export default function CheckoutPage() {
         clearCart()
         window.location.href = data.url
       } else {
+        trackErr('CHECKOUT_FAIL', data.error || 'Unknown error')
         setCheckoutError(data.error || 'Något gick fel. Försök igen.')
       }
     } catch (err) {
+      trackErr('CHECKOUT_NETWORK', 'Network error')
       setCheckoutError('Nätverksfel. Kontrollera din anslutning och försök igen.')
     } finally {
       setIsProcessing(false)

@@ -16,6 +16,7 @@ import { useCart } from '@/lib/cart/CartContext'
 import BorisVoice from '@/components/boris/BorisVoice'
 import BorisButton from '@/components/boris/BorisButton'
 import { getBorisComment } from '@/lib/boris/curatorVoice'
+import { useTelemetry } from '@/hooks/useTelemetry'
 
 interface DesignVariantData {
   id: string
@@ -296,6 +297,7 @@ export default function WallcraftDesignPage() {
   }))
 
   const { addItem, setIsOpen } = useCart()
+  const { funnel } = useTelemetry()
 
   const handlePublishToggle = async (publish: boolean) => {
     setWantPublish(publish)
@@ -313,6 +315,7 @@ export default function WallcraftDesignPage() {
 
   const handleCheckout = () => {
     if (!design || !selectedVariant) return
+    funnel('ADD_TO_CART', { designId: design.id, sizeId, frameId })
     const sz = getSizeById(sizeId)
     const fr = FRAME_OPTIONS.find(f => f.id === frameId)
     addItem({

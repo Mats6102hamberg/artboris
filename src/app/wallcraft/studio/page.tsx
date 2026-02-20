@@ -11,6 +11,7 @@ import CreditBadge from '@/components/poster/CreditBadge'
 import BorisButton from '@/components/boris/BorisButton'
 import PrintYourOwn from '@/components/poster/PrintYourOwn'
 import { type StylePreset } from '@/types/design'
+import { useTelemetry } from '@/hooks/useTelemetry'
 
 import { DEMO_ROOM_IMAGE, DEMO_WALL_CORNERS } from '@/lib/demo/demoImages'
 
@@ -28,6 +29,7 @@ export default function StudioPage() {
   const [mode, setMode] = useState<'ai' | 'upload'>('ai')
   const [uploadedArtUrl, setUploadedArtUrl] = useState<string | null>(null)
   const [isCreatingUpload, setIsCreatingUpload] = useState(false)
+  const { funnel, track } = useTelemetry()
 
   const startWithDemo = () => {
     setRoomImageUrl(DEMO_ROOM_IMAGE)
@@ -50,11 +52,13 @@ export default function StudioPage() {
     } catch (err) {
       console.error('Upload error:', err)
     }
+    funnel('UPLOAD_ROOM')
     setStep('mark-wall')
   }
 
   const handleGenerate = async () => {
     if (!selectedStyle) return
+    funnel('GENERATE_ART', { style: selectedStyle })
     setIsGenerating(true)
     try {
       const res = await fetch('/api/designs/generate', {
@@ -83,6 +87,7 @@ export default function StudioPage() {
   }
 
   const handleOwnArtwork = async (imageUrl: string) => {
+    track('UPLOAD_OWN_ARTWORK')
     setUploadedArtUrl(imageUrl)
     setIsCreatingUpload(true)
     try {
