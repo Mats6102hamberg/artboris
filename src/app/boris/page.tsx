@@ -201,7 +201,7 @@ export default function BorisDashboard() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-gray-50 text-gray-900" style={{ color: '#111827' }}>
       {/* Header */}
       <div className="bg-white border-b border-gray-200 px-6 py-4">
         <div className="max-w-7xl mx-auto flex items-center justify-between">
@@ -213,7 +213,7 @@ export default function BorisDashboard() {
             <select
               value={days}
               onChange={(e) => setDays(Number(e.target.value))}
-              className="px-3 py-2 border border-gray-200 rounded-lg text-sm"
+              className="px-3 py-2 border border-gray-200 rounded-lg text-sm text-gray-900 bg-white"
             >
               <option value={1}>1 dag</option>
               <option value={7}>7 dagar</option>
@@ -223,7 +223,7 @@ export default function BorisDashboard() {
             <select
               value={device}
               onChange={(e) => setDevice(e.target.value)}
-              className="px-3 py-2 border border-gray-200 rounded-lg text-sm"
+              className="px-3 py-2 border border-gray-200 rounded-lg text-sm text-gray-900 bg-white"
             >
               <option value="">Alla enheter</option>
               <option value="mobile">Mobil</option>
@@ -267,6 +267,11 @@ export default function BorisDashboard() {
         )}
 
         {/* FUNNEL TAB */}
+        {tab === 'funnel' && !funnelData && !loading && (
+          <div className="bg-white rounded-xl border border-gray-200 px-5 py-8 text-center">
+            <p className="text-sm text-gray-500">Ingen funnel-data ännu. Data samlas in när besökare använder sidan.</p>
+          </div>
+        )}
         {tab === 'funnel' && funnelData && (
           <div className="space-y-6">
             {/* KPI cards */}
@@ -444,6 +449,11 @@ export default function BorisDashboard() {
         )}
 
         {/* TRENDS TAB */}
+        {tab === 'trends' && !trendsData && !loading && (
+          <div className="bg-white rounded-xl border border-gray-200 px-5 py-8 text-center">
+            <p className="text-sm text-gray-500">Ingen trend-data ännu. Data samlas in från ordrar och genereringar.</p>
+          </div>
+        )}
         {tab === 'trends' && trendsData && (
           <div className="space-y-6">
             {/* Revenue KPIs */}
@@ -557,6 +567,11 @@ export default function BorisDashboard() {
         )}
 
         {/* REPORT TAB */}
+        {tab === 'report' && !reportData && !loading && (
+          <div className="bg-white rounded-xl border border-gray-200 px-5 py-8 text-center">
+            <p className="text-sm text-gray-500">Ingen rapport-data ännu. Rapporten genereras från telemetri och ordrar.</p>
+          </div>
+        )}
         {tab === 'report' && reportData && (
           <div className="space-y-6">
             {/* Summary */}
