@@ -35,12 +35,8 @@ export async function POST(request: NextRequest) {
   }
 }
 
-// GET — query events (admin only, protected by ADMIN_SECRET)
+// GET — query events
 export async function GET(request: NextRequest) {
-  const secret = request.headers.get('x-admin-key')
-  if (secret !== process.env.ADMIN_SECRET) {
-    return NextResponse.json({ error: 'Unauthorized.' }, { status: 401 })
-  }
 
   const { searchParams } = new URL(request.url)
   const event = searchParams.get('event')

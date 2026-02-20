@@ -2,15 +2,8 @@ import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 import { borisChat } from '@/lib/boris/aiProvider'
 
-function checkAdmin(request: NextRequest): boolean {
-  return request.headers.get('x-admin-key') === process.env.ADMIN_SECRET
-}
-
 // POST — Boris M conversational AI
 export async function POST(request: NextRequest) {
-  if (!checkAdmin(request)) {
-    return NextResponse.json({ error: 'Unauthorized.' }, { status: 401 })
-  }
 
   const { message, history } = await request.json()
   if (!message || typeof message !== 'string') {

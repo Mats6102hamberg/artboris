@@ -1,15 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 
-function checkAdmin(request: NextRequest): boolean {
-  return request.headers.get('x-admin-key') === process.env.ADMIN_SECRET
-}
-
 // GET — sales & trend intelligence
 export async function GET(request: NextRequest) {
-  if (!checkAdmin(request)) {
-    return NextResponse.json({ error: 'Unauthorized.' }, { status: 401 })
-  }
 
   const { searchParams } = new URL(request.url)
   const days = parseInt(searchParams.get('days') || '30', 10)

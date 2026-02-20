@@ -1,15 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 
-function checkAdmin(request: NextRequest): boolean {
-  return request.headers.get('x-admin-key') === process.env.ADMIN_SECRET
-}
-
 // GET — list insights
 export async function GET(request: NextRequest) {
-  if (!checkAdmin(request)) {
-    return NextResponse.json({ error: 'Unauthorized.' }, { status: 401 })
-  }
 
   const { searchParams } = new URL(request.url)
   const category = searchParams.get('category')
@@ -31,9 +24,6 @@ export async function GET(request: NextRequest) {
 
 // POST — create insight
 export async function POST(request: NextRequest) {
-  if (!checkAdmin(request)) {
-    return NextResponse.json({ error: 'Unauthorized.' }, { status: 401 })
-  }
 
   try {
     const body = await request.json()
@@ -66,9 +56,6 @@ export async function POST(request: NextRequest) {
 
 // PATCH — update insight status
 export async function PATCH(request: NextRequest) {
-  if (!checkAdmin(request)) {
-    return NextResponse.json({ error: 'Unauthorized.' }, { status: 401 })
-  }
 
   try {
     const body = await request.json()

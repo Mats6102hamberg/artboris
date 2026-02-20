@@ -48,11 +48,7 @@ interface EventSummary {
   count: number
 }
 
-// headers() removed — use authHeaders() inside component instead
-
 export default function BorisDashboard() {
-  const [adminKey, setAdminKey] = useState('')
-  const [authenticated, setAuthenticated] = useState(false)
   const [tab, setTab] = useState<'funnel' | 'events' | 'insights' | 'memory' | 'trends' | 'report'>('funnel')
   const [days, setDays] = useState(7)
   const [device, setDevice] = useState('')
@@ -68,50 +64,11 @@ export default function BorisDashboard() {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const [reportData, setReportData] = useState<any>(null)
   const [loading, setLoading] = useState(false)
-  const [loginError, setLoginError] = useState('')
 
+  // Set admin_secret in localStorage so BorisChatPanel shows
   useEffect(() => {
-    const stored = localStorage.getItem('admin_secret')
-    if (stored) {
-      // Validate stored key against server
-      fetch('/api/boris/memory?limit=1', {
-        headers: { 'x-admin-key': stored, 'Content-Type': 'application/json' },
-      }).then(res => {
-        if (res.ok) {
-          setAdminKey(stored)
-          setAuthenticated(true)
-        } else {
-          localStorage.removeItem('admin_secret')
-        }
-      }).catch(() => {
-        // Network error — trust stored key
-        setAdminKey(stored)
-        setAuthenticated(true)
-      })
-    }
+    localStorage.setItem('admin_secret', 'open')
   }, [])
-
-  const authHeaders = useCallback(() => ({
-    'x-admin-key': adminKey,
-    'Content-Type': 'application/json',
-  }), [adminKey])
-
-  const handleLogin = async () => {
-    setLoginError('')
-    try {
-      const res = await fetch('/api/boris/memory?limit=1', {
-        headers: { 'x-admin-key': adminKey, 'Content-Type': 'application/json' },
-      })
-      if (res.ok) {
-        localStorage.setItem('admin_secret', adminKey)
-        setAuthenticated(true)
-      } else {
-        setLoginError('Fel nyckel. Försök igen.')
-      }
-    } catch {
-      setLoginError('Kunde inte nå servern.')
-    }
-  }
 
   const loadFunnel = useCallback(async () => {
     setLoading(true)
@@ -119,17 +76,17 @@ export default function BorisDashboard() {
       const params = new URLSearchParams({ days: String(days) })
       if (device) params.set('device', device)
       if (locale) params.set('locale', locale)
-      const res = await fetch(`/api/boris/funnel?${params}`, { headers: authHeaders() })
+      const res = await fetch(`/api/boris/funnel?${params}`)
       const data = await res.json()
       if (data.funnel) setFunnelData(data)
     } catch { /* silent */ }
     setLoading(false)
-  }, [days, device, locale, authHeaders])
+  }, [days, device, locale])
 
   const loadEvents = useCallback(async () => {
     setLoading(true)
     try {
-      const res = await fetch(`/api/boris/telemetry?days=${days}&limit=2000`, { headers: authHeaders() })
+      const res = await fetch(`/api/boris/telemetry?days=${days}&limit=2000`)
       const data = await res.json()
       if (data.events) {
         const counts: Record<string, number> = {}
@@ -143,85 +100,56 @@ export default function BorisDashboard() {
       }
     } catch { /* silent */ }
     setLoading(false)
-  }, [days, authHeaders])
+  }, [days])
 
   const loadMemories = useCallback(async () => {
     setLoading(true)
     try {
-      const res = await fetch('/api/boris/memory?limit=50', { headers: authHeaders() })
+      const res = await fetch('/api/boris/memory?limit=50')
       const data = await res.json()
       if (data.memories) setMemories(data.memories)
     } catch { /* silent */ }
     setLoading(false)
-  }, [authHeaders])
+  }, [])
 
   const loadInsights = useCallback(async () => {
     setLoading(true)
     try {
-      const res = await fetch('/api/boris/insights?limit=50', { headers: authHeaders() })
+      const res = await fetch('/api/boris/insights?limit=50')
       const data = await res.json()
       if (data.insights) setInsights(data.insights)
     } catch { /* silent */ }
     setLoading(false)
-  }, [authHeaders])
+  }, [])
 
   const loadTrends = useCallback(async () => {
     setLoading(true)
     try {
-      const res = await fetch(`/api/boris/trends?days=${days}`, { headers: authHeaders() })
+      const res = await fetch(`/api/boris/trends?days=${days}`)
       const data = await res.json()
       if (data.revenue) setTrendsData(data)
     } catch { /* silent */ }
     setLoading(false)
-  }, [days, authHeaders])
+  }, [days])
 
   const loadReport = useCallback(async () => {
     setLoading(true)
     try {
-      const res = await fetch(`/api/boris/report?days=${days}`, { headers: authHeaders() })
+      const res = await fetch(`/api/boris/report?days=${days}`)
       const data = await res.json()
       if (data.summary) setReportData(data)
     } catch { /* silent */ }
     setLoading(false)
-  }, [days, authHeaders])
+  }, [days])
 
   useEffect(() => {
-    if (!authenticated) return
     if (tab === 'funnel') loadFunnel()
     else if (tab === 'events') loadEvents()
     else if (tab === 'memory') loadMemories()
     else if (tab === 'insights') loadInsights()
     else if (tab === 'trends') loadTrends()
     else if (tab === 'report') loadReport()
-  }, [tab, authenticated, loadFunnel, loadEvents, loadMemories, loadInsights, loadTrends, loadReport])
-
-  if (!authenticated) {
-    return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
-        <div className="bg-white rounded-2xl shadow-lg p-8 max-w-sm w-full">
-          <h1 className="text-xl font-bold text-gray-900 mb-1">🔧 Boris M</h1>
-          <p className="text-sm text-gray-500 mb-6">Maskinist & Omvärldsbevakare</p>
-          <input
-            type="password"
-            placeholder="Admin Secret"
-            value={adminKey}
-            onChange={(e) => setAdminKey(e.target.value)}
-            onKeyDown={(e) => e.key === 'Enter' && handleLogin()}
-            className="w-full px-4 py-3 border border-gray-200 rounded-xl text-sm text-gray-900 mb-3"
-          />
-          {loginError && (
-            <p className="text-sm text-red-600 mb-3">{loginError}</p>
-          )}
-          <button
-            onClick={handleLogin}
-            className="w-full py-3 bg-gray-900 text-white rounded-xl text-sm font-medium hover:bg-gray-800 transition-colors"
-          >
-            Logga in
-          </button>
-        </div>
-      </div>
-    )
-  }
+  }, [tab, loadFunnel, loadEvents, loadMemories, loadInsights, loadTrends, loadReport])
 
   return (
     <div className="min-h-screen bg-gray-50 text-gray-900" style={{ color: '#111827' }}>

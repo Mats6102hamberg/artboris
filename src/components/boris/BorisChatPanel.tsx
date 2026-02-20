@@ -12,31 +12,7 @@ export default function BorisChatPanel() {
   const [messages, setMessages] = useState<ChatMessage[]>([])
   const [input, setInput] = useState('')
   const [loading, setLoading] = useState(false)
-  const [adminKey, setAdminKey] = useState('')
   const scrollRef = useRef<HTMLDivElement>(null)
-
-  useEffect(() => {
-    // Check immediately
-    const stored = localStorage.getItem('admin_secret')
-    if (stored) setAdminKey(stored)
-
-    // Poll every second (catches same-tab writes from Boris dashboard login)
-    const interval = setInterval(() => {
-      const key = localStorage.getItem('admin_secret')
-      if (key && key !== adminKey) setAdminKey(key)
-    }, 1000)
-
-    // Listen for cross-tab storage events
-    const onStorage = (e: StorageEvent) => {
-      if (e.key === 'admin_secret' && e.newValue) setAdminKey(e.newValue)
-    }
-    window.addEventListener('storage', onStorage)
-
-    return () => {
-      clearInterval(interval)
-      window.removeEventListener('storage', onStorage)
-    }
-  }, [adminKey])
 
   useEffect(() => {
     if (scrollRef.current) {
@@ -53,13 +29,10 @@ export default function BorisChatPanel() {
     setLoading(true)
 
     try {
-      // Always read fresh from localStorage in case it changed
-      const currentKey = localStorage.getItem('admin_secret') || adminKey
       const res = await fetch('/api/boris/chat', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'x-admin-key': currentKey,
         },
         body: JSON.stringify({
           message: userMsg.content,
@@ -71,11 +44,6 @@ export default function BorisChatPanel() {
 
       if (data.reply) {
         setMessages((prev) => [...prev, { role: 'assistant', content: data.reply }])
-      } else if (res.status === 401) {
-        setMessages((prev) => [
-          ...prev,
-          { role: 'assistant', content: '🔒 Fel admin-nyckel. Gå till /boris och logga in med rätt ADMIN_SECRET.' },
-        ])
       } else {
         setMessages((prev) => [
           ...prev,
@@ -90,10 +58,7 @@ export default function BorisChatPanel() {
     }
 
     setLoading(false)
-  }, [input, loading, adminKey, messages])
-
-  // Don't render if no admin key
-  if (!adminKey) return null
+  }, [input, loading, messages])
 
   return (
     <>

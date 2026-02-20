@@ -1,10 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 
-function checkAdmin(request: NextRequest): boolean {
-  return request.headers.get('x-admin-key') === process.env.ADMIN_SECRET
-}
-
 const FUNNEL_STEPS = [
   'PAGE_VIEW',
   'VIEW_PRODUCT',
@@ -23,10 +19,6 @@ const FUNNEL_STEPS = [
 
 // GET — funnel analysis with drop-off rates, segmented by device/locale
 export async function GET(request: NextRequest) {
-  if (!checkAdmin(request)) {
-    return NextResponse.json({ error: 'Unauthorized.' }, { status: 401 })
-  }
-
   const { searchParams } = new URL(request.url)
   const days = parseInt(searchParams.get('days') || '7', 10)
   const device = searchParams.get('device') // mobile, desktop, tablet
