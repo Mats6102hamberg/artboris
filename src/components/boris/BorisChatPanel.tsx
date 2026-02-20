@@ -53,11 +53,13 @@ export default function BorisChatPanel() {
     setLoading(true)
 
     try {
+      // Always read fresh from localStorage in case it changed
+      const currentKey = localStorage.getItem('admin_secret') || adminKey
       const res = await fetch('/api/boris/chat', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'x-admin-key': adminKey,
+          'x-admin-key': currentKey,
         },
         body: JSON.stringify({
           message: userMsg.content,
@@ -69,6 +71,11 @@ export default function BorisChatPanel() {
 
       if (data.reply) {
         setMessages((prev) => [...prev, { role: 'assistant', content: data.reply }])
+      } else if (res.status === 401) {
+        setMessages((prev) => [
+          ...prev,
+          { role: 'assistant', content: '🔒 Fel admin-nyckel. Gå till /boris och logga in med rätt ADMIN_SECRET.' },
+        ])
       } else {
         setMessages((prev) => [
           ...prev,

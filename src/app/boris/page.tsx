@@ -48,13 +48,7 @@ interface EventSummary {
   count: number
 }
 
-const ADMIN_KEY = typeof window !== 'undefined'
-  ? localStorage.getItem('admin_secret') || ''
-  : ''
-
-function headers() {
-  return { 'x-admin-key': ADMIN_KEY, 'Content-Type': 'application/json' }
-}
+// headers() removed — use authHeaders() inside component instead
 
 export default function BorisDashboard() {
   const [adminKey, setAdminKey] = useState('')
@@ -74,12 +68,26 @@ export default function BorisDashboard() {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const [reportData, setReportData] = useState<any>(null)
   const [loading, setLoading] = useState(false)
+  const [loginError, setLoginError] = useState('')
 
   useEffect(() => {
     const stored = localStorage.getItem('admin_secret')
     if (stored) {
-      setAdminKey(stored)
-      setAuthenticated(true)
+      // Validate stored key against server
+      fetch('/api/boris/memory?limit=1', {
+        headers: { 'x-admin-key': stored, 'Content-Type': 'application/json' },
+      }).then(res => {
+        if (res.ok) {
+          setAdminKey(stored)
+          setAuthenticated(true)
+        } else {
+          localStorage.removeItem('admin_secret')
+        }
+      }).catch(() => {
+        // Network error — trust stored key
+        setAdminKey(stored)
+        setAuthenticated(true)
+      })
     }
   }, [])
 
@@ -88,9 +96,21 @@ export default function BorisDashboard() {
     'Content-Type': 'application/json',
   }), [adminKey])
 
-  const handleLogin = () => {
-    localStorage.setItem('admin_secret', adminKey)
-    setAuthenticated(true)
+  const handleLogin = async () => {
+    setLoginError('')
+    try {
+      const res = await fetch('/api/boris/memory?limit=1', {
+        headers: { 'x-admin-key': adminKey, 'Content-Type': 'application/json' },
+      })
+      if (res.ok) {
+        localStorage.setItem('admin_secret', adminKey)
+        setAuthenticated(true)
+      } else {
+        setLoginError('Fel nyckel. Försök igen.')
+      }
+    } catch {
+      setLoginError('Kunde inte nå servern.')
+    }
   }
 
   const loadFunnel = useCallback(async () => {
@@ -187,8 +207,11 @@ export default function BorisDashboard() {
             value={adminKey}
             onChange={(e) => setAdminKey(e.target.value)}
             onKeyDown={(e) => e.key === 'Enter' && handleLogin()}
-            className="w-full px-4 py-3 border border-gray-200 rounded-xl text-sm mb-3"
+            className="w-full px-4 py-3 border border-gray-200 rounded-xl text-sm text-gray-900 mb-3"
           />
+          {loginError && (
+            <p className="text-sm text-red-600 mb-3">{loginError}</p>
+          )}
           <button
             onClick={handleLogin}
             className="w-full py-3 bg-gray-900 text-white rounded-xl text-sm font-medium hover:bg-gray-800 transition-colors"
