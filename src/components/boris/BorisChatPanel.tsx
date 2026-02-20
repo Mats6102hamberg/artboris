@@ -16,9 +16,27 @@ export default function BorisChatPanel() {
   const scrollRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
+    // Check immediately
     const stored = localStorage.getItem('admin_secret')
     if (stored) setAdminKey(stored)
-  }, [])
+
+    // Poll every second (catches same-tab writes from Boris dashboard login)
+    const interval = setInterval(() => {
+      const key = localStorage.getItem('admin_secret')
+      if (key && key !== adminKey) setAdminKey(key)
+    }, 1000)
+
+    // Listen for cross-tab storage events
+    const onStorage = (e: StorageEvent) => {
+      if (e.key === 'admin_secret' && e.newValue) setAdminKey(e.newValue)
+    }
+    window.addEventListener('storage', onStorage)
+
+    return () => {
+      clearInterval(interval)
+      window.removeEventListener('storage', onStorage)
+    }
+  }, [adminKey])
 
   useEffect(() => {
     if (scrollRef.current) {
