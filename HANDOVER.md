@@ -3,7 +3,7 @@
 **GitHub:** https://github.com/Mats6102hamberg/artboris
 **Vercel:** https://artboris.vercel.app/
 **Local path:** `/Users/matshamberg/CascadeProjects/Artboris`
-**Last updated:** 2026-02-20
+**Last updated:** 2026-02-21
 
 ---
 
@@ -73,6 +73,8 @@ stripe listen --forward-to localhost:3000/api/webhook/stripe
 | `/wallcraft/design/[id]` | Design Editor | Position on wall, pick frame & size, publish toggle, auto-saves state |
 | `/wallcraft/gallery` | Gallery | Public inspiration gallery with filter (incl. "✨ AI Art"), sort, likes, AI badge, legal notice + "Sell your art" CTA |
 | `/terms` | Terms of Service | Full terms page with 8 sections (SV+EN toggle), AI-generated designs section highlighted |
+| `/wallcraft/create` | Create AI Art | Two modes: standalone AI generation with style picker, or img2img from existing motif (promptStrength slider) |
+| `/wallcraft/credits` | Buy Credits | Credit packages (100/300/1000), balance display, Stripe checkout |
 | `/wallcraft/checkout` | Checkout | Stripe checkout flow (Apple Pay, Klarna, cards) |
 | `/wallcraft/mandala` | Mandala Maker | Radial symmetry drawing tool (4–16 fold) |
 | `/wallcraft/pattern` | Pattern Studio | Seamless tile pattern creator with live repeat preview |
@@ -184,7 +186,8 @@ Upload photo → Pick style (21 styles: 3 Boris + 18 regular) + transformation s
 | StylePicker | `components/poster/StylePicker.tsx` | 21 styles (3 Boris Collection + 18 regular) with color preview |
 | MockupPreview | `components/poster/MockupPreview.tsx` | CSS-based wall placement, drag/pinch/resize, +/- scale buttons, mobile-optimized touch |
 | PublishToggle | `components/poster/PublishToggle.tsx` | Gallery publish toggle (calls API on toggle) |
-| CreditBadge | `components/poster/CreditBadge.tsx` | Credit balance display |
+| CreditBadge | `components/poster/CreditBadge.tsx` | Credit balance display, clicks → /wallcraft/credits |
+| AddonsPanel | `components/poster/AddonsPanel.tsx` | Passepartout, acrylic glass, screws & screwdriver addons with per-size pricing |
 | ErrorBoundary | `components/ErrorBoundary.tsx` | React error boundary → Sentry + CrashCatcher |
 | SentryUserSync | `components/SentryUserSync.tsx` | Syncs session user.id/email to Sentry context |
 | BorisButton | `components/boris/BorisButton.tsx` | Floating FAB or inline chat button for Boris AI |
@@ -327,12 +330,13 @@ Error occurs (client or server)
 **Admin auth:** Server-side layout (`src/app/admin/layout.tsx`) checks `auth()` and redirects.
 No edge middleware (removed due to Vercel 1MB edge function limit with next-auth).
 
-**Boris M admin:** `/boris` uses its own auth (ADMIN_SECRET in localStorage, sent as `x-admin-key` header). Not behind NextAuth admin layout.
+- **Boris M admin:** `/boris` — currently **open access** (auth temporarily removed). All 7 API routes + dashboard + chat panel work without authentication.
+- **Auth restoration:** All removed auth code saved in memory (ID: af5c9532) for easy re-enablement.
 - **Secret entrance:** 5 rapid clicks on "by Artboris" text in header → navigates to `/boris`
 - **Chat API:** `POST /api/boris/chat` — gathers live data (sales, funnel, errors, incidents, insights) + sends to GPT via `borisChat()`
-- **Chat UI:** `BorisChatPanel` in root layout — floating 🔧 button, appears after admin login, polls localStorage every 1s
+- **Chat UI:** `BorisChatPanel` in root layout — floating 🔧 button, always visible (no auth gate)
 - **Dashboard:** 6 tabs (Funnel, Events, Trends, Insights, Memory, Report) + 6 API endpoints under `/api/boris/*`
-- **Env var:** `ADMIN_SECRET` (currently `boris-admin-2024`)
+- **Env var:** `ADMIN_SECRET` (currently `boris-admin-2024`, not enforced)
 
 ### Brand Style
 
@@ -374,6 +378,10 @@ No edge middleware (removed due to Vercel 1MB edge function limit with next-auth
 - [x] **GlobalNav login** — Login/account button in navigation.
 - [x] **i18n 5 språk** — EN, SV, DE, FR, NL. LanguageSwitcher + Terms-sida på alla 5 språk.
 - [x] **Boris Master Prompt** — 3 Boris fine art portrait styles (Silence/Between/Awakening) med master prompt-bas, negative prompt, flux-dev, print-modifiers, variation hints, Boris Collection UI-sektion.
+- [x] **Boris auth removed (temporary)** — All admin auth removed from Boris APIs + dashboard + chat. Saved in memory for easy restoration.
+- [x] **AI Art creation** — Prominent "Skapa AI-konst" button in hero, "Skapa ny konst från detta" on gallery items + design page, new `/wallcraft/create` page with img2img support.
+- [x] **Credits purchase page** — `/wallcraft/credits` with 3 packages, balance display, nav link, CreditBadge clickable.
+- [x] **Design addons** — AddonsPanel: passepartout (79–149 kr), acrylic glass (149–349 kr, requires frame), screws (49 kr), screwdriver (79 kr). Integrated in design editor sidebar + pricing + checkout.
 
 ### For Production
 - [x] **Auth** — NextAuth with JWT sessions, Google + Credentials providers, admin role check via layout
@@ -447,4 +455,4 @@ Push: `git push origin main`
 
 ---
 
-*Last updated: 2026-02-20 (session 7) · Built with Cascade*
+*Last updated: 2026-02-21 (session 8) · Built with Cascade*

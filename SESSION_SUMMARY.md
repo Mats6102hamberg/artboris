@@ -6,7 +6,7 @@
 - **GitHub:** `https://github.com/Mats6102hamberg/artboris.git`
 - **Branch:** `main`
 - **Deploy:** Vercel (kopplat till GitHub-repot)
-- **Senaste commit:** `0a9cc81`
+- **Senaste commit:** `bb0a3a3`
 
 ## Tech Stack
 - Next.js 16, React 19, TypeScript
@@ -315,6 +315,50 @@
 - **Env var:** `ADMIN_SECRET` — krävs för Boris dashboard + chat API
 - **Fixar:** Osynlig text i inputfält + selects (explicit `text-gray-900`), tomma-tillstånd för alla flikar
 
+### 35. Auth borttagen från Boris (temporärt)
+- **Commits:** `e94d67a` (föregående session)
+- **checkAdmin** borttagen från alla 7 Boris API-routes (chat, funnel, telemetry, memory, insights, trends, report)
+- **Dashboard login** borttagen — renderar direkt utan inloggning
+- **BorisChatPanel** — ingen admin_secret-polling, ingen x-admin-key header, alltid synlig
+- **debug-auth endpoint** raderad
+- **Allt sparat i minnet** för enkel återställning (memory ID: af5c9532)
+
+### 36. AI-konst — tydligare knapp + skapa från motiv
+- **Commits:** `7542120`, `db484c1`
+- **Hero:** Lila "Skapa AI-konst"-knapp med sparkle-ikon i hero-sektionen (gradient purple→fuchsia)
+- **Creative Tools kompaktare:** Boris-kortet och Design Studio-kortet nedskalade till samma storlek som övriga kort (borttagen sm:col-span-2)
+- **Galleri:** "Skapa ny konst från detta"-knapp på varje AI-motiv (hover-overlay, stopPropagation)
+- **Design-sida:** Lila "Skapa ny konst från detta motiv"-knapp i sidopanelen
+- **Ny sida `/wallcraft/create`:** Två lägen:
+  - **Med motiv (img2img):** Visar original, slider "hur mycket ska ändras" (promptStrength 0.3–0.9), stilval, beskrivning
+  - **Utan motiv:** "Boris skapar åt dig" + stilval + beskrivning
+- **Filer:** `WallcraftClient.tsx`, `GalleryClient.tsx`, `design/[id]/page.tsx`, `create/page.tsx`
+
+### 37. Köp Credits-sida
+- **Commit:** `7571f9d`
+- **Ny sida `/wallcraft/credits`:** Dedikerad köp-sida med:
+  - Aktuellt saldo + dagliga gratis-genereringar
+  - 3 paket: Start (100 cr / 129 kr), Populär (300 cr / 299 kr), Pro (1000 cr / 799 kr)
+  - Bonus-banner: +20 credits vid första köpet
+  - Prislista per funktion (Boris-analys 15 cr, rum+rådgivning 10 cr, AI-konst 5 cr, etc.)
+  - Stripe checkout vid klick
+- **Nav:** "Credits"-länk i desktop-nav + mobilmeny
+- **CreditBadge:** Klick navigerar nu till `/wallcraft/credits` (default onClick)
+- **Filer:** `credits/page.tsx`, `WallcraftClient.tsx`, `CreditBadge.tsx`
+
+### 38. Passepartout, akrylglas & tillbehör som tillval
+- **Commit:** `bb0a3a3`
+- **Ny komponent `AddonsPanel.tsx`:** Tillval-panel med checkboxar:
+  - **Passepartout** — vit, 79–149 kr beroende på storlek
+  - **Akrylglas** — skyddar motivet, 149–349 kr. Kräver ram (disabled utan ram)
+  - **Skruvar & plugg** — 49 kr
+  - **Skruvmejsel** — 79 kr
+- **Pricing utökad:** `ACCESSORY_PRICES_SEK`, `getAccessoryPrice()` i `prints.ts`
+- **CartItem utökad:** `screws?`, `screwdriver?`, `accessoriesPriceSEK?`
+- **Design-sida:** AddonsPanel i sidopanelen, prissammanställning visar alla tillval, grandTotal inkl. tillbehör
+- **Checkout-knappar:** Visar grandTotal (poster + ram + passepartout + akrylglas + tillbehör)
+- **Filer:** `AddonsPanel.tsx`, `prints.ts`, `CartContext.tsx`, `design/[id]/page.tsx`
+
 ## Kända issues / TODO
 - Market checkout saknar orderbekräftelse-mejlval (bara Wallcraft + Poster Lab har det)
 - Crimson-priser (costSEK) behöver fyllas i efter avtal med Crimson
@@ -322,6 +366,11 @@
 
 ## Git-historik (senaste 20)
 ```
+bb0a3a3 feat: passepartout, akrylglas, skruvar & skruvmejsel som tillval på design-sidan
+7571f9d feat: /wallcraft/credits köp-sida + Credits-länk i nav + CreditBadge navigerar till köp-sidan
+db484c1 fix: kompaktare Creative Tools-kort — alla samma storlek, inget täcker
+7542120 feat: Skapa AI-konst knapp i hero + 'Skapa ny konst från motiv' i galleri & design-sida + /wallcraft/create sida
+e94d67a fix: ta bort all auth från Boris (temporärt)
 0a9cc81 fix: synlig text i Boris Dashboard — explicit textfärger + tomma-tillstånd
 6521ff2 fix: synlig textfärg i Boris Chat inputfält
 079fb70 fix: BorisChatPanel pollar localStorage
@@ -338,8 +387,4 @@ fc61ab9 fix: loggning i safety check + force redeploy
 3945e68 feat: ta bort design — DELETE endpoint + bekräftelse-modal
 24bb535 fix: kreativa verktyg → create-from-upload
 b423257 feat: auto-detect språk + välkomst-språkväljare
-1c73c82 feat: akrylglas + passepartout tillval i checkout
-9d188fa feat: internationalize landing page with LanguageSwitcher
-5525049 feat: Boris AI quick-generate button in Poster Lab hero
-7db2959 fix: safety check false positives + Boris quick-generate button
 ```
