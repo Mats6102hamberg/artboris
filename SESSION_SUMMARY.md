@@ -6,7 +6,7 @@
 - **GitHub:** `https://github.com/Mats6102hamberg/artboris.git`
 - **Branch:** `main`
 - **Deploy:** Vercel (kopplat till GitHub-repot)
-- **Senaste commit:** `1c73c82`
+- **Senaste commit:** `441e3aa`
 
 ## Tech Stack
 - Next.js 16, React 19, TypeScript
@@ -242,6 +242,41 @@
 - **Kombinerbart:** Båda tillval kan väljas samtidigt
 - **Filer:** `prisma/schema.prisma`, `src/lib/pricing/prints.ts`, `src/lib/cart/CartContext.tsx`, `src/app/api/checkout/route.ts`, `src/app/wallcraft/checkout/page.tsx`, `src/app/wallcraft/design/[id]/page.tsx`
 
+### 28. Auto-detect språk + välkomst-språkväljare
+- **Commit:** `b423257`
+- **detectLocale():** Läser `localStorage` → `navigator.language` → mappar till stödd locale (sv/en/de/fr/nl)
+- **I18nProvider i Providers.tsx:** Global provider med auto-detect, alla sidor får rätt språk
+- **LocaleWelcome:** Fullscreen välkomst-banner vid första besök — visar flaggor + "Välkommen" på alla 5 språk
+- **Filer:** `src/lib/i18n/index.ts`, `src/components/Providers.tsx`, `src/components/ui/LocaleWelcome.tsx`, `src/app/wallcraft/layout.tsx`
+
+### 29. Kreativa verktyg — fix save-flöde
+- **Commit:** `24bb535`
+- **Problem:** Colorfield, Mandala, Abstract, Pattern använde `/api/designs/generate` (AI-endpoint) för att spara manuella canvas-verk → slösade Replicate-credits + kunde misslyckas
+- **Fix:** Alla 4 verktyg använder nu `/api/designs/create-from-upload` med `style` och `title`
+- **create-from-upload utökad:** Accepterar `customStyle` och `customTitle` i request body
+- **Filer:** `src/app/wallcraft/{colorfield,mandala,abstract,pattern}/page.tsx`, `src/app/api/designs/create-from-upload/route.ts`
+
+### 30. Ta bort design — DELETE endpoint + bekräftelse-modal
+- **Commit:** `3945e68`
+- **API:** `DELETE /api/designs/[id]` — ownership-check via `getUserId()`, cascade-delete av varianter
+- **UI:** "Ta bort design"-knapp i sidebar + bekräftelse-modal med varning om permanent radering
+- **Redirect:** Till `/wallcraft` efter lyckad borttagning
+- **Filer:** `src/app/api/designs/[id]/route.ts`, `src/app/wallcraft/design/[id]/page.tsx`
+
+### 31. Safety check debug + Vercel deploy-fix
+- **Commits:** `fc61ab9`, `da280dd`, `1855a1f`
+- **Problem:** Alla AI-genereringar blockerades på production med "Prompten innehåller otillåtet innehåll" — men lokalt fungerade allt
+- **Orsak:** Vercel auto-deploy hade slutat fungera — production körde gammal kod
+- **Lösning:** `vercel --prod` via CLI tvingade deploy av senaste koden
+- **Verifierat:** Replicate API fungerar (HTTP 200), safety check passerar alla normala prompter lokalt, 4 varianter genereras korrekt
+
+### 32. "Eget verk"-flik i Wallcraft Studio
+- **Commit:** `441e3aa`
+- **Ny toggle i steg 3:** "✨ AI-generera" / "📷 Eget verk"
+- **AI-läge:** Befintligt flöde (StylePicker → Boris → textarea → generera)
+- **Upload-läge:** PrintYourOwn-komponent med DPI-analys → skapar design via `create-from-upload` med rum + väggkoordinater → redirect till design-editor
+- **Fil:** `src/app/wallcraft/studio/page.tsx`
+
 ## Kända issues / TODO
 - Market checkout saknar orderbekräftelse-mejlval (bara Wallcraft + Poster Lab har det)
 - Crimson-priser (costSEK) behöver fyllas i efter avtal med Crimson
@@ -249,35 +284,24 @@
 
 ## Git-historik (senaste 20)
 ```
+441e3aa feat: 'Eget verk'-flik i Wallcraft Studio
+1855a1f fix: detaljerad loggning i generatePreview (debug)
+da280dd fix: visa vilken safety-pattern som triggar (debug)
+fc61ab9 fix: loggning i safety check + force redeploy
+3945e68 feat: ta bort design — DELETE endpoint + bekräftelse-modal
+24bb535 fix: kreativa verktyg → create-from-upload
+b423257 feat: auto-detect språk + välkomst-språkväljare
 1c73c82 feat: akrylglas + passepartout tillval i checkout
 9d188fa feat: internationalize landing page with LanguageSwitcher
 5525049 feat: Boris AI quick-generate button in Poster Lab hero
 7db2959 fix: safety check false positives + Boris quick-generate button
-63397be docs: uppdatera SESSION_SUMMARY med i18n-komponenter + demo-rum förbättringar
-eaa2d4f demo room: zoom in closer to sofa/wall, pre-defined wall corners, larger poster
-d8c8b01 i18n: internationalize all customer-facing components (boris, market, artist, posterLab, order)
-fbc1c3b feat: lägg till nederländska (NL) som femte språk
-7893db3 feat: lägg till franska (FR) som fjärde språk
-29855d8 feat: lägg till tyska (DE) som tredje språk
+63397be docs: uppdatera SESSION_SUMMARY
+eaa2d4f demo room: zoom in, pre-defined wall corners, larger poster
+d8c8b01 i18n: internationalize all customer-facing components
+fbc1c3b feat: lägg till nederländska (NL)
+7893db3 feat: lägg till franska (FR)
+29855d8 feat: lägg till tyska (DE)
 d7caff0 docs: uppdatera SESSION_SUMMARY + HANDOVER
 b54a706 feat: AI-förbättring av konstverksbilder vid uppladdning
-1d2392e feat: lägg till logga in/konto-knapp i GlobalNav
-711770e fix: ta bort rotation på hero-illustrationen
-9ce7267 feat: hero-bild med CSS-baserad rumsscen på landningssidan
-32e7db6 docs: uppdatera SESSION_SUMMARY och HANDOVER med senaste funktioner
-f661c71 fix: gör Boris-knappar mer synliga på desktop
-f0bd3ba feat: Sentry user context — user.id, email, orderId, designId på varje fel
-acaf2d1 fix: flytta admin-auth från middleware till server-side layout
-b663d12 Add termsAcceptedAt + termsVersion to User model, validate on register
-69c956e Legal copy: 4-nivå AI-villkor + /terms sida + i18n + Sentry setup
-37487e8 feat: CrashCatcher + Supertestaren-integration
-7847206 feat: AI fallback + admin-notifikation
-62cd8a3 feat: gör "Mina Tavlor" user-scoped via getUserId()
-2df26fa docs: uppdatera README, SESSION_SUMMARY och HANDOVER
-36980a6 fix: bättre touch-hantering i MockupPreview för mobil
-d1b191a feat: admin-prispanel — DB-driven priskonfiguration
-a274aca feat: 4 Crimson-förbättringar — retry, admin resend, webhook, market-ordrar
-abd6905 feat: automatisk tryckorder till Crimson via e-post vid betalad order
-3f8d401 feat: orderbekräftelse e-postval på success-sidan
-a2b7fa0 feat: orderbekräftelse e-postval i checkout + auth, admin, SEO
+1d2392e feat: logga in/konto-knapp i GlobalNav
 ```
