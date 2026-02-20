@@ -5,12 +5,13 @@ import { useParams, useRouter } from 'next/navigation'
 import { useTranslation } from '@/lib/i18n/context'
 import MockupPreview from '@/components/poster/MockupPreview'
 import FramePicker from '@/components/poster/FramePicker'
+import AddonsPanel, { type AddonSelections } from '@/components/poster/AddonsPanel'
 import SizePicker from '@/components/poster/SizePicker'
 import CreditBadge from '@/components/poster/CreditBadge'
 import PublishToggle from '@/components/poster/PublishToggle'
 import VariantsGrid from '@/components/poster/VariantsGrid'
 import Button from '@/components/ui/Button'
-import { calculatePrintPrice, formatSEK, getFrameById as getFrame, FRAME_OPTIONS } from '@/lib/pricing/prints'
+import { calculatePrintPrice, formatSEK, getFrameById as getFrame, FRAME_OPTIONS, getAccessoryPrice } from '@/lib/pricing/prints'
 import { getSizeById } from '@/lib/image/resize'
 import { useCart } from '@/lib/cart/CartContext'
 import BorisVoice from '@/components/boris/BorisVoice'
@@ -64,6 +65,7 @@ export default function WallcraftDesignPage() {
   const [showCreditsModal, setShowCreditsModal] = useState(false)
   const [shuffleCooldown, setShuffleCooldown] = useState(false)
   const [realisticMode, setRealisticMode] = useState<boolean | undefined>(undefined)
+  const [addons, setAddons] = useState<AddonSelections>({ matEnabled: false, acrylicGlass: false, screws: false, screwdriver: false })
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false)
   const [isDeleting, setIsDeleting] = useState(false)
   const lastShuffleTime = useRef(0)
@@ -285,7 +287,9 @@ export default function WallcraftDesignPage() {
     handleSelectVariant(next)
   }
 
-  const pricing = calculatePrintPrice(sizeId, frameId)
+  const pricing = calculatePrintPrice(sizeId, frameId, { matEnabled: addons.matEnabled, acrylicGlass: addons.acrylicGlass })
+  const accessoriesTotal = (addons.screws ? getAccessoryPrice('screws') : 0) + (addons.screwdriver ? getAccessoryPrice('screwdriver') : 0)
+  const grandTotal = pricing.totalPriceSEK + accessoriesTotal
   const selectedVariant = design?.variants[selectedVariantIndex ?? 0]
   const wallCorners = design?.wallCorners ? JSON.parse(design.wallCorners) : []
 
@@ -334,11 +338,14 @@ export default function WallcraftDesignPage() {
       frameColor: fr?.color || 'transparent',
       basePriceSEK: pricing.basePriceSEK,
       framePriceSEK: pricing.framePriceSEK,
-      matEnabled: false,
-      acrylicGlass: false,
-      matPriceSEK: 0,
-      acrylicPriceSEK: 0,
-      totalPriceSEK: pricing.totalPriceSEK,
+      matEnabled: addons.matEnabled,
+      acrylicGlass: addons.acrylicGlass,
+      matPriceSEK: pricing.matPriceSEK,
+      acrylicPriceSEK: pricing.acrylicPriceSEK,
+      screws: addons.screws,
+      screwdriver: addons.screwdriver,
+      accessoriesPriceSEK: accessoriesTotal,
+      totalPriceSEK: grandTotal,
     })
   }
 
@@ -535,6 +542,10 @@ export default function WallcraftDesignPage() {
             </div>
 
             <div className="bg-white rounded-2xl p-5 border border-gray-200/60">
+              <AddonsPanel sizeId={sizeId} frameId={frameId} selections={addons} onChange={setAddons} />
+            </div>
+
+            <div className="bg-white rounded-2xl p-5 border border-gray-200/60">
               <h3 className="text-sm font-medium text-gray-700 mb-3">{t('studio.editor.price')}</h3>
               <div className="space-y-2 text-sm">
                 <div className="flex justify-between">
@@ -547,10 +558,34 @@ export default function WallcraftDesignPage() {
                     <span className="font-medium text-gray-900">+{formatSEK(pricing.framePriceSEK)}</span>
                   </div>
                 )}
+                {pricing.matPriceSEK > 0 && (
+                  <div className="flex justify-between">
+                    <span className="text-gray-500">Passepartout</span>
+                    <span className="font-medium text-gray-900">+{formatSEK(pricing.matPriceSEK)}</span>
+                  </div>
+                )}
+                {pricing.acrylicPriceSEK > 0 && (
+                  <div className="flex justify-between">
+                    <span className="text-gray-500">Akrylglas</span>
+                    <span className="font-medium text-gray-900">+{formatSEK(pricing.acrylicPriceSEK)}</span>
+                  </div>
+                )}
+                {addons.screws && (
+                  <div className="flex justify-between">
+                    <span className="text-gray-500">Skruvar & plugg</span>
+                    <span className="font-medium text-gray-900">+{formatSEK(getAccessoryPrice('screws'))}</span>
+                  </div>
+                )}
+                {addons.screwdriver && (
+                  <div className="flex justify-between">
+                    <span className="text-gray-500">Skruvmejsel</span>
+                    <span className="font-medium text-gray-900">+{formatSEK(getAccessoryPrice('screwdriver'))}</span>
+                  </div>
+                )}
                 <hr className="border-gray-100 my-2" />
                 <div className="flex justify-between text-base">
                   <span className="font-semibold text-gray-900">Total</span>
-                  <span className="font-bold text-gray-900">{formatSEK(pricing.totalPriceSEK)}</span>
+                  <span className="font-bold text-gray-900">{formatSEK(grandTotal)}</span>
                 </div>
               </div>
             </div>
@@ -633,7 +668,7 @@ export default function WallcraftDesignPage() {
               disabled={!selectedVariant}
               className="hidden lg:flex w-full"
             >
-              {t('studio.editor.addToCart')} — {formatSEK(pricing.totalPriceSEK)}
+              {t('studio.editor.addToCart')} — {formatSEK(grandTotal)}
             </Button>
 
             {/* Delete design */}
@@ -655,7 +690,7 @@ export default function WallcraftDesignPage() {
           disabled={!selectedVariant}
           className="w-full"
         >
-          {t('studio.editor.addToCart')} — {formatSEK(pricing.totalPriceSEK)}
+          {t('studio.editor.addToCart')} — {formatSEK(grandTotal)}
         </Button>
       </div>
 

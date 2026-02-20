@@ -46,9 +46,18 @@ export const MAT_PRICES_SEK: Record<string, number> = {
   '70x100': 149,
 }
 
+export const ACCESSORY_PRICES_SEK: Record<string, number> = {
+  screws: 49,
+  screwdriver: 79,
+}
+
 export function getAddonPrice(addon: 'acrylic' | 'mat', sizeId: string): number {
   if (addon === 'acrylic') return ACRYLIC_PRICES_SEK[sizeId] || 199
   return MAT_PRICES_SEK[sizeId] || 99
+}
+
+export function getAccessoryPrice(accessory: 'screws' | 'screwdriver'): number {
+  return ACCESSORY_PRICES_SEK[accessory] || 0
 }
 
 const BASE_PRICES_SEK: Record<string, number> = {

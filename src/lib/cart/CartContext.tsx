@@ -23,6 +23,9 @@ export interface CartItem {
   acrylicGlass: boolean
   matPriceSEK: number
   acrylicPriceSEK: number
+  screws?: boolean
+  screwdriver?: boolean
+  accessoriesPriceSEK?: number
   totalPriceSEK: number
   quantity: number
 }
