@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import Providers from "@/components/Providers";
 import GlobalNav from "@/components/GlobalNav";
+import BorisChatPanel from "@/components/boris/BorisChatPanel";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -50,6 +51,7 @@ export default function RootLayout({
         <Providers>
           {children}
           <GlobalNav />
+          <BorisChatPanel />
         </Providers>
       </body>
     </html>
