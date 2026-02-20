@@ -3,7 +3,7 @@
 **GitHub:** https://github.com/Mats6102hamberg/artboris
 **Vercel:** https://artboris.vercel.app/
 **Local path:** `/Users/matshamberg/CascadeProjects/Artboris`
-**Last updated:** 2026-02-18
+**Last updated:** 2026-02-20
 
 ---
 
@@ -47,6 +47,7 @@ NEXT_PUBLIC_SENTRY_DSN=https://xxx@yyy.ingest.sentry.io/zzz
 SENTRY_ORG=artboris
 SENTRY_PROJECT=javascript-nextjs
 ADMIN_ALERT_EMAIL=mhg10mhg@gmail.com
+ADMIN_SECRET=boris-admin-2024
 
 # Run migrations
 npx prisma migrate dev
@@ -84,6 +85,7 @@ stripe listen --forward-to localhost:3000/api/webhook/stripe
 | `/market/artist` | Artist Portal | Register (invite code), upload, manage listings, Stripe Connect |
 | `/admin/invites` | Invite Admin | Create and manage invite codes |
 | `/admin/pricing` | Pricing Admin | Edit sizes, frames, papers, shipping, VAT with margin calculation |
+| `/boris` | Boris M Dashboard | Admin dashboard with 6 tabs: Funnel, Events, Trends, Insights, Memory, Report. Auth via ADMIN_SECRET. |
 | `/order/success` | Order Success | Confetti + send order confirmation to chosen email |
 
 ### User Flow: Create → Publish → Sell
@@ -186,6 +188,7 @@ Upload photo → Pick style (21 styles: 3 Boris + 18 regular) + transformation s
 | ErrorBoundary | `components/ErrorBoundary.tsx` | React error boundary → Sentry + CrashCatcher |
 | SentryUserSync | `components/SentryUserSync.tsx` | Syncs session user.id/email to Sentry context |
 | BorisButton | `components/boris/BorisButton.tsx` | Floating FAB or inline chat button for Boris AI |
+| BorisChatPanel | `components/boris/BorisChatPanel.tsx` | Floating 🔧 button + chat modal for Boris M conversational AI (admin only, polls localStorage for admin_secret) |
 | BorisVoice | `components/boris/BorisVoice.tsx` | Typewriter speech bubble from Boris |
 | RemixMenu | `components/wallcraft/RemixMenu.tsx` | "Remix in..." dropdown, auto-save to DB, JPEG 80% 1024px |
 | RemixBanner | `components/wallcraft/RemixMenu.tsx` | "Remixed from X" banner with link to saved version |
@@ -324,6 +327,13 @@ Error occurs (client or server)
 **Admin auth:** Server-side layout (`src/app/admin/layout.tsx`) checks `auth()` and redirects.
 No edge middleware (removed due to Vercel 1MB edge function limit with next-auth).
 
+**Boris M admin:** `/boris` uses its own auth (ADMIN_SECRET in localStorage, sent as `x-admin-key` header). Not behind NextAuth admin layout.
+- **Secret entrance:** 5 rapid clicks on "by Artboris" text in header → navigates to `/boris`
+- **Chat API:** `POST /api/boris/chat` — gathers live data (sales, funnel, errors, incidents, insights) + sends to GPT via `borisChat()`
+- **Chat UI:** `BorisChatPanel` in root layout — floating 🔧 button, appears after admin login, polls localStorage every 1s
+- **Dashboard:** 6 tabs (Funnel, Events, Trends, Insights, Memory, Report) + 6 API endpoints under `/api/boris/*`
+- **Env var:** `ADMIN_SECRET` (currently `boris-admin-2024`)
+
 ### Brand Style
 
 - Background: `#FAFAF8` (warm off-white)
@@ -437,4 +447,4 @@ Push: `git push origin main`
 
 ---
 
-*Last updated: 2026-02-18 (session 6) · Built with Cascade*
+*Last updated: 2026-02-20 (session 7) · Built with Cascade*

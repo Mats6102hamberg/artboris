@@ -6,7 +6,7 @@
 - **GitHub:** `https://github.com/Mats6102hamberg/artboris.git`
 - **Branch:** `main`
 - **Deploy:** Vercel (kopplat till GitHub-repot)
-- **Senaste commit:** `3561cfd`
+- **Senaste commit:** `0a9cc81`
 
 ## Tech Stack
 - Next.js 16, React 19, TypeScript
@@ -300,6 +300,21 @@
   - 🧠 Memory — incidenter, UX-lärdomar, patterns
   - 📋 Rapport — veckosammanfattning, rekommendationer, felöversikt
 
+### 34. Boris M Chat — Konversations-AI för admin
+- **Commits:** `835084f` → `0a9cc81`
+- **API:** `POST /api/boris/chat` — samlar live-data (försäljning, funnel, fel, incidenter, insights senaste 7 dagar), bygger system prompt, skickar till GPT via `borisChat()`
+- **UI:** `src/components/boris/BorisChatPanel.tsx` — flytande 🔧-knapp nere till höger, öppnar chattmodal
+- **Bara admin:** Renderas bara om `admin_secret` finns i localStorage (pollar varje sekund)
+- **Konversationshistorik:** Max 10 turns skickas med
+- **System prompt:** Innehåller live intäkter, funnel-steg, felantal, olösta incidenter, populäraste stilar
+- **Integrerad i:** Root layout (`src/app/layout.tsx`)
+- **Boris Dashboard flyttad:** `/admin/boris` → `/boris` (undviker admin layout auth-block)
+- **Hemlig ingång:** 5 snabba klick på "by Artboris" i headern → navigerar till `/boris`
+- **GlobalNav:** `/boris` tillagd i `hiddenPrefixes`
+- **ADMIN_SECRET:** Satt till `boris-admin-2024` i Vercel env vars
+- **Env var:** `ADMIN_SECRET` — krävs för Boris dashboard + chat API
+- **Fixar:** Osynlig text i inputfält + selects (explicit `text-gray-900`), tomma-tillstånd för alla flikar
+
 ## Kända issues / TODO
 - Market checkout saknar orderbekräftelse-mejlval (bara Wallcraft + Poster Lab har det)
 - Crimson-priser (costSEK) behöver fyllas i efter avtal med Crimson
@@ -307,6 +322,15 @@
 
 ## Git-historik (senaste 20)
 ```
+0a9cc81 fix: synlig text i Boris Dashboard — explicit textfärger + tomma-tillstånd
+6521ff2 fix: synlig textfärg i Boris Chat inputfält
+079fb70 fix: BorisChatPanel pollar localStorage
+fe149e6 fix: flytta Boris dashboard till /boris
+0bbb32f feat: hemlig admin-ingång — 5 snabba klick på 'by Artboris'
+835084f feat: Boris M Chat — flytande AI-chattpanel för admin
+8a21cb9 docs: uppdatera SESSION_SUMMARY med Boris M (sektion 33)
+3561cfd feat: Boris M Lager 2-5 — Trends, Report, Auto-Incident
+57ff58f feat: Boris M — telemetri, funnel-analys, memory, insights + admin dashboard
 441e3aa feat: 'Eget verk'-flik i Wallcraft Studio
 1855a1f fix: detaljerad loggning i generatePreview (debug)
 da280dd fix: visa vilken safety-pattern som triggar (debug)
@@ -318,13 +342,4 @@ b423257 feat: auto-detect språk + välkomst-språkväljare
 9d188fa feat: internationalize landing page with LanguageSwitcher
 5525049 feat: Boris AI quick-generate button in Poster Lab hero
 7db2959 fix: safety check false positives + Boris quick-generate button
-63397be docs: uppdatera SESSION_SUMMARY
-eaa2d4f demo room: zoom in, pre-defined wall corners, larger poster
-d8c8b01 i18n: internationalize all customer-facing components
-fbc1c3b feat: lägg till nederländska (NL)
-7893db3 feat: lägg till franska (FR)
-29855d8 feat: lägg till tyska (DE)
-d7caff0 docs: uppdatera SESSION_SUMMARY + HANDOVER
-b54a706 feat: AI-förbättring av konstverksbilder vid uppladdning
-1d2392e feat: logga in/konto-knapp i GlobalNav
 ```
