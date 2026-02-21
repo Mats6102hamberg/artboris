@@ -13,7 +13,9 @@ export default function PrintYourOwn({ onImageReady }: PrintYourOwnProps) {
   const [analysis, setAnalysis] = useState<DpiResult[] | null>(null)
   const [imageSize, setImageSize] = useState<{ w: number; h: number } | null>(null)
   const [isUploading, setIsUploading] = useState(false)
+  const [uploadStatus, setUploadStatus] = useState<string | null>(null)
   const [uploadError, setUploadError] = useState<string | null>(null)
+  const [enhanceResult, setEnhanceResult] = useState<{ wasUpscaled: boolean; upscaleFactor: number; originalWidth: number; originalHeight: number; enhancedWidth: number; enhancedHeight: number } | null>(null)
   const [selectedFile, setSelectedFile] = useState<File | null>(null)
   const fileInputRef = useRef<HTMLInputElement>(null)
 
@@ -55,29 +57,55 @@ export default function PrintYourOwn({ onImageReady }: PrintYourOwnProps) {
     if (!preview || !selectedFile || !imageSize) return
     setIsUploading(true)
     setUploadError(null)
+    setEnhanceResult(null)
+
+    const needsUpscale = Math.max(imageSize.w, imageSize.h) < 3000
+    setUploadStatus(needsUpscale ? 'AI-uppskalerar bilden...' : 'Optimerar för tryck...')
 
     try {
       const formData = new FormData()
       formData.append('file', selectedFile)
 
-      const res = await fetch('/api/uploads/artwork', { method: 'POST', body: formData })
+      const res = await fetch('/api/uploads/enhance', { method: 'POST', body: formData })
+      const data = await res.json()
 
-      let imageUrl = preview
+      if (data.success && data.imageUrl) {
+        setEnhanceResult({
+          wasUpscaled: data.wasUpscaled,
+          upscaleFactor: data.upscaleFactor,
+          originalWidth: data.originalWidth,
+          originalHeight: data.originalHeight,
+          enhancedWidth: data.enhancedWidth,
+          enhancedHeight: data.enhancedHeight,
+        })
+        // Re-analyze with enhanced dimensions
+        setImageSize({ w: data.enhancedWidth, h: data.enhancedHeight })
+        setAnalysis(analyzePrintQuality(data.enhancedWidth, data.enhancedHeight))
+        setUploadStatus(null)
+        onImageReady(data.imageUrl, data.enhancedWidth, data.enhancedHeight)
+      } else {
+        throw new Error(data.error || 'Enhancement failed')
+      }
+    } catch (err) {
+      console.error('Enhance error:', err)
+      setUploadError('Bildförbättring misslyckades. Försöker med originalbilden...')
+      // Fallback: upload original
       try {
+        const formData = new FormData()
+        formData.append('file', selectedFile)
+        const res = await fetch('/api/uploads/artwork', { method: 'POST', body: formData })
         const data = await res.json()
         if (data.success && data.imageUrl) {
-          imageUrl = data.imageUrl
+          onImageReady(data.imageUrl, imageSize.w, imageSize.h)
+        } else {
+          onImageReady(preview, imageSize.w, imageSize.h)
         }
       } catch {
-        // Response wasn't JSON — use local preview
+        onImageReady(preview, imageSize.w, imageSize.h)
       }
-
-      onImageReady(imageUrl, imageSize.w, imageSize.h)
-    } catch (err) {
-      console.error('Upload error:', err)
-      onImageReady(preview, imageSize.w, imageSize.h)
     } finally {
       setIsUploading(false)
+      setUploadStatus(null)
     }
   }
 
@@ -188,6 +216,24 @@ export default function PrintYourOwn({ onImageReady }: PrintYourOwnProps) {
             </div>
           )}
 
+          {/* Enhancement result */}
+          {enhanceResult && (
+            <div className="bg-green-50 border border-green-200 rounded-xl p-3">
+              <div className="flex items-start gap-2">
+                <span className="text-green-600 text-sm">✓</span>
+                <div className="text-xs text-green-800">
+                  <p className="font-medium">Bilden har optimerats för tryck</p>
+                  {enhanceResult.wasUpscaled && (
+                    <p className="mt-0.5 text-green-700">
+                      AI-uppskalerad {enhanceResult.upscaleFactor}× ({enhanceResult.originalWidth}×{enhanceResult.originalHeight} → {enhanceResult.enhancedWidth}×{enhanceResult.enhancedHeight} px)
+                    </p>
+                  )}
+                  <p className="mt-0.5 text-green-700">Skärpa, färg och kontrast förbättrade</p>
+                </div>
+              </div>
+            </div>
+          )}
+
           {/* Continue button */}
           <button
             onClick={handleUploadAndContinue}
@@ -197,11 +243,11 @@ export default function PrintYourOwn({ onImageReady }: PrintYourOwnProps) {
             {isUploading ? (
               <>
                 <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                Uploading...
+                {uploadStatus || 'Bearbetar...'}
               </>
             ) : (
               <>
-                Use this photo
+                Optimera &amp; använd bilden
                 <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" />
                 </svg>
