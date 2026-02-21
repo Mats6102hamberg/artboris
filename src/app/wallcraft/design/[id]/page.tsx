@@ -66,6 +66,7 @@ export default function WallcraftDesignPage() {
   const [shuffleCooldown, setShuffleCooldown] = useState(false)
   const [realisticMode, setRealisticMode] = useState<boolean | undefined>(undefined)
   const [addons, setAddons] = useState<AddonSelections>({ matEnabled: false, acrylicGlass: false, screws: false, screwdriver: false })
+  const [imageDims, setImageDims] = useState<{ w: number; h: number } | null>(null)
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false)
   const [isDeleting, setIsDeleting] = useState(false)
   const lastShuffleTime = useRef(0)
@@ -290,6 +291,30 @@ export default function WallcraftDesignPage() {
   const pricing = calculatePrintPrice(sizeId, frameId, { matEnabled: addons.matEnabled, acrylicGlass: addons.acrylicGlass })
   const accessoriesTotal = (addons.screws ? getAccessoryPrice('screws') : 0) + (addons.screwdriver ? getAccessoryPrice('screwdriver') : 0)
   const grandTotal = pricing.totalPriceSEK + accessoriesTotal
+  // Measure image dimensions when variant changes
+  useEffect(() => {
+    const variant = design?.variants[selectedVariantIndex ?? 0]
+    if (!variant?.imageUrl) return
+    const img = new window.Image()
+    img.onload = () => setImageDims({ w: img.naturalWidth, h: img.naturalHeight })
+    img.src = variant.imageUrl
+  }, [design, selectedVariantIndex])
+
+  // DPI quality for selected size
+  const selectedSizeDpi = (() => {
+    if (!imageDims) return null
+    const sz = getSizeById(sizeId)
+    if (!sz) return null
+    const imgAspect = imageDims.w / imageDims.h
+    const sizeAspect = sz.widthCm / sz.heightCm
+    const dpi = imgAspect > sizeAspect
+      ? Math.round(imageDims.h / (sz.heightCm / 2.54))
+      : Math.round(imageDims.w / (sz.widthCm / 2.54))
+    const quality = dpi >= 250 ? 'perfect' : dpi >= 180 ? 'good' : dpi >= 120 ? 'fair' : 'low'
+    return { dpi, quality }
+  })()
+  const needsUpscaling = selectedSizeDpi ? selectedSizeDpi.quality === 'fair' || selectedSizeDpi.quality === 'low' : false
+
   const selectedVariant = design?.variants[selectedVariantIndex ?? 0]
   const wallCorners = design?.wallCorners ? JSON.parse(design.wallCorners) : []
 
@@ -345,6 +370,9 @@ export default function WallcraftDesignPage() {
       screws: addons.screws,
       screwdriver: addons.screwdriver,
       accessoriesPriceSEK: accessoriesTotal,
+      needsUpscaling,
+      imageWidth: imageDims?.w,
+      imageHeight: imageDims?.h,
       totalPriceSEK: grandTotal,
     })
   }
@@ -520,7 +548,7 @@ export default function WallcraftDesignPage() {
             </div>
 
             <div className="bg-white rounded-2xl p-5 border border-gray-200/60">
-              <SizePicker selectedSizeId={sizeId} onSelect={setSizeId} />
+              <SizePicker selectedSizeId={sizeId} onSelect={setSizeId} imageWidth={imageDims?.w} imageHeight={imageDims?.h} />
               {(() => {
                 const sz = getSizeById(sizeId)
                 if (!sz) return null
@@ -540,6 +568,26 @@ export default function WallcraftDesignPage() {
                 )
               })()}
             </div>
+
+            {needsUpscaling && selectedSizeDpi && (
+              <div className={`rounded-2xl p-4 border ${selectedSizeDpi.quality === 'fair' ? 'bg-amber-50 border-amber-200' : 'bg-red-50 border-red-200'}`}>
+                <div className="flex items-start gap-3">
+                  <span className="text-lg">{selectedSizeDpi.quality === 'fair' ? '⚠️' : '🚫'}</span>
+                  <div>
+                    <p className={`text-sm font-medium ${selectedSizeDpi.quality === 'fair' ? 'text-amber-900' : 'text-red-900'}`}>
+                      {selectedSizeDpi.quality === 'fair'
+                        ? 'Bilden behöver AI-uppskalning'
+                        : 'Upplösningen är för låg'}
+                    </p>
+                    <p className={`text-xs mt-1 ${selectedSizeDpi.quality === 'fair' ? 'text-amber-700' : 'text-red-700'}`}>
+                      {selectedSizeDpi.dpi} DPI — {selectedSizeDpi.quality === 'fair'
+                        ? 'Vi uppskalerar bilden automatiskt med AI vid beställning för bästa tryckresultat.'
+                        : 'Välj en mindre storlek för godtagbar tryckkvalitet.'}
+                    </p>
+                  </div>
+                </div>
+              </div>
+            )}
 
             <div className="bg-white rounded-2xl p-5 border border-gray-200/60">
               <AddonsPanel sizeId={sizeId} frameId={frameId} selections={addons} onChange={setAddons} />

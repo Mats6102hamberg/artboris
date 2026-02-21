@@ -26,6 +26,9 @@ export interface CartItem {
   screws?: boolean
   screwdriver?: boolean
   accessoriesPriceSEK?: number
+  needsUpscaling?: boolean
+  imageWidth?: number
+  imageHeight?: number
   totalPriceSEK: number
   quantity: number
 }
