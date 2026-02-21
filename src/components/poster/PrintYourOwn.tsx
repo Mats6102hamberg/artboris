@@ -2,6 +2,7 @@
 
 import { useState, useRef, useCallback } from 'react'
 import { analyzePrintQuality, getQualityLabel, type DpiResult } from '@/lib/image/dpiAnalysis'
+import CreativePartnership from './CreativePartnership'
 
 interface PrintYourOwnProps {
   onImageReady: (imageUrl: string, imageWidth: number, imageHeight: number) => void
@@ -16,6 +17,7 @@ export default function PrintYourOwn({ onImageReady }: PrintYourOwnProps) {
   const [uploadStatus, setUploadStatus] = useState<string | null>(null)
   const [uploadError, setUploadError] = useState<string | null>(null)
   const [enhanceResult, setEnhanceResult] = useState<{ wasUpscaled: boolean; upscaleFactor: number; originalWidth: number; originalHeight: number; enhancedWidth: number; enhancedHeight: number } | null>(null)
+  const [partnershipAccepted, setPartnershipAccepted] = useState(false)
   const [selectedFile, setSelectedFile] = useState<File | null>(null)
   const fileInputRef = useRef<HTMLInputElement>(null)
 
@@ -65,6 +67,7 @@ export default function PrintYourOwn({ onImageReady }: PrintYourOwnProps) {
     try {
       const formData = new FormData()
       formData.append('file', selectedFile)
+      formData.append('partnershipAccepted', 'true')
 
       const res = await fetch('/api/uploads/enhance', { method: 'POST', body: formData })
       const data = await res.json()
@@ -234,26 +237,24 @@ export default function PrintYourOwn({ onImageReady }: PrintYourOwnProps) {
             </div>
           )}
 
-          {/* Continue button */}
-          <button
-            onClick={handleUploadAndContinue}
-            disabled={isUploading}
-            className="w-full py-3.5 bg-gray-900 text-white rounded-xl font-medium text-sm hover:bg-gray-800 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
-          >
-            {isUploading ? (
-              <>
-                <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                {uploadStatus || 'Bearbetar...'}
-              </>
-            ) : (
-              <>
-                Optimera &amp; använd bilden
-                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" />
-                </svg>
-              </>
-            )}
-          </button>
+          {/* Creative Partnership — gates the enhance flow */}
+          {!enhanceResult && !isUploading && (
+            <CreativePartnership
+              accepted={partnershipAccepted}
+              onAccept={() => {
+                setPartnershipAccepted(true)
+                handleUploadAndContinue()
+              }}
+            />
+          )}
+
+          {/* Loading state */}
+          {isUploading && (
+            <div className="w-full py-3.5 bg-gray-900 text-white rounded-xl font-medium text-sm flex items-center justify-center gap-2">
+              <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+              {uploadStatus || 'Bearbetar...'}
+            </div>
+          )}
         </div>
       )}
     </div>

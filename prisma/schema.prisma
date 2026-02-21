@@ -156,6 +156,13 @@ model Design {
   isPublic      Boolean @default(false)
   likesCount    Int     @default(0)
 
+  // Creative Partnership
+  partnershipAccepted   Boolean   @default(false)
+  partnershipAcceptedAt DateTime?
+  isEnhanced            Boolean   @default(false)
+  originalImageUrl      String?   // Original before enhancement
+  royaltyRate           Float     @default(0.30) // 30% to creator
+
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 

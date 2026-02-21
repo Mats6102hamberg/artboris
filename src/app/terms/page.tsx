@@ -130,10 +130,61 @@ export default function TermsPage() {
           </div>
         </section>
 
-        {/* Section 5: User-Created Content */}
+        {/* Section 5: Creative Partnership */}
+        <section className="mb-10 bg-purple-50/60 border border-purple-200/40 rounded-xl p-6">
+          <h2 className="text-lg font-medium text-purple-900 mb-3">
+            {t({ sv: '5. Creative Partnership — Bildförbättring och vinstdelning', en: '5. Creative Partnership — Image Enhancement and Revenue Sharing', de: '5. Creative Partnership — Bildverbesserung und Gewinnbeteiligung', fr: '5. Creative Partnership — Amélioration d\'image et partage des revenus', nl: '5. Creative Partnership — Beeldverbetering en winstdeling' })}
+          </h2>
+          <div className="space-y-4 text-sm text-purple-800/90 leading-relaxed">
+            <div>
+              <p className="font-semibold text-purple-900 mb-1">
+                {t({ sv: '§1. Rättighetsövergång för förädlade verk', en: '§1. Transfer of Rights for Enhanced Works', de: '§1. Rechteübertragung für veredelte Werke', fr: '§1. Transfert de droits pour les œuvres améliorées', nl: '§1. Overdracht van rechten voor verbeterde werken' })}
+              </p>
+              <p>
+                {t({
+                  sv: 'Genom att skicka in en bild för förbättring via ArtBoris plattform bekräftar kunden att den äger originalrätten till motivet eller har tillstånd att använda det. Vid genomförd digital förbättring skapas ett bearbetat verk (Derivative Work). Kunden överlåter härmed oåterkalleligt alla immateriella rättigheter, inklusive upphovsrätt och nyttjanderätt, för den förbättrade versionen till ArtBoris. Kunden behåller äganderätten till sitt inskickade original.',
+                  en: 'By submitting an image for enhancement via the ArtBoris platform, the customer confirms ownership of the original rights to the motif or has permission to use it. Upon completed digital enhancement, a Derivative Work is created. The customer hereby irrevocably transfers all intellectual property rights, including copyright and usage rights, for the enhanced version to ArtBoris. The customer retains ownership of their submitted original.',
+                  de: 'Durch das Einreichen eines Bildes zur Verbesserung über die ArtBoris-Plattform bestätigt der Kunde, dass er die Originalrechte am Motiv besitzt oder die Erlaubnis zur Nutzung hat. Bei abgeschlossener digitaler Verbesserung wird ein bearbeitetes Werk erstellt. Der Kunde überträgt hiermit unwiderruflich alle geistigen Eigentumsrechte, einschließlich Urheberrecht und Nutzungsrecht, für die verbesserte Version an ArtBoris. Der Kunde behält das Eigentum an seinem eingereichten Original.',
+                  fr: 'En soumettant une image pour amélioration via la plateforme ArtBoris, le client confirme qu\'il détient les droits originaux sur le motif ou a l\'autorisation de l\'utiliser. Une fois l\'amélioration numérique terminée, une œuvre dérivée est créée. Le client cède irrévocablement tous les droits de propriété intellectuelle, y compris le droit d\'auteur et le droit d\'utilisation, pour la version améliorée à ArtBoris. Le client conserve la propriété de son original soumis.',
+                  nl: 'Door een afbeelding in te dienen voor verbetering via het ArtBoris-platform bevestigt de klant dat hij de originele rechten op het motief bezit of toestemming heeft om het te gebruiken. Bij voltooide digitale verbetering wordt een bewerkt werk gecreëerd. De klant draagt hierbij onherroepelijk alle intellectuele eigendomsrechten, inclusief auteursrecht en gebruiksrecht, voor de verbeterde versie over aan ArtBoris. De klant behoudt het eigendom van het ingediende origineel.',
+                })}
+              </p>
+            </div>
+            <div>
+              <p className="font-semibold text-purple-900 mb-1">
+                {t({ sv: '§2. Vinstdelning och Utbetalning', en: '§2. Revenue Sharing and Payouts', de: '§2. Gewinnbeteiligung und Auszahlung', fr: '§2. Partage des revenus et paiements', nl: '§2. Winstdeling en uitbetalingen' })}
+              </p>
+              <p>
+                {t({
+                  sv: 'ArtBoris förbinder sig att dela vinsten från försäljning av motivet. Beräkningsgrund: (Försäljningspris exkl. moms) minus (direkta produktionskostnader, frakt, transaktionsavgifter samt fast administrationsavgift om 10 SEK per order). Fördelning: Kunden erhåller 30% av kvarvarande nettovinst. ArtBoris erhåller 70%. Utbetalning sker kvartalsvis när intjänat belopp överstiger 200 SEK.',
+                  en: 'ArtBoris commits to sharing profits from sales of the motif. Calculation basis: (Sale price excl. VAT) minus (direct production costs, shipping, transaction fees, and a fixed administration fee of 10 SEK per order). Distribution: The customer receives 30% of remaining net profit. ArtBoris receives 70%. Payouts are made quarterly when the earned amount exceeds 200 SEK.',
+                  de: 'ArtBoris verpflichtet sich, den Gewinn aus dem Verkauf des Motivs zu teilen. Berechnungsgrundlage: (Verkaufspreis ohne MwSt.) minus (direkte Produktionskosten, Versand, Transaktionsgebühren und eine feste Verwaltungsgebühr von 10 SEK pro Bestellung). Verteilung: Der Kunde erhält 30% des verbleibenden Nettogewinns. ArtBoris erhält 70%. Auszahlungen erfolgen vierteljährlich, wenn der verdiente Betrag 200 SEK übersteigt.',
+                  fr: 'ArtBoris s\'engage à partager les bénéfices de la vente du motif. Base de calcul : (Prix de vente HT) moins (coûts de production directs, frais de port, frais de transaction et frais d\'administration fixes de 10 SEK par commande). Répartition : Le client reçoit 30% du bénéfice net restant. ArtBoris reçoit 70%. Les paiements sont effectués trimestriellement lorsque le montant gagné dépasse 200 SEK.',
+                  nl: 'ArtBoris verbindt zich ertoe de winst uit de verkoop van het motief te delen. Berekeningsgrondslag: (Verkoopprijs excl. btw) minus (directe productiekosten, verzending, transactiekosten en een vaste administratievergoeding van 10 SEK per bestelling). Verdeling: De klant ontvangt 30% van de resterende nettowinst. ArtBoris ontvangt 70%. Uitbetalingen vinden plaats per kwartaal wanneer het verdiende bedrag hoger is dan 200 SEK.',
+                })}
+              </p>
+            </div>
+            <div>
+              <p className="font-semibold text-purple-900 mb-1">
+                {t({ sv: '§3. Exklusivitet och Borttagning', en: '§3. Exclusivity and Removal', de: '§3. Exklusivität und Entfernung', fr: '§3. Exclusivité et suppression', nl: '§3. Exclusiviteit en verwijdering' })}
+              </p>
+              <p>
+                {t({
+                  sv: 'ArtBoris förbehåller sig rätten att neka motiv som inte håller teknisk eller etisk standard. Om kunden väljer att avsluta sitt konto hos ArtBoris upphör rätten till framtida vinstdelning, och ArtBoris har rätt att radera den förädlade bilden eller köpa ut kunden från motivet enligt separat överenskommelse. Den förädlade filen lämnas aldrig ut till kund för externt bruk utan skriftligt godkännande.',
+                  en: 'ArtBoris reserves the right to reject motifs that do not meet technical or ethical standards. If the customer chooses to close their ArtBoris account, the right to future revenue sharing ceases, and ArtBoris has the right to delete the enhanced image or buy out the customer from the motif by separate agreement. The enhanced file is never released to the customer for external use without written consent.',
+                  de: 'ArtBoris behält sich das Recht vor, Motive abzulehnen, die technischen oder ethischen Standards nicht entsprechen. Wenn der Kunde sein ArtBoris-Konto kündigt, erlischt das Recht auf zukünftige Gewinnbeteiligung, und ArtBoris hat das Recht, das verbesserte Bild zu löschen oder den Kunden gemäß separater Vereinbarung auszukaufen. Die verbesserte Datei wird niemals ohne schriftliche Zustimmung an den Kunden für externe Nutzung herausgegeben.',
+                  fr: 'ArtBoris se réserve le droit de refuser les motifs qui ne répondent pas aux normes techniques ou éthiques. Si le client choisit de fermer son compte ArtBoris, le droit au partage futur des revenus cesse, et ArtBoris a le droit de supprimer l\'image améliorée ou de racheter le client du motif par accord séparé. Le fichier amélioré n\'est jamais remis au client pour un usage externe sans consentement écrit.',
+                  nl: 'ArtBoris behoudt zich het recht voor om motieven af te wijzen die niet voldoen aan technische of ethische normen. Als de klant ervoor kiest zijn ArtBoris-account te sluiten, vervalt het recht op toekomstige winstdeling, en ArtBoris heeft het recht om de verbeterde afbeelding te verwijderen of de klant uit te kopen van het motief volgens afzonderlijke overeenkomst. Het verbeterde bestand wordt nooit aan de klant vrijgegeven voor extern gebruik zonder schriftelijke toestemming.',
+                })}
+              </p>
+            </div>
+          </div>
+        </section>
+
+        {/* Section 6: User-Created Content */}
         <section className="mb-10">
           <h2 className="text-lg font-medium text-gray-900 mb-3">
-            {t({ sv: '5. Användargenererat innehåll', en: '5. User-Generated Content', de: '5. Nutzergenerierte Inhalte', fr: '5. Contenu généré par les utilisateurs', nl: '5. Door gebruikers gegenereerde inhoud' })}
+            {t({ sv: '6. Användargenererat innehåll', en: '6. User-Generated Content', de: '6. Nutzergenerierte Inhalte', fr: '6. Contenu généré par les utilisateurs', nl: '6. Door gebruikers gegenereerde inhoud' })}
           </h2>
           <p className="text-sm text-gray-600 leading-relaxed">
             {t({
@@ -146,10 +197,10 @@ export default function TermsPage() {
           </p>
         </section>
 
-        {/* Section 6: Privacy */}
+        {/* Section 7: Privacy */}
         <section className="mb-10">
           <h2 className="text-lg font-medium text-gray-900 mb-3">
-            {t({ sv: '6. Integritet', en: '6. Privacy', de: '6. Datenschutz', fr: '6. Confidentialité', nl: '6. Privacy' })}
+            {t({ sv: '7. Integritet', en: '7. Privacy', de: '7. Datenschutz', fr: '7. Confidentialité', nl: '7. Privacy' })}
           </h2>
           <p className="text-sm text-gray-600 leading-relaxed">
             {t({
@@ -162,10 +213,10 @@ export default function TermsPage() {
           </p>
         </section>
 
-        {/* Section 7: Limitation */}
+        {/* Section 8: Limitation */}
         <section className="mb-10">
           <h2 className="text-lg font-medium text-gray-900 mb-3">
-            {t({ sv: '7. Ansvarsbegränsning', en: '7. Limitation of Liability', de: '7. Haftungsbeschränkung', fr: '7. Limitation de responsabilité', nl: '7. Beperking van aansprakelijkheid' })}
+            {t({ sv: '8. Ansvarsbegränsning', en: '8. Limitation of Liability', de: '8. Haftungsbeschränkung', fr: '8. Limitation de responsabilité', nl: '8. Beperking van aansprakelijkheid' })}
           </h2>
           <p className="text-sm text-gray-600 leading-relaxed">
             {t({
@@ -178,10 +229,10 @@ export default function TermsPage() {
           </p>
         </section>
 
-        {/* Section 8: Contact */}
+        {/* Section 9: Contact */}
         <section className="mb-10">
           <h2 className="text-lg font-medium text-gray-900 mb-3">
-            {t({ sv: '8. Kontakt', en: '8. Contact', de: '8. Kontakt', fr: '8. Contact', nl: '8. Contact' })}
+            {t({ sv: '9. Kontakt', en: '9. Contact', de: '9. Kontakt', fr: '9. Contact', nl: '9. Contact' })}
           </h2>
           <p className="text-sm text-gray-600 leading-relaxed">
             {t({

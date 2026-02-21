@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from 'next/server'
 import { put } from '@vercel/blob'
 import sharp from 'sharp'
 import { upscaleImage } from '@/server/services/ai/upscale'
+import { prisma } from '@/lib/prisma'
+import { getUserId } from '@/lib/auth/getUserId'
 
 const MIN_PRINT_LONG_SIDE = 3000
 const TARGET_LONG_SIDE = 4096
@@ -22,6 +24,8 @@ export async function POST(request: NextRequest) {
   try {
     const formData = await request.formData()
     const file = formData.get('file') as File | null
+    const designId = formData.get('designId') as string | null
+    const partnershipAccepted = formData.get('partnershipAccepted') === 'true'
 
     if (!file) {
       return NextResponse.json({ error: 'No file provided.' }, { status: 400 })
@@ -134,6 +138,30 @@ export async function POST(request: NextRequest) {
     }
 
     console.log(`[enhance] Done: ${wasUpscaled ? `${upscaleFactor}× upscaled + ` : ''}enhanced → ${blob.url}`)
+
+    // Save partnership + enhancement data to Design if designId provided
+    if (designId) {
+      try {
+        await prisma.design.update({
+          where: { id: designId },
+          data: {
+            isEnhanced: true,
+            originalImageUrl: result.imageUrl, // store original before next enhancement
+            ...(partnershipAccepted ? {
+              partnershipAccepted: true,
+              partnershipAcceptedAt: new Date(),
+            } : {}),
+          },
+        })
+        console.log(`[enhance] Updated design ${designId}: isEnhanced=true, partnership=${partnershipAccepted}`)
+      } catch (err) {
+        console.error(`[enhance] Failed to update design ${designId}:`, err)
+      }
+    } else if (partnershipAccepted) {
+      // No designId yet — log for traceability
+      const anonId = await getUserId()
+      console.log(`[enhance] Partnership accepted by ${anonId} (no designId yet, will be linked at design creation)`)
+    }
 
     return NextResponse.json({ success: true, ...result })
   } catch (error) {
