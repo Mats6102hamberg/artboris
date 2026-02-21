@@ -3,7 +3,7 @@
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useSession, signOut } from 'next-auth/react';
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef, useEffect, useCallback } from 'react';
 
 const navItems = [
   {
@@ -78,7 +78,26 @@ export default function GlobalNav() {
   const pathname = usePathname();
   const { data: session, status } = useSession();
   const [menuOpen, setMenuOpen] = useState(false);
+  const [hidden, setHidden] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
+  const lastScrollY = useRef(0);
+  const scrollThreshold = 10;
+
+  const handleScroll = useCallback(() => {
+    const currentY = window.scrollY;
+    if (currentY > lastScrollY.current + scrollThreshold) {
+      setHidden(true);
+      setMenuOpen(false);
+    } else if (currentY < lastScrollY.current - scrollThreshold) {
+      setHidden(false);
+    }
+    lastScrollY.current = currentY;
+  }, []);
+
+  useEffect(() => {
+    window.addEventListener('scroll', handleScroll, { passive: true });
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, [handleScroll]);
 
   useEffect(() => {
     function handleClickOutside(e: MouseEvent) {
@@ -100,7 +119,7 @@ export default function GlobalNav() {
 
   return (
     <nav
-      className="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 bg-gray-900/90 backdrop-blur-sm text-white rounded-full px-2 py-1.5 shadow-lg"
+      className={`fixed bottom-4 left-1/2 -translate-x-1/2 z-50 bg-gray-900/85 backdrop-blur-sm text-white rounded-full px-1.5 py-1 shadow-lg transition-all duration-300 ${hidden ? 'translate-y-20 opacity-0 pointer-events-none' : 'translate-y-0 opacity-100'}`}
       aria-label="Global navigation"
     >
       <ul className="flex items-center gap-0.5">
@@ -113,16 +132,14 @@ export default function GlobalNav() {
               )}
               <Link
                 href={item.href}
-                className={`flex flex-col items-center gap-0.5 px-3 py-1.5 rounded-full transition-colors ${
+                title={item.label}
+                className={`flex items-center justify-center w-9 h-9 rounded-full transition-colors ${
                   isActive
                     ? 'bg-white/20 text-white'
                     : 'text-white/60 hover:text-white hover:bg-white/10'
                 }`}
               >
                 {item.icon}
-                <span className="text-[10px] leading-none font-medium hidden sm:block">
-                  {item.label}
-                </span>
               </Link>
             </li>
           );
@@ -135,16 +152,13 @@ export default function GlobalNav() {
             <div className="relative" ref={menuRef}>
               <button
                 onClick={() => setMenuOpen((v) => !v)}
-                className="flex flex-col items-center gap-0.5 px-3 py-1.5 rounded-full transition-colors text-white/60 hover:text-white hover:bg-white/10"
+                className="flex items-center justify-center w-9 h-9 rounded-full transition-colors text-white/60 hover:text-white hover:bg-white/10"
                 aria-label="Konto"
               >
                 <svg viewBox="0 0 24 24" fill="currentColor" stroke="none" className="w-5 h-5">
                   <circle cx="12" cy="8" r="4" />
                   <path d="M5.34 19.65A7.97 7.97 0 0 1 12 16a7.97 7.97 0 0 1 6.66 3.65A9.94 9.94 0 0 1 12 22a9.94 9.94 0 0 1-6.66-2.35Z" />
                 </svg>
-                <span className="text-[10px] leading-none font-medium hidden sm:block">
-                  Konto
-                </span>
               </button>
               {menuOpen && (
                 <div className="absolute bottom-full mb-2 left-1/2 -translate-x-1/2 bg-gray-900 border border-white/20 rounded-lg shadow-xl py-1 min-w-[120px]">
@@ -160,15 +174,13 @@ export default function GlobalNav() {
           ) : (
             <Link
               href="/auth/login"
-              className="flex flex-col items-center gap-0.5 px-3 py-1.5 rounded-full transition-colors text-white/60 hover:text-white hover:bg-white/10"
+              title="Logga in"
+              className="flex items-center justify-center w-9 h-9 rounded-full transition-colors text-white/60 hover:text-white hover:bg-white/10"
             >
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.5} strokeLinecap="round" strokeLinejoin="round" className="w-5 h-5">
                 <circle cx="12" cy="8" r="4" />
                 <path d="M5.34 19.65A7.97 7.97 0 0 1 12 16a7.97 7.97 0 0 1 6.66 3.65" />
               </svg>
-              <span className="text-[10px] leading-none font-medium hidden sm:block">
-                Logga in
-              </span>
             </Link>
           )}
         </li>
