@@ -2,9 +2,14 @@ import { NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 import Stripe from 'stripe'
 
+// Cooldown cache: don't re-check same Stripe session within 10 min
+const stripeCheckCache = new Map<string, number>()
+const STRIPE_COOLDOWN_MS = 10 * 60 * 1000
+const ORDER_MIN_AGE_MS = 5 * 60 * 1000 // Skip orders younger than 5 min
+
 export interface BorisIssue {
   id: string
-  type: 'ORDER_MISMATCH' | 'ORDER_ABANDONED' | 'ORDER_DUPLICATE' | 'MEDIA_MISSING' | 'MEDIA_TEMP_FIX' | 'PRICE_ZERO' | 'ARTIST_NO_STRIPE' | 'FULFILLMENT_FAILED'
+  type: 'ORDER_MISMATCH' | 'ORDER_ABANDONED' | 'ORDER_DUPLICATE' | 'MEDIA_MISSING' | 'MEDIA_TEMP_FIX' | 'PRICE_ZERO' | 'ARTIST_NO_STRIPE' | 'FULFILLMENT_FAILED' | 'NEEDS_FULFILLMENT' | 'NEEDS_ORDER_EMAIL'
   severity: 'high' | 'medium' | 'low'
   title: string
   description: string
@@ -27,9 +32,12 @@ export async function GET() {
     const stripe = new Stripe(process.env.STRIPE_SECRET_KEY || '', { apiVersion: '2025-01-27.acacia' as Stripe.LatestApiVersion })
 
     // Find orders that are NOT paid in DB but have a Stripe session
+    // Skip orders younger than 5 min (still in checkout flow)
+    const minAge = new Date(now.getTime() - ORDER_MIN_AGE_MS)
     const unpaidOrders = await prisma.order.findMany({
       where: {
         status: { in: ['AWAITING_PAYMENT', 'DRAFT'] },
+        createdAt: { lt: minAge },
       },
       include: { payment: true },
     })
@@ -38,9 +46,15 @@ export async function GET() {
       const sessionId = order.payment?.stripeCheckoutSessionId
       if (!sessionId) continue // No Stripe session = customer never started payment
 
+      // Cooldown: skip if checked within last 10 min
+      const lastCheck = stripeCheckCache.get(sessionId)
+      if (lastCheck && now.getTime() - lastCheck < STRIPE_COOLDOWN_MS) continue
+
       try {
         const session = await stripe.checkout.sessions.retrieve(sessionId)
+        stripeCheckCache.set(sessionId, now.getTime())
 
+        // Decision point: payment_status is the source of truth for money
         if (session.payment_status === 'paid' && order.status !== 'PAID') {
           // MISMATCH: Stripe says paid, DB says not paid → needs fix
           issues.push({
@@ -64,8 +78,12 @@ export async function GET() {
             },
             detectedAt: now.toISOString(),
           })
-        } else if (session.status === 'expired') {
-          // Abandoned: customer started but never paid — low severity info
+        } else if (
+          session.status === 'expired' &&
+          session.payment_status !== 'paid' &&
+          order.status === 'AWAITING_PAYMENT'
+        ) {
+          // Abandoned: session expired + not paid + DB still AWAITING
           const minutesOld = Math.round((now.getTime() - order.createdAt.getTime()) / 60000)
           if (minutesOld > 1440) { // Only flag if > 24h old
             issues.push({
@@ -73,7 +91,7 @@ export async function GET() {
               type: 'ORDER_ABANDONED',
               severity: 'low',
               title: `Order ${order.id.slice(-6)}: övergiven (${Math.round(minutesOld / 60)}h)`,
-              description: `Stripe session expired. Kunden startade men betalade aldrig. Kan markeras CANCELED.`,
+              description: `Stripe session expired + ej betald. Kan markeras CANCELED.`,
               entityId: order.id,
               entityType: 'Order',
               revenueImpactSEK: 0,
@@ -81,7 +99,8 @@ export async function GET() {
               evidence: {
                 orderId: order.id,
                 dbStatus: order.status,
-                stripeStatus: session.status,
+                stripeSessionStatus: session.status,
+                stripePaymentStatus: session.payment_status,
                 minutesOld,
                 stripeSessionId: sessionId,
               },
@@ -89,7 +108,7 @@ export async function GET() {
             })
           }
         }
-        // session.status === 'open' → payment in progress, ignore
+        // session.status === 'open' or payment_status === 'unpaid'/'no_payment_required' → ignore
       } catch (stripeErr) {
         console.error(`[boris/fix/scan] Stripe check failed for ${order.id}:`, stripeErr)
       }
@@ -117,9 +136,15 @@ export async function GET() {
 
     for (const mo of pendingMarketOrders) {
       if (!mo.stripePaymentIntentId || !stripe) continue
+      // Skip if younger than 5 min
+      if (now.getTime() - mo.createdAt.getTime() < ORDER_MIN_AGE_MS) continue
+      // Cooldown
+      const lastCheck = stripeCheckCache.get(mo.stripePaymentIntentId)
+      if (lastCheck && now.getTime() - lastCheck < STRIPE_COOLDOWN_MS) continue
 
       try {
         const pi = await stripe.paymentIntents.retrieve(mo.stripePaymentIntentId)
+        stripeCheckCache.set(mo.stripePaymentIntentId, now.getTime())
 
         if (pi.status === 'succeeded') {
           issues.push({
@@ -319,6 +344,43 @@ export async function GET() {
     }
   } catch (err) {
     console.error('[boris/fix/scan] Price scan failed:', err)
+  }
+
+  // ─── G) NEEDS_THUMB_GEN: temp-fix-applied listings ───
+  try {
+    const tempFixMemories = await prisma.borisMemory.findMany({
+      where: {
+        tags: { hasEvery: ['needs_thumb_gen', 'temp-fix-applied'] },
+        resolved: false,
+      },
+      select: { title: true, description: true, createdAt: true },
+    })
+
+    for (const mem of tempFixMemories) {
+      // Extract listing ID from description (format: "Listing XXXXXXXX använder...")
+      const idMatch = mem.description.match(/Listing (\w+)/)
+      const listingId = idMatch?.[1] || ''
+
+      issues.push({
+        id: `media-tempfix-${listingId || mem.createdAt.getTime()}`,
+        type: 'MEDIA_TEMP_FIX',
+        severity: 'medium',
+        title: mem.title.replace('NEEDS_THUMB_GEN: ', 'Temp thumbnail: '),
+        description: 'Använder imageUrl som thumbnail-fallback. Behöver riktig 600px thumbnail via Sharp.',
+        entityId: listingId,
+        entityType: 'ArtworkListing',
+        revenueImpactSEK: 0,
+        fixAction: 'REBUILD_THUMBNAIL',
+        evidence: {
+          tempFixApplied: true,
+          originalMemory: mem.title,
+          createdAt: mem.createdAt,
+        },
+        detectedAt: now.toISOString(),
+      })
+    }
+  } catch (err) {
+    console.error('[boris/fix/scan] NEEDS_THUMB_GEN scan failed:', err)
   }
 
   // Sort: high severity first, then by revenue impact

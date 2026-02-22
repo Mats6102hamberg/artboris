@@ -114,7 +114,20 @@ async function syncStripePayment(entityId: string, dryRun: boolean): Promise<Fix
 
   if (order) {
     if (order.status === 'PAID') {
-      return { success: true, action: 'SYNC_STRIPE_PAYMENT', entityId, dryRun, changes: ['Order redan PAID — ingen åtgärd'] }
+      // Idempotency: already reconciled, log as noop
+      try {
+        await prisma.borisMemory.create({
+          data: {
+            type: 'PATTERN',
+            title: `[NOOP] SYNC_STRIPE_PAYMENT on ${entityId.slice(-8)}`,
+            description: 'Order redan PAID — ingen åtgärd krävdes (idempotent körning)',
+            tags: ['boris-fix', 'sync_stripe_payment', 'noop'],
+            confidence: 1.0,
+            resolved: true,
+          },
+        })
+      } catch { /* non-critical */ }
+      return { success: true, action: 'SYNC_STRIPE_PAYMENT', entityId, dryRun, changes: ['Order redan PAID — noop (already reconciled)'] }
     }
 
     const sessionId = order.payment?.stripeCheckoutSessionId
@@ -147,9 +160,34 @@ async function syncStripePayment(entityId: string, dryRun: boolean): Promise<Fix
       }
       changes.push('✅ Order uppdaterad till PAID')
       changes.push('✅ Payment.paidAt satt')
-      changes.push('⚠️ OBS: Fulfillment + e-post behöver triggas manuellt (webhook-logik kördes inte)')
+
+      // Fix 3: Create follow-up issues for fulfillment + email
+      await prisma.borisMemory.create({
+        data: {
+          type: 'INCIDENT',
+          title: `NEEDS_FULFILLMENT_TRIGGER: Order ${entityId.slice(-6)}`,
+          description: `Order reconciled till PAID via Boris Fix. Fulfillment behöver triggas (upscale + tryckfil + Crimson-mail).`,
+          tags: ['boris-fix', 'needs_fulfillment_trigger', 'post-reconciliation'],
+          confidence: 1.0,
+          resolved: false,
+        },
+      })
+      changes.push('📝 Skapade NEEDS_FULFILLMENT_TRIGGER uppföljning')
+
+      await prisma.borisMemory.create({
+        data: {
+          type: 'INCIDENT',
+          title: `NEEDS_ORDER_EMAIL: Order ${entityId.slice(-6)}`,
+          description: `Order reconciled till PAID via Boris Fix. Orderbekräftelse-mail behöver skickas till kund.`,
+          tags: ['boris-fix', 'needs_order_email', 'post-reconciliation'],
+          confidence: 1.0,
+          resolved: false,
+        },
+      })
+      changes.push('📝 Skapade NEEDS_ORDER_EMAIL uppföljning')
     } else {
       changes.push('[DRY-RUN] Skulle uppdatera order till PAID + sätta payment.paidAt')
+      changes.push('[DRY-RUN] Skulle skapa NEEDS_FULFILLMENT_TRIGGER + NEEDS_ORDER_EMAIL uppföljningar')
     }
 
     return { success: true, action: 'SYNC_STRIPE_PAYMENT', entityId, dryRun, changes }
@@ -161,6 +199,9 @@ async function syncStripePayment(entityId: string, dryRun: boolean): Promise<Fix
   })
 
   if (marketOrder) {
+    if (marketOrder.status === 'PAID') {
+      return { success: true, action: 'SYNC_STRIPE_PAYMENT', entityId, dryRun, changes: ['MarketOrder redan PAID — noop (already reconciled)'] }
+    }
     if (!marketOrder.stripePaymentIntentId) {
       return { success: false, action: 'SYNC_STRIPE_PAYMENT', entityId, dryRun, changes: [], error: 'Ingen Stripe PI kopplad' }
     }
@@ -301,14 +342,38 @@ async function rebuildThumbnail(entityId: string, dryRun: boolean): Promise<FixR
 
 async function markAbandoned(entityId: string, dryRun: boolean): Promise<FixResult> {
   const changes: string[] = []
+  const stripeKey = process.env.STRIPE_SECRET_KEY
+  const stripe = stripeKey ? new Stripe(stripeKey, { apiVersion: '2025-01-27.acacia' as Stripe.LatestApiVersion }) : null
 
   // Try Order
-  const order = await prisma.order.findUnique({ where: { id: entityId } })
+  const order = await prisma.order.findUnique({
+    where: { id: entityId },
+    include: { payment: true },
+  })
   if (order) {
     changes.push(`Order ${entityId.slice(-6)} status: ${order.status}`)
     if (order.status === 'CANCELED') {
       return { success: true, action: 'MARK_ABANDONED', entityId, dryRun, changes: ['Redan CANCELED'] }
     }
+
+    // Safety: verify Stripe says expired/canceled, not open/processing
+    const sessionId = order.payment?.stripeCheckoutSessionId
+    if (sessionId && stripe) {
+      try {
+        const session = await stripe.checkout.sessions.retrieve(sessionId)
+        changes.push(`Stripe session: status=${session.status}, payment_status=${session.payment_status}`)
+
+        if (session.status === 'open' || session.payment_status === 'paid') {
+          return {
+            success: false, action: 'MARK_ABANDONED', entityId, dryRun, changes,
+            error: `Blockerad: Stripe session är ${session.status} / payment_status=${session.payment_status}. Kan inte markera som abandoned.`,
+          }
+        }
+      } catch (err) {
+        changes.push(`⚠️ Kunde inte verifiera Stripe: ${err instanceof Error ? err.message : 'okänt'}`)
+      }
+    }
+
     if (!dryRun) {
       await prisma.order.update({ where: { id: entityId }, data: { status: 'CANCELED' } })
       changes.push('✅ Order markerad som CANCELED')
@@ -325,6 +390,24 @@ async function markAbandoned(entityId: string, dryRun: boolean): Promise<FixResu
     if (mo.status === 'CANCELED') {
       return { success: true, action: 'MARK_ABANDONED', entityId, dryRun, changes: ['Redan CANCELED'] }
     }
+
+    // Safety: verify Stripe PI is not active
+    if (mo.stripePaymentIntentId && stripe) {
+      try {
+        const pi = await stripe.paymentIntents.retrieve(mo.stripePaymentIntentId)
+        changes.push(`Stripe PI: status=${pi.status}`)
+
+        if (pi.status === 'processing' || pi.status === 'requires_action' || pi.status === 'succeeded') {
+          return {
+            success: false, action: 'MARK_ABANDONED', entityId, dryRun, changes,
+            error: `Blockerad: Stripe PI är ${pi.status}. Kan inte markera som abandoned.`,
+          }
+        }
+      } catch (err) {
+        changes.push(`⚠️ Kunde inte verifiera Stripe PI: ${err instanceof Error ? err.message : 'okänt'}`)
+      }
+    }
+
     if (!dryRun) {
       await prisma.marketOrder.update({ where: { id: entityId }, data: { status: 'CANCELED' } })
       changes.push('✅ MarketOrder markerad som CANCELED')
