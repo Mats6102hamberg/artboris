@@ -3,6 +3,7 @@
 import { useState, useEffect, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
 import { MARKET_CATEGORIES } from '@/lib/pricing/market'
+import ProtectedImage from '@/components/ui/ProtectedImage'
 
 interface Listing {
   id: string
@@ -11,7 +12,7 @@ interface Listing {
   technique: string
   category: string
   year: number | null
-  imageUrl: string
+  thumbnailUrl: string
   artistPriceSEK: number
   isOriginal: boolean
   views: number
@@ -148,14 +149,14 @@ export default function MarketPage() {
                 className="group cursor-pointer"
                 onClick={() => router.push(`/market/${listing.id}`)}
               >
-                <div className="relative aspect-[3/4] rounded-xl overflow-hidden bg-gray-100">
-                  <img
-                    src={listing.imageUrl}
-                    alt={listing.title}
-                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-                  />
+                <ProtectedImage
+                  src={listing.thumbnailUrl}
+                  alt={listing.title}
+                  className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                  wrapperClassName="aspect-[3/4] rounded-xl overflow-hidden bg-gray-100"
+                >
                   {listing.isOriginal && (
-                    <span className="absolute top-3 left-3 bg-amber-500 text-white text-xs font-bold px-2 py-1 rounded-full">
+                    <span className="absolute top-3 left-3 bg-amber-500 text-white text-xs font-bold px-2 py-1 rounded-full z-10">
                       Original
                     </span>
                   )}
@@ -165,7 +166,7 @@ export default function MarketPage() {
                       Prova på min vägg →
                     </button>
                   </div>
-                </div>
+                </ProtectedImage>
                 <div className="mt-3 px-1">
                   <h3 className="font-medium text-gray-900 truncate">{listing.title}</h3>
                   <p className="text-sm text-gray-500">{listing.artist.displayName}</p>

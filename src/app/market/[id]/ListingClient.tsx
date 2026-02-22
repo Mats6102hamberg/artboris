@@ -11,6 +11,7 @@ import MockupPreview from '@/components/poster/MockupPreview'
 import WallMarker from '@/components/poster/WallMarker'
 import { DEMO_WALL_CORNERS } from '@/lib/demo/demoImages'
 import CreativeToolsSection from '@/components/wallcraft/CreativeToolsSection'
+import ProtectedImage from '@/components/ui/ProtectedImage'
 
 interface ListingDetail {
   id: string
@@ -19,7 +20,8 @@ interface ListingDetail {
   technique: string
   category: string
   year: number | null
-  imageUrl: string
+  previewUrl: string
+  thumbnailUrl?: string
   widthCm: number | null
   heightCm: number | null
   artistPriceSEK: number
@@ -307,7 +309,7 @@ export default function ListingDetailPage() {
 
                 <div className="flex gap-3 mb-6">
                   <div className="w-16 h-20 flex-shrink-0 rounded-lg overflow-hidden bg-gray-50 border border-gray-100">
-                    <img src={listing.imageUrl} alt={listing.title} className="w-full h-full" style={cropToCSS('COVER', cropOffsetX, cropOffsetY)} />
+                    <img src={listing.previewUrl} alt={listing.title} className="w-full h-full" style={cropToCSS('COVER', cropOffsetX, cropOffsetY)} />
                   </div>
                   <div className="flex-1 min-w-0">
                     <p className="text-sm font-medium text-gray-900 truncate">{listing.title}</p>
@@ -402,7 +404,7 @@ export default function ListingDetailPage() {
             <div className="lg:col-span-2">
               <MockupPreview
                 roomImageUrl={roomImageUrl}
-                designImageUrl={listing.imageUrl}
+                designImageUrl={listing.previewUrl}
                 wallCorners={wallCorners}
                 frameId={frameId}
                 sizeId={sizeId}
@@ -660,7 +662,7 @@ export default function ListingDetailPage() {
               onPointerCancel={handleCropPointerUp}
             >
               <img
-                src={listing.imageUrl}
+                src={listing.previewUrl}
                 alt={listing.title}
                 className="w-full h-full pointer-events-none"
                 style={cropToCSS('COVER', cropOffsetX, cropOffsetY)}
@@ -745,7 +747,7 @@ export default function ListingDetailPage() {
                 </ol>
               </div>
 
-              <CreativeToolsSection imageUrl={listing.imageUrl} />
+              <CreativeToolsSection imageUrl={listing.previewUrl} />
             </div>
 
             {/* Artist info */}

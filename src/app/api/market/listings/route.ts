@@ -46,8 +46,17 @@ export async function GET(request: NextRequest) {
       prisma.artworkListing.count({ where }),
     ])
 
+    // Sanitize: public responses never expose full-res URLs
+    const sanitized = isOwnDashboard
+      ? listings
+      : listings.map(({ imageUrl, printUrl, originalUploadUrl, ...safe }: any) => ({
+          ...safe,
+          // Use thumbnailUrl for display; fall back to imageUrl only if no thumbnail exists
+          thumbnailUrl: safe.thumbnailUrl || imageUrl,
+        }))
+
     return NextResponse.json({
-      listings,
+      listings: sanitized,
       total,
       page,
       totalPages: Math.ceil(total / limit),

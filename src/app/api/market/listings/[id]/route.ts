@@ -28,7 +28,16 @@ export async function GET(
       data: { views: { increment: 1 } },
     })
 
-    return NextResponse.json({ listing })
+    // Sanitize: never expose full-res URLs publicly
+    // previewUrl = thumbnail for display; imageUrl/printUrl/originalUploadUrl stripped
+    const { imageUrl, printUrl, originalUploadUrl, ...safe } = listing as any
+    const sanitized = {
+      ...safe,
+      // Preview-quality image for display and mockup (thumbnail, max ~600px)
+      previewUrl: safe.thumbnailUrl || imageUrl,
+    }
+
+    return NextResponse.json({ listing: sanitized })
   } catch (error) {
     console.error('[market/listings/[id]] GET Error:', error)
     return NextResponse.json({ error: 'Kunde inte hämta konstverk.' }, { status: 500 })

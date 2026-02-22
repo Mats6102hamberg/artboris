@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation'
 import { useTranslation } from '@/lib/i18n/context'
 import Button from '@/components/ui/Button'
 import LanguageSwitcher from '@/components/ui/LanguageSwitcher'
+import ProtectedImage from '@/components/ui/ProtectedImage'
 
 type Section = 'ai' | 'photographers' | 'artists'
 
@@ -204,13 +205,13 @@ export default function GalleryPage() {
           <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-5">
             {items.map(item => (
               <div key={item.id} className="group cursor-pointer" onClick={() => handleCardClick(item)}>
-                <div className="aspect-[2/3] bg-gray-100 rounded-xl overflow-hidden relative">
-                  <img
-                    src={item.thumbnailUrl || item.imageUrl}
-                    alt={item.title}
-                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-                    loading="lazy"
-                  />
+                <ProtectedImage
+                  src={item.thumbnailUrl || item.imageUrl}
+                  alt={item.title}
+                  className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                  loading="lazy"
+                  wrapperClassName="aspect-[2/3] bg-gray-100 rounded-xl overflow-hidden"
+                >
                   {item.type === 'ai-variant' && (
                     <div className="absolute top-2 left-2 z-10">
                       <span className="bg-purple-600/90 backdrop-blur-sm text-white text-[10px] font-semibold px-2 py-0.5 rounded-full tracking-wide uppercase">
@@ -224,7 +225,7 @@ export default function GalleryPage() {
                       <button
                         onClick={(e) => {
                           e.stopPropagation()
-                          router.push(`/wallcraft/create?from=${encodeURIComponent(item.imageUrl)}&style=${item.style || 'abstract'}`)
+                          router.push(`/wallcraft/create?from=${encodeURIComponent(item.thumbnailUrl || item.imageUrl)}&style=${item.style || 'abstract'}`)
                         }}
                         className="w-full text-white text-xs font-semibold bg-gradient-to-r from-purple-600/90 to-fuchsia-600/90 backdrop-blur-sm px-3 py-2 rounded-lg flex items-center justify-center gap-1.5 hover:from-purple-600 hover:to-fuchsia-600 transition-all"
                       >
@@ -250,7 +251,7 @@ export default function GalleryPage() {
                       )}
                     </div>
                   </div>
-                </div>
+                </ProtectedImage>
                 <div className="mt-2.5">
                   <p className="text-sm font-medium text-gray-900 truncate">{item.title}</p>
                   {item.type === 'market' && item.artistName ? (
