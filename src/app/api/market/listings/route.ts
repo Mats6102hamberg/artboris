@@ -33,8 +33,18 @@ export async function GET(request: NextRequest) {
     if (!isOwnDashboard && artistId) where.artistId = artistId
 
     // Featured sort: fetch larger pool, score in JS, return top N.
-    // Quality score = printQuality rank × 10 + tryOnWallCount × 3 + views
-    //   printQuality: perfect=4, good=3, fair=2, low/null=1
+    //
+    // Quality score formula:
+    //   printScore  = printQuality_rank × 100   (dominant — quality always wins)
+    //   tryScore    = tryOnWallCount × 10        (medium — engagement signal)
+    //   viewsScore  = log10(views + 1) × 10     (minor — log-clamped so volume can't dominate)
+    //
+    // printQuality ranks: perfect=4, good=3, fair=2, low/null=1
+    //
+    // Examples:
+    //   A: perfect quality, 2 tryOnWall, 500 views → 400 + 20 + 27.0 = 447
+    //   B: fair quality,    0 tryOnWall, 5000 views → 200 +  0 + 37.0 = 237
+    //   → A wins despite 10× fewer views, because quality dominates.
     const QUALITY_RANK: Record<string, number> = { perfect: 4, good: 3, fair: 2, low: 1 }
     const featuredPool = featured ? Math.max(limit * 4, 50) : limit
 
@@ -57,9 +67,9 @@ export async function GET(request: NextRequest) {
       ? rawListings
           .map((l: any) => ({
             ...l,
-            _score: (QUALITY_RANK[l.printQuality ?? ''] ?? 1) * 10
-                  + (l.tryOnWallCount ?? 0) * 3
-                  + (l.views ?? 0),
+            _score: (QUALITY_RANK[l.printQuality ?? ''] ?? 1) * 100
+                  + (l.tryOnWallCount ?? 0) * 10
+                  + Math.log10((l.views ?? 0) + 1) * 10,
           }))
           .sort((a: any, b: any) => b._score - a._score)
           .slice(0, limit)
