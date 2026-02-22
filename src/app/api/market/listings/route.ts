@@ -11,6 +11,7 @@ export async function GET(request: NextRequest) {
     const category = searchParams.get('category')
     const excludeCategory = searchParams.get('excludeCategory')
     const artistId = searchParams.get('artistId')
+    const featured = searchParams.get('featured') === '1'
     const page = parseInt(searchParams.get('page') || '1')
     const limit = parseInt(searchParams.get('limit') || '24')
 
@@ -39,7 +40,9 @@ export async function GET(request: NextRequest) {
             select: { id: true, displayName: true, avatarUrl: true },
           },
         },
-        orderBy: { createdAt: 'desc' },
+        orderBy: featured
+          ? [{ views: 'desc' }, { createdAt: 'desc' }]
+          : { createdAt: 'desc' },
         skip: (page - 1) * limit,
         take: limit,
       }),

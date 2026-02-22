@@ -1,13 +1,17 @@
 'use client'
 
 import { useState, useEffect, useRef } from 'react'
+import Image from 'next/image'
 import Link from 'next/link'
+
+const FALLBACK_HERO = 'https://images.unsplash.com/photo-1513519245088-0e12902e35ca?w=1920&q=80&auto=format&fit=crop'
 
 // ─── Types ───
 interface Listing {
   id: string
   title: string
   thumbnailUrl: string
+  imageUrl?: string
   artist: { displayName: string }
 }
 
@@ -33,50 +37,78 @@ function useFadeIn() {
 // ─── Hero ───
 function HeroSection() {
   const [loaded, setLoaded] = useState(false)
-  useEffect(() => { setTimeout(() => setLoaded(true), 80) }, [])
+  const [heroImg, setHeroImg] = useState<string>(FALLBACK_HERO)
+  const [heroArtist, setHeroArtist] = useState<string>('')
+
+  useEffect(() => {
+    fetch('/api/market/listings?featured=1&limit=1')
+      .then(r => r.json())
+      .then(data => {
+        const listing = data.listings?.[0]
+        if (listing) {
+          setHeroImg(listing.thumbnailUrl || listing.imageUrl || FALLBACK_HERO)
+          if (listing.artist?.displayName) setHeroArtist(listing.artist.displayName)
+        }
+      })
+      .catch(() => {})
+    setTimeout(() => setLoaded(true), 80)
+  }, [])
 
   return (
     <section className="relative h-screen min-h-[600px] max-h-[1200px] flex items-center justify-center overflow-hidden">
       {/* Background image */}
       <div className="absolute inset-0">
-        <img
-          src="https://images.unsplash.com/photo-1513519245088-0e12902e35ca?w=1920&q=80&auto=format&fit=crop"
-          alt=""
-          className="w-full h-full object-cover"
-          fetchPriority="high"
+        <Image
+          src={heroImg}
+          alt="Utvald konst från ArtBoris"
+          fill
+          className="object-cover"
+          priority
+          sizes="100vw"
+          unoptimized={heroImg.includes('unsplash')}
         />
-        <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/30 to-black/20" />
+        <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/40 to-black/10" />
       </div>
 
       {/* Content */}
       <div className={`relative z-10 text-center px-6 max-w-3xl transition-all duration-1000 ease-out ${loaded ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'}`}>
-        <h1 className="font-[var(--font-playfair)] text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-light text-white leading-[1.1] tracking-tight" style={{ fontFamily: 'var(--font-playfair), Georgia, serif' }}>
-          Gör ditt hem<br />till ett galleri
+        <h1 className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-light text-white leading-[1.1] tracking-tight" style={{ fontFamily: 'var(--font-playfair), Georgia, serif' }}>
+          Gör ditt hem
+          <br />
+          till ett galleri
         </h1>
-        <p className="mt-6 text-base sm:text-lg text-white/70 max-w-xl mx-auto leading-relaxed">
-          Fine art prints skapade med AI, fotografi och klassisk konst.
+        <p className="mt-6 text-base sm:text-lg text-white/70 max-w-lg mx-auto leading-relaxed">
+          Handplockade prints — AI-konst, fotografi och klassiska verk.
+          Tryckt i museumkvalitet, levererat hem till dig.
         </p>
         <div className="mt-10 flex flex-col sm:flex-row items-center justify-center gap-4">
           <Link
             href="/market"
-            className="inline-flex items-center gap-2 bg-white text-gray-900 px-8 py-4 rounded-full text-sm font-medium tracking-wide hover:bg-gray-100 transition-all"
+            className="inline-flex items-center gap-2.5 bg-white text-gray-900 px-8 py-4 rounded-full text-sm font-medium tracking-wide hover:bg-gray-100 transition-all shadow-lg shadow-black/10"
           >
             Utforska galleriet
             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" /></svg>
           </Link>
           <Link
             href="/wallcraft/studio"
-            className="inline-flex items-center gap-2 text-white/80 border border-white/30 px-8 py-4 rounded-full text-sm font-medium tracking-wide hover:bg-white/10 hover:border-white/50 transition-all"
+            className="inline-flex items-center gap-2 text-white/90 border border-white/30 backdrop-blur-sm px-8 py-4 rounded-full text-sm font-medium tracking-wide hover:bg-white/10 hover:border-white/50 transition-all"
           >
-            Skapa din egen tavla
+            Skapa din egen konst
           </Link>
         </div>
       </div>
 
+      {/* Artist credit */}
+      {heroArtist && (
+        <div className={`absolute bottom-20 sm:bottom-8 right-6 transition-opacity duration-1000 delay-700 ${loaded ? 'opacity-50' : 'opacity-0'}`}>
+          <p className="text-[11px] text-white/60 tracking-wide">Verk av {heroArtist}</p>
+        </div>
+      )}
+
       {/* Scroll indicator */}
-      <div className={`absolute bottom-8 left-1/2 -translate-x-1/2 transition-opacity duration-1000 delay-1000 ${loaded ? 'opacity-60' : 'opacity-0'}`}>
-        <div className="w-5 h-8 border-2 border-white/40 rounded-full flex justify-center pt-1.5">
-          <div className="w-1 h-2 bg-white/60 rounded-full animate-bounce" />
+      <div className={`absolute bottom-8 left-1/2 -translate-x-1/2 transition-opacity duration-1000 delay-1000 ${loaded ? 'opacity-50' : 'opacity-0'}`}>
+        <div className="w-5 h-8 border border-white/30 rounded-full flex justify-center pt-2">
+          <div className="w-0.5 h-1.5 bg-white/50 rounded-full animate-bounce" />
         </div>
       </div>
     </section>
@@ -87,10 +119,10 @@ function HeroSection() {
 function TrustBar() {
   const { ref, visible } = useFadeIn()
   const items = [
-    { icon: 'print', label: 'Museum quality print' },
-    { icon: 'eu', label: 'Tillverkad i Europa' },
-    { icon: 'artist', label: 'För konstnärer & fotografer' },
-    { icon: 'frame', label: 'Ramad och klar att hänga' },
+    { icon: 'print', label: 'Museumkvalitet — Giclée fine art' },
+    { icon: 'eu', label: 'Tryckt i Sverige' },
+    { icon: 'artist', label: 'Konstnärer & fotografer' },
+    { icon: 'frame', label: 'Ramad, klar att hänga' },
   ]
 
   return (
@@ -128,7 +160,7 @@ function CuratedGallery() {
   const [listings, setListings] = useState<Listing[]>([])
 
   useEffect(() => {
-    fetch('/api/market/listings?page=1&limit=6')
+    fetch('/api/market/listings?featured=1&limit=6')
       .then(r => r.json())
       .then(data => {
         if (data.listings) setListings(data.listings.slice(0, 6))
@@ -140,27 +172,30 @@ function CuratedGallery() {
     <section ref={ref} className="py-16 sm:py-24 bg-white">
       <div className={`max-w-6xl mx-auto px-6 transition-all duration-700 ${visible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-6'}`}>
         <div className="text-center mb-14">
+          <p className="text-xs font-medium tracking-[0.2em] uppercase text-gray-400 mb-4">Kurerat urval</p>
           <h2 className="text-3xl sm:text-4xl lg:text-5xl font-light tracking-tight text-gray-900 leading-tight" style={{ fontFamily: 'var(--font-playfair), Georgia, serif' }}>
-            Utvald konst för moderna hem
+            Utvald konst för ditt hem
           </h2>
         </div>
 
         {listings.length > 0 ? (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5 sm:gap-7">
             {listings.map((listing) => (
               <Link
                 key={listing.id}
                 href={`/market/${listing.id}`}
                 className="group block"
               >
-                <div className="aspect-[3/4] bg-gray-100 rounded-lg overflow-hidden relative">
-                  <img
+                <div className="aspect-[3/4] bg-gray-50 rounded-lg overflow-hidden relative">
+                  <Image
                     src={listing.thumbnailUrl}
                     alt={listing.title}
-                    className="w-full h-full object-cover group-hover:scale-[1.03] transition-transform duration-700 ease-out"
+                    fill
+                    className="object-cover group-hover:scale-[1.03] transition-transform duration-700 ease-out"
+                    sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
                     loading="lazy"
                   />
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
                   <div className="absolute bottom-0 left-0 right-0 p-5 translate-y-2 group-hover:translate-y-0 opacity-0 group-hover:opacity-100 transition-all duration-500">
                     <p className="text-white text-sm font-medium">{listing.title}</p>
                     <p className="text-white/60 text-xs mt-1">{listing.artist?.displayName}</p>
@@ -170,9 +205,9 @@ function CuratedGallery() {
             ))}
           </div>
         ) : (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5 sm:gap-7">
             {[1,2,3,4,5,6].map(i => (
-              <div key={i} className="aspect-[3/4] bg-gray-100 rounded-lg animate-pulse" />
+              <div key={i} className="aspect-[3/4] bg-gray-50 rounded-lg animate-pulse" />
             ))}
           </div>
         )}
@@ -180,9 +215,9 @@ function CuratedGallery() {
         <div className="text-center mt-14">
           <Link
             href="/market"
-            className="inline-flex items-center gap-2 text-gray-900 border border-gray-200 px-8 py-3.5 rounded-full text-sm font-medium tracking-wide hover:border-gray-400 hover:shadow-sm transition-all"
+            className="inline-flex items-center gap-2.5 text-gray-900 border border-gray-200 px-8 py-3.5 rounded-full text-sm font-medium tracking-wide hover:border-gray-400 hover:shadow-sm transition-all"
           >
-            Se hela galleriet
+            Visa hela samlingen
             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" /></svg>
           </Link>
         </div>
@@ -201,27 +236,32 @@ function WallcraftBlock() {
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-20 items-center">
           {/* Left: Mockup image */}
           <div className="relative">
-            <div className="aspect-[4/3] bg-gray-100 rounded-lg overflow-hidden">
-              <img
+            <div className="aspect-[4/3] bg-gray-50 rounded-lg overflow-hidden relative">
+              <Image
                 src="https://images.unsplash.com/photo-1586023492125-27b2c045efd7?w=960&q=80&auto=format&fit=crop"
                 alt="Konst på vägg i modern interiör"
-                className="w-full h-full object-cover"
+                fill
+                className="object-cover"
+                sizes="(max-width: 1024px) 100vw, 50vw"
                 loading="lazy"
+                unoptimized
               />
             </div>
           </div>
 
           {/* Right: Text */}
           <div className="max-w-lg">
+            <p className="text-xs font-medium tracking-[0.2em] uppercase text-gray-400 mb-4">Visualisera</p>
             <h2 className="text-3xl sm:text-4xl font-light tracking-tight text-gray-900 leading-tight" style={{ fontFamily: 'var(--font-playfair), Georgia, serif' }}>
-              Se konsten på<br />din egen vägg
+              Se konsten på
+              <br />din egen vägg
             </h2>
             <p className="mt-6 text-gray-500 leading-relaxed">
-              Ladda upp en bild av ditt rum och upplev tavlan i rätt storlek och stil. Välj ram, justera placering och se resultatet innan du beställer.
+              Ladda upp ett foto av ditt rum. Välj verk, ram och storlek — och se exakt hur det kommer se ut innan du beställer.
             </p>
             <Link
               href="/wallcraft/studio"
-              className="mt-8 inline-flex items-center gap-2 bg-gray-900 text-white px-7 py-3.5 rounded-full text-sm font-medium tracking-wide hover:bg-gray-800 transition-all"
+              className="mt-8 inline-flex items-center gap-2.5 bg-gray-900 text-white px-7 py-3.5 rounded-full text-sm font-medium tracking-wide hover:bg-gray-800 transition-all"
             >
               Prova på din vägg
               <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" /></svg>
@@ -241,17 +281,19 @@ function ArtistBlock() {
     <section ref={ref} className="py-16 sm:py-24 bg-white">
       <div className={`max-w-6xl mx-auto px-6 transition-all duration-700 ${visible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-6'}`}>
         <div className="max-w-2xl mx-auto text-center">
+          <p className="text-xs font-medium tracking-[0.2em] uppercase text-gray-400 mb-4">För konstnärer</p>
           <h2 className="text-3xl sm:text-4xl font-light tracking-tight text-gray-900 leading-tight" style={{ fontFamily: 'var(--font-playfair), Georgia, serif' }}>
-            Sälj din konst i hela Europa
+            Visa din konst för hela Norden
           </h2>
-          <p className="mt-6 text-gray-500 leading-relaxed">
-            Vi hanterar tryck, betalning och leverans. Du fokuserar på skapandet.
+          <p className="mt-6 text-gray-500 leading-relaxed max-w-lg mx-auto">
+            Vi hanterar tryck, frakt och betalning. Du laddar upp — vi gör resten.
+            Ingen startavgift, ingen bindningstid.
           </p>
           <Link
             href="/market/artist"
-            className="mt-8 inline-flex items-center gap-2 bg-gray-900 text-white px-7 py-3.5 rounded-full text-sm font-medium tracking-wide hover:bg-gray-800 transition-all"
+            className="mt-8 inline-flex items-center gap-2.5 bg-gray-900 text-white px-7 py-3.5 rounded-full text-sm font-medium tracking-wide hover:bg-gray-800 transition-all"
           >
-            Bli konstnär på ArtBoris
+            Ansök som konstnär
             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" /></svg>
           </Link>
         </div>
@@ -267,11 +309,17 @@ function BorisCuration() {
   return (
     <section ref={ref} className="py-14 sm:py-20 bg-[#FAFAF8] border-t border-gray-100">
       <div className={`max-w-6xl mx-auto px-6 text-center transition-all duration-700 ${visible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'}`}>
+        <div className="inline-flex items-center gap-3 mb-3">
+          <div className="w-7 h-7 rounded-full bg-gray-900 flex items-center justify-center">
+            <span className="text-[10px] font-bold text-white">B</span>
+          </div>
+          <span className="text-xs font-medium tracking-[0.15em] uppercase text-gray-400">Boris</span>
+        </div>
         <p className="text-lg sm:text-xl text-gray-900 font-light tracking-tight" style={{ fontFamily: 'var(--font-playfair), Georgia, serif' }}>
-          Kurerat av Boris — din personliga AI-curator.
+          &ldquo;Varje verk i galleriet är handplockat och kvalitetsgranskat.&rdquo;
         </p>
         <p className="mt-3 text-sm text-gray-400">
-          Varje verk handplockat och kvalitetsgranskat.
+          AI-curator — analyserar stil, kvalitet och printbarhet.
         </p>
       </div>
     </section>
@@ -287,7 +335,8 @@ function Footer() {
           <div className="col-span-2 md:col-span-1">
             <span className="text-base font-semibold tracking-[0.15em] uppercase text-gray-900">Artboris</span>
             <p className="mt-3 text-sm text-gray-400 leading-relaxed max-w-xs">
-              Fine art prints för moderna hem. AI-genererad konst, fotografi och klassisk konst.
+              Handplockade prints för moderna hem.
+              Konst, fotografi och AI-genererade verk.
             </p>
           </div>
           <div>
