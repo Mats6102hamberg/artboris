@@ -49,7 +49,7 @@ interface EventSummary {
 }
 
 export default function BorisDashboard() {
-  const [tab, setTab] = useState<'funnel' | 'events' | 'insights' | 'memory' | 'trends' | 'report'>('funnel')
+  const [tab, setTab] = useState<'daily' | 'funnel' | 'events' | 'insights' | 'memory' | 'trends' | 'report'>('daily')
   const [days, setDays] = useState(7)
   const [device, setDevice] = useState('')
   const [locale, setLocale] = useState('')
@@ -63,6 +63,8 @@ export default function BorisDashboard() {
   const [trendsData, setTrendsData] = useState<any>(null)
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const [reportData, setReportData] = useState<any>(null)
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const [dailyData, setDailyData] = useState<any>(null)
   const [loading, setLoading] = useState(false)
 
   // Set admin_secret in localStorage so BorisChatPanel shows
@@ -142,14 +144,25 @@ export default function BorisDashboard() {
     setLoading(false)
   }, [days])
 
+  const loadDaily = useCallback(async () => {
+    setLoading(true)
+    try {
+      const res = await fetch('/api/boris/daily')
+      const data = await res.json()
+      if (data.date) setDailyData(data)
+    } catch { /* silent */ }
+    setLoading(false)
+  }, [])
+
   useEffect(() => {
-    if (tab === 'funnel') loadFunnel()
+    if (tab === 'daily') loadDaily()
+    else if (tab === 'funnel') loadFunnel()
     else if (tab === 'events') loadEvents()
     else if (tab === 'memory') loadMemories()
     else if (tab === 'insights') loadInsights()
     else if (tab === 'trends') loadTrends()
     else if (tab === 'report') loadReport()
-  }, [tab, loadFunnel, loadEvents, loadMemories, loadInsights, loadTrends, loadReport])
+  }, [tab, loadDaily, loadFunnel, loadEvents, loadMemories, loadInsights, loadTrends, loadReport])
 
   return (
     <div className="min-h-screen bg-gray-50 text-gray-900" style={{ color: '#111827' }}>
@@ -187,10 +200,10 @@ export default function BorisDashboard() {
 
       {/* Tabs */}
       <div className="max-w-7xl mx-auto px-6 pt-4">
-        <div className="flex gap-1 bg-gray-100 rounded-xl p-1 w-fit">
-          {(['funnel', 'events', 'trends', 'insights', 'memory', 'report'] as const).map((t) => {
+        <div className="flex gap-1 bg-gray-100 rounded-xl p-1 w-fit flex-wrap">
+          {(['daily', 'funnel', 'events', 'trends', 'insights', 'memory', 'report'] as const).map((t) => {
             const labels: Record<string, string> = {
-              funnel: '📊 Funnel', events: '📡 Events', trends: '📈 Trends',
+              daily: '🧠 Daily', funnel: '📊 Funnel', events: '📡 Events', trends: '📈 Trends',
               insights: '💡 Insights', memory: '🧠 Memory', report: '📋 Rapport',
             }
             return (
@@ -214,6 +227,119 @@ export default function BorisDashboard() {
           <div className="flex items-center gap-2 text-sm text-gray-500 mb-4">
             <div className="w-4 h-4 border-2 border-gray-300 border-t-gray-900 rounded-full animate-spin" />
             Laddar...
+          </div>
+        )}
+
+        {/* DAILY MACHINE REPORT TAB */}
+        {tab === 'daily' && !dailyData && !loading && (
+          <div className="bg-white rounded-xl border border-gray-200 px-5 py-8 text-center">
+            <p className="text-sm text-gray-500">Ingen daglig data ännu.</p>
+          </div>
+        )}
+        {tab === 'daily' && dailyData && (
+          <div className="space-y-6">
+            {/* Header */}
+            <div className="bg-gradient-to-r from-gray-900 to-gray-800 rounded-2xl p-6 text-white">
+              <div className="flex items-center gap-3 mb-4">
+                <span className="text-2xl">🧠</span>
+                <div>
+                  <h2 className="text-lg font-bold">BORIS DAILY MACHINE REPORT</h2>
+                  <p className="text-sm text-gray-400">{dailyData.date}</p>
+                </div>
+              </div>
+
+              {/* Revenue */}
+              <div className="bg-white/10 rounded-xl p-4 mb-4">
+                <p className="text-sm text-gray-300 mb-1">Revenue yesterday</p>
+                <div className="flex items-baseline gap-3">
+                  <p className="text-3xl font-bold">{Math.round(dailyData.revenue.yesterdaySEK).toLocaleString('sv-SE')} kr</p>
+                  {dailyData.revenue.changePercent !== 0 && (
+                    <span className={`text-sm font-medium px-2 py-0.5 rounded-full ${
+                      dailyData.revenue.changePercent > 0
+                        ? 'bg-green-500/20 text-green-300'
+                        : 'bg-red-500/20 text-red-300'
+                    }`}>
+                      {dailyData.revenue.changePercent > 0 ? '+' : ''}{dailyData.revenue.changePercent}%
+                    </span>
+                  )}
+                </div>
+                <p className="text-xs text-gray-400 mt-1">{dailyData.revenue.orderCount} ordrar · {dailyData.sessions} sessioner</p>
+              </div>
+
+              {/* Biggest drop */}
+              {dailyData.biggestDrop.dropPercent > 0 && (
+                <div className="bg-red-500/20 rounded-xl p-4 mb-4">
+                  <p className="text-sm text-red-200 mb-1">Biggest drop</p>
+                  <p className="text-lg font-bold text-red-100">
+                    {dailyData.biggestDrop.from} → {dailyData.biggestDrop.to}
+                  </p>
+                  <p className="text-sm text-red-300">-{dailyData.biggestDrop.dropPercent}% tappar här</p>
+                </div>
+              )}
+            </div>
+
+            {/* Top blockers */}
+            {dailyData.blockers.length > 0 && (
+              <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
+                <div className="px-5 py-4 border-b border-gray-100">
+                  <h2 className="font-semibold text-gray-900">🚫 Top Blockers</h2>
+                </div>
+                <div className="divide-y divide-gray-50">
+                  {dailyData.blockers.map((b: { label: string; severity: string }, i: number) => (
+                    <div key={i} className="px-5 py-3 flex items-center justify-between">
+                      <span className="text-sm text-gray-900">{b.label}</span>
+                      <span className={`text-xs font-medium px-2 py-0.5 rounded-full ${
+                        b.severity === 'high' ? 'bg-red-100 text-red-700' :
+                        b.severity === 'medium' ? 'bg-amber-100 text-amber-700' :
+                        'bg-gray-100 text-gray-600'
+                      }`}>
+                        {b.severity}
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* Actions */}
+            <div className="bg-amber-50 rounded-xl border border-amber-200 p-5">
+              <h2 className="font-semibold text-amber-900 mb-3">⚡ Actions</h2>
+              <ol className="space-y-2">
+                {dailyData.actions.map((action: string, i: number) => (
+                  <li key={i} className="text-sm text-amber-800 flex items-start gap-3">
+                    <span className="bg-amber-200 text-amber-900 w-5 h-5 rounded-full flex items-center justify-center text-xs font-bold flex-shrink-0 mt-0.5">{i + 1}</span>
+                    <span>{action}</span>
+                  </li>
+                ))}
+              </ol>
+            </div>
+
+            {/* Mini funnel */}
+            <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
+              <div className="px-5 py-4 border-b border-gray-100">
+                <h2 className="font-semibold text-gray-900">📊 Funnel igår</h2>
+              </div>
+              <div className="divide-y divide-gray-50">
+                {dailyData.funnel.map((step: { step: string; sessions: number }, i: number) => {
+                  const maxSessions = dailyData.funnel[0]?.sessions || 1
+                  const barWidth = maxSessions > 0 ? (step.sessions / maxSessions) * 100 : 0
+                  return (
+                    <div key={step.step} className="px-5 py-2.5 flex items-center gap-4">
+                      <div className="w-6 text-xs text-gray-400 text-right">{i + 1}</div>
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center justify-between mb-1">
+                          <span className="text-xs font-medium text-gray-700">{step.step}</span>
+                          <span className="text-xs text-gray-500">{step.sessions}</span>
+                        </div>
+                        <div className="h-1.5 bg-gray-100 rounded-full overflow-hidden">
+                          <div className="h-full rounded-full bg-blue-400" style={{ width: `${barWidth}%` }} />
+                        </div>
+                      </div>
+                    </div>
+                  )
+                })}
+              </div>
+            </div>
           </div>
         )}
 
