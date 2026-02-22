@@ -49,7 +49,7 @@ interface EventSummary {
 }
 
 export default function BorisDashboard() {
-  const [tab, setTab] = useState<'daily' | 'funnel' | 'events' | 'insights' | 'memory' | 'trends' | 'report'>('daily')
+  const [tab, setTab] = useState<'daily' | 'fix' | 'funnel' | 'events' | 'insights' | 'memory' | 'trends' | 'report'>('daily')
   const [days, setDays] = useState(7)
   const [device, setDevice] = useState('')
   const [locale, setLocale] = useState('')
@@ -65,6 +65,11 @@ export default function BorisDashboard() {
   const [reportData, setReportData] = useState<any>(null)
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const [dailyData, setDailyData] = useState<any>(null)
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const [fixData, setFixData] = useState<any>(null)
+  const [fixRunning, setFixRunning] = useState<string | null>(null)
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const [fixResult, setFixResult] = useState<any>(null)
   const [loading, setLoading] = useState(false)
 
   // Set admin_secret in localStorage so BorisChatPanel shows
@@ -154,15 +159,43 @@ export default function BorisDashboard() {
     setLoading(false)
   }, [])
 
+  const loadFix = useCallback(async () => {
+    setLoading(true)
+    setFixResult(null)
+    try {
+      const res = await fetch('/api/boris/fix/scan')
+      const data = await res.json()
+      if (data.issues) setFixData(data)
+    } catch { /* silent */ }
+    setLoading(false)
+  }, [])
+
+  const runFix = async (action: string, entityId: string, dryRun: boolean) => {
+    setFixRunning(`${action}-${entityId}-${dryRun ? 'dry' : 'live'}`)
+    setFixResult(null)
+    try {
+      const res = await fetch('/api/boris/fix/run', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action, entityId, dryRun }),
+      })
+      const data = await res.json()
+      setFixResult(data)
+      if (!dryRun && data.success) loadFix()
+    } catch { /* silent */ }
+    setFixRunning(null)
+  }
+
   useEffect(() => {
     if (tab === 'daily') loadDaily()
+    else if (tab === 'fix') loadFix()
     else if (tab === 'funnel') loadFunnel()
     else if (tab === 'events') loadEvents()
     else if (tab === 'memory') loadMemories()
     else if (tab === 'insights') loadInsights()
     else if (tab === 'trends') loadTrends()
     else if (tab === 'report') loadReport()
-  }, [tab, loadDaily, loadFunnel, loadEvents, loadMemories, loadInsights, loadTrends, loadReport])
+  }, [tab, loadDaily, loadFix, loadFunnel, loadEvents, loadMemories, loadInsights, loadTrends, loadReport])
 
   return (
     <div className="min-h-screen bg-gray-50 text-gray-900" style={{ color: '#111827' }}>
@@ -201,9 +234,9 @@ export default function BorisDashboard() {
       {/* Tabs */}
       <div className="max-w-7xl mx-auto px-6 pt-4">
         <div className="flex gap-1 bg-gray-100 rounded-xl p-1 w-fit flex-wrap">
-          {(['daily', 'funnel', 'events', 'trends', 'insights', 'memory', 'report'] as const).map((t) => {
+          {(['daily', 'fix', 'funnel', 'events', 'trends', 'insights', 'memory', 'report'] as const).map((t) => {
             const labels: Record<string, string> = {
-              daily: '🧠 Daily', funnel: '📊 Funnel', events: '📡 Events', trends: '📈 Trends',
+              daily: '🧠 Daily', fix: '🔧 Fix', funnel: '📊 Funnel', events: '📡 Events', trends: '📈 Trends',
               insights: '💡 Insights', memory: '🧠 Memory', report: '📋 Rapport',
             }
             return (
@@ -227,6 +260,138 @@ export default function BorisDashboard() {
           <div className="flex items-center gap-2 text-sm text-gray-500 mb-4">
             <div className="w-4 h-4 border-2 border-gray-300 border-t-gray-900 rounded-full animate-spin" />
             Laddar...
+          </div>
+        )}
+
+        {/* FIX PANEL TAB */}
+        {tab === 'fix' && !fixData && !loading && (
+          <div className="bg-white rounded-xl border border-gray-200 px-5 py-8 text-center">
+            <p className="text-sm text-gray-500">Skannar... inga issues hittade.</p>
+          </div>
+        )}
+        {tab === 'fix' && fixData && (
+          <div className="space-y-6">
+            {/* Summary */}
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+              <div className="bg-white rounded-xl p-5 border border-gray-200">
+                <p className="text-sm text-gray-500">Issues</p>
+                <p className="text-3xl font-bold text-gray-900">{fixData.issueCount}</p>
+              </div>
+              <div className="bg-white rounded-xl p-5 border border-red-200">
+                <p className="text-sm text-gray-500">High</p>
+                <p className="text-3xl font-bold text-red-600">{fixData.bySeverity.high}</p>
+              </div>
+              <div className="bg-white rounded-xl p-5 border border-amber-200">
+                <p className="text-sm text-gray-500">Medium</p>
+                <p className="text-3xl font-bold text-amber-600">{fixData.bySeverity.medium}</p>
+              </div>
+              <div className="bg-white rounded-xl p-5 border border-gray-200">
+                <p className="text-sm text-gray-500">Revenue at risk</p>
+                <p className="text-3xl font-bold text-red-600">{fixData.totalRevenueAtRiskSEK} kr</p>
+              </div>
+            </div>
+
+            {/* Fix result */}
+            {fixResult && (
+              <div className={`rounded-xl border p-4 ${
+                fixResult.success ? 'bg-green-50 border-green-200' : 'bg-red-50 border-red-200'
+              }`}>
+                <div className="flex items-center gap-2 mb-2">
+                  <span className={`text-sm font-bold ${fixResult.success ? 'text-green-700' : 'text-red-700'}`}>
+                    {fixResult.success ? '✅' : '❌'} {fixResult.action} {fixResult.dryRun ? '(DRY-RUN)' : '(LIVE)'}
+                  </span>
+                </div>
+                <div className="space-y-1">
+                  {fixResult.changes?.map((c: string, i: number) => (
+                    <p key={i} className="text-xs text-gray-700">{c}</p>
+                  ))}
+                  {fixResult.error && <p className="text-xs text-red-600 font-medium">{fixResult.error}</p>}
+                </div>
+              </div>
+            )}
+
+            {/* Issues list */}
+            <div className="space-y-3">
+              {fixData.issues.map((issue: {
+                id: string; type: string; severity: string; title: string; description: string;
+                entityId: string; fixAction: string; revenueImpactSEK: number;
+                evidence: Record<string, unknown>
+              }) => (
+                <div key={issue.id} className={`bg-white rounded-xl border overflow-hidden ${
+                  issue.severity === 'high' ? 'border-red-200' :
+                  issue.severity === 'medium' ? 'border-amber-200' : 'border-gray-200'
+                }`}>
+                  <div className="px-5 py-4">
+                    <div className="flex items-start justify-between mb-2">
+                      <div className="flex items-center gap-2">
+                        <span className={`text-xs font-medium px-2 py-0.5 rounded-full ${
+                          issue.severity === 'high' ? 'bg-red-100 text-red-700' :
+                          issue.severity === 'medium' ? 'bg-amber-100 text-amber-700' :
+                          'bg-gray-100 text-gray-600'
+                        }`}>
+                          {issue.severity}
+                        </span>
+                        <span className="text-xs bg-blue-100 text-blue-700 px-2 py-0.5 rounded-full">{issue.type}</span>
+                        {issue.revenueImpactSEK > 0 && (
+                          <span className="text-xs bg-red-50 text-red-600 px-2 py-0.5 rounded-full">
+                            {issue.revenueImpactSEK} kr at risk
+                          </span>
+                        )}
+                      </div>
+                    </div>
+                    <h3 className="text-sm font-semibold text-gray-900">{issue.title}</h3>
+                    <p className="text-xs text-gray-600 mt-1">{issue.description}</p>
+
+                    {/* Evidence */}
+                    <details className="mt-2">
+                      <summary className="text-[10px] text-gray-400 cursor-pointer hover:text-gray-600">Visa bevis</summary>
+                      <pre className="text-[10px] text-gray-500 mt-1 bg-gray-50 rounded p-2 overflow-x-auto">
+                        {JSON.stringify(issue.evidence, null, 2)}
+                      </pre>
+                    </details>
+
+                    {/* Action buttons */}
+                    <div className="flex items-center gap-2 mt-3">
+                      <button
+                        onClick={() => runFix(issue.fixAction, issue.entityId, true)}
+                        disabled={fixRunning !== null}
+                        className="px-3 py-1.5 text-xs font-medium bg-blue-50 text-blue-700 border border-blue-200 rounded-lg hover:bg-blue-100 disabled:opacity-50 transition-colors"
+                      >
+                        {fixRunning === `${issue.fixAction}-${issue.entityId}-dry` ? '⏳ Kör...' : '🔍 Dry Run'}
+                      </button>
+                      {issue.severity !== 'high' ? (
+                        <button
+                          onClick={() => runFix(issue.fixAction, issue.entityId, false)}
+                          disabled={fixRunning !== null}
+                          className="px-3 py-1.5 text-xs font-medium bg-green-50 text-green-700 border border-green-200 rounded-lg hover:bg-green-100 disabled:opacity-50 transition-colors"
+                        >
+                          {fixRunning === `${issue.fixAction}-${issue.entityId}-live` ? '⏳ Kör...' : '⚡ Kör Fix'}
+                        </button>
+                      ) : (
+                        <button
+                          onClick={() => {
+                            if (confirm(`⚠️ HIGH SEVERITY: Kör ${issue.fixAction} på ${issue.entityId.slice(-8)}?`)) {
+                              runFix(issue.fixAction, issue.entityId, false)
+                            }
+                          }}
+                          disabled={fixRunning !== null}
+                          className="px-3 py-1.5 text-xs font-medium bg-red-50 text-red-700 border border-red-200 rounded-lg hover:bg-red-100 disabled:opacity-50 transition-colors"
+                        >
+                          {fixRunning === `${issue.fixAction}-${issue.entityId}-live` ? '⏳ Kör...' : '⚠️ Kör Fix (High)'}
+                        </button>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            {fixData.issueCount === 0 && (
+              <div className="bg-green-50 rounded-xl border border-green-200 p-6 text-center">
+                <p className="text-lg font-semibold text-green-800">✅ Inga issues hittade</p>
+                <p className="text-sm text-green-600 mt-1">Allt ser bra ut just nu</p>
+              </div>
+            )}
           </div>
         )}
 
