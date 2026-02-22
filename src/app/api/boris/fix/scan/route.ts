@@ -22,6 +22,10 @@ async function isStripeCooldown(stripeId: string): Promise<boolean> {
 
 async function setStripeCooldown(stripeId: string): Promise<void> {
   try {
+    // Delete any existing cooldown for this ID, then create fresh
+    await prisma.borisMemory.deleteMany({
+      where: { tags: { hasEvery: ['stripe-cooldown', stripeId] } },
+    })
     await prisma.borisMemory.create({
       data: {
         type: 'PATTERN',
@@ -33,6 +37,20 @@ async function setStripeCooldown(stripeId: string): Promise<void> {
       },
     })
   } catch { /* non-critical */ }
+}
+
+async function cleanupStaleCooldowns(): Promise<number> {
+  try {
+    const oneHourAgo = new Date(Date.now() - 60 * 60 * 1000)
+    const { count } = await prisma.borisMemory.deleteMany({
+      where: {
+        tags: { has: 'stripe-cooldown' },
+        createdAt: { lt: oneHourAgo },
+      },
+    })
+    if (count > 0) console.log(`[boris/fix/scan] Cleaned up ${count} stale cooldown entries`)
+    return count
+  } catch { return 0 }
 }
 
 export interface BorisIssue {
@@ -56,6 +74,9 @@ export interface BorisIssue {
 export async function GET() {
   const issues: BorisIssue[] = []
   const now = new Date()
+
+  // Cleanup stale cooldown entries (>1h) to prevent BorisMemory growth
+  await cleanupStaleCooldowns()
 
   // ─── A) Order Reconciliation: Stripe vs DB mismatch ───
   // Only flags real mismatches, not abandoned checkouts

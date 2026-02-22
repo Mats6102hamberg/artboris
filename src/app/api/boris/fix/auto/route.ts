@@ -1,15 +1,29 @@
-import { NextResponse } from 'next/server'
+import { NextRequest, NextResponse } from 'next/server'
 
 // Auto-run LOW severity fixes after scan
 // Only runs fixes that have safety checks + verification
 // If verification FAIL → FIX_FAILED issue is created by the fix runner
+// Protected: requires ADMIN_SECRET via header or query param
 
 const AUTO_FIX_ACTIONS = new Set([
   'MARK_ABANDONED',      // LOW: expired >24h, has Stripe safety check
   'REBUILD_THUMBNAIL',   // LOW: temp fix, non-destructive
 ])
 
-export async function POST() {
+function isAuthorized(request: NextRequest): boolean {
+  const secret = process.env.ADMIN_SECRET
+  if (!secret) return false
+  const headerKey = request.headers.get('x-admin-key')
+  if (headerKey === secret) return true
+  const urlSecret = new URL(request.url).searchParams.get('secret')
+  return urlSecret === secret
+}
+
+export async function POST(request: NextRequest) {
+  if (!isAuthorized(request)) {
+    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+  }
+
   const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'
   const results: { issueId: string; action: string; result: Record<string, unknown> }[] = []
 
