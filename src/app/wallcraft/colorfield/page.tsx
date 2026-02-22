@@ -4,7 +4,6 @@ import { useState, useRef, useEffect, useCallback, Suspense } from 'react'
 import { useRouter } from 'next/navigation'
 import Button from '@/components/ui/Button'
 import CreditBadge from '@/components/poster/CreditBadge'
-import BorisButton from '@/components/boris/BorisButton'
 import RemixMenu, { RemixBanner } from '@/components/wallcraft/RemixMenu'
 import { useSourceImage } from '@/hooks/useSourceImage'
 import { HIRES_EXPORT_SIZE } from '@/lib/wallcraft/hiResExport'
@@ -803,16 +802,6 @@ function ColorFieldContent() {
           </div>
         </div>
       )}
-
-      {/* Boris AI Advisor */}
-      <BorisButton
-        action="chat"
-        suggestions={[
-          'Vilka färgkombinationer skapar harmoni?',
-          'Hur använder jag Rothko-stil effektivt?',
-          'Tips för minimalistisk färgkomposition',
-        ]}
-      />
     </div>
   )
 }

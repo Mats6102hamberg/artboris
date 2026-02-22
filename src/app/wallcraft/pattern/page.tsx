@@ -4,7 +4,6 @@ import { useState, useRef, useEffect, useCallback, Suspense } from 'react'
 import { useRouter } from 'next/navigation'
 import Button from '@/components/ui/Button'
 import CreditBadge from '@/components/poster/CreditBadge'
-import BorisButton from '@/components/boris/BorisButton'
 import RemixMenu, { RemixBanner } from '@/components/wallcraft/RemixMenu'
 import { useSourceImage } from '@/hooks/useSourceImage'
 import { HIRES_EXPORT_SIZE } from '@/lib/wallcraft/hiResExport'
@@ -781,16 +780,6 @@ function PatternContent() {
           </div>
         </div>
       )}
-
-      {/* Boris AI Advisor */}
-      <BorisButton
-        action="chat"
-        suggestions={[
-          'Vilka mönster passar i ett kök?',
-          'Hur skapar jag ett harmoniskt upprepande mönster?',
-          'Tips för färgval i mönsterdesign',
-        ]}
-      />
     </div>
   )
 }

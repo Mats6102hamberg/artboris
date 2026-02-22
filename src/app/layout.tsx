@@ -2,7 +2,6 @@ import type { Metadata } from "next";
 import localFont from "next/font/local";
 import Providers from "@/components/Providers";
 import GlobalNav from "@/components/GlobalNav";
-import BorisChatPanel from "@/components/boris/BorisChatPanel";
 import "./globals.css";
 
 const geistSans = localFont({
@@ -55,7 +54,6 @@ export default function RootLayout({
         <Providers>
           {children}
           <GlobalNav />
-          <BorisChatPanel />
         </Providers>
       </body>
     </html>

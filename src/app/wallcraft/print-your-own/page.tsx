@@ -8,7 +8,6 @@ import PrintYourOwn from '@/components/poster/PrintYourOwn'
 import RoomUpload from '@/components/poster/RoomUpload'
 import WallMarker from '@/components/poster/WallMarker'
 import CreditBadge from '@/components/poster/CreditBadge'
-import BorisButton from '@/components/boris/BorisButton'
 
 import { DEMO_ROOM_IMAGE, DEMO_WALL_CORNERS } from '@/lib/demo/demoImages'
 
@@ -119,19 +118,6 @@ export default function PrintYourOwnPage() {
               </p>
             </div>
             <PrintYourOwn onImageReady={handleArtReady} />
-            <div className="flex justify-center">
-              <BorisButton
-                action="print"
-                variant="inline"
-                label="Fråga Boris om ditt foto"
-                context={{ imageWidth: artWidth, imageHeight: artHeight }}
-                suggestions={[
-                  'Hur stort kan jag trycka mitt foto?',
-                  'Vilken ram passar ett fotografi?',
-                  'Tips för att hänga foto i vardagsrummet',
-                ]}
-              />
-            </div>
           </div>
         )}
 
