@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
+import Stripe from 'stripe'
 
 // Rate limit: max 5 fixes per hour
 const fixLog: { ts: number }[] = []
@@ -55,6 +56,9 @@ export async function POST(request: NextRequest) {
       case 'RECALC_PRICE':
         result = await recalcPrice(entityId, dryRun)
         break
+      case 'MARK_ABANDONED':
+        result = await markAbandoned(entityId, dryRun)
+        break
       default:
         return NextResponse.json({ error: `Unknown action: ${action}` }, { status: 400 })
     }
@@ -96,6 +100,11 @@ export async function POST(request: NextRequest) {
 
 async function syncStripePayment(entityId: string, dryRun: boolean): Promise<FixResult> {
   const changes: string[] = []
+  const stripeKey = process.env.STRIPE_SECRET_KEY
+  if (!stripeKey) {
+    return { success: false, action: 'SYNC_STRIPE_PAYMENT', entityId, dryRun, changes: [], error: 'STRIPE_SECRET_KEY saknas' }
+  }
+  const stripe = new Stripe(stripeKey, { apiVersion: '2025-01-27.acacia' as Stripe.LatestApiVersion })
 
   // Try Order first
   const order = await prisma.order.findUnique({
@@ -113,22 +122,34 @@ async function syncStripePayment(entityId: string, dryRun: boolean): Promise<Fix
       return { success: false, action: 'SYNC_STRIPE_PAYMENT', entityId, dryRun, changes: [], error: 'Ingen Stripe session kopplad' }
     }
 
-    changes.push(`Order ${entityId.slice(-6)} status: ${order.status}`)
-    changes.push(`Stripe session: ${sessionId.slice(-8)}`)
+    const session = await stripe.checkout.sessions.retrieve(sessionId)
+    changes.push(`Order ${entityId.slice(-6)} DB-status: ${order.status}`)
+    changes.push(`Stripe session ${sessionId.slice(-8)}: payment_status=${session.payment_status}, status=${session.status}`)
 
-    // Check Stripe (would need Stripe SDK in production)
-    changes.push('Kontrollerar Stripe session status...')
+    if (session.payment_status !== 'paid') {
+      changes.push('Stripe säger EJ betald — ingen åtgärd (inte en mismatch)')
+      return { success: true, action: 'SYNC_STRIPE_PAYMENT', entityId, dryRun, changes }
+    }
+
+    // Stripe says paid, DB says not paid → real mismatch
+    changes.push('❗ MISMATCH: Stripe PAID, DB ' + order.status)
 
     if (!dryRun) {
-      // In production: fetch from Stripe API
-      // const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!)
-      // const session = await stripe.checkout.sessions.retrieve(sessionId)
-      // if (session.payment_status === 'paid') { ... }
-
-      // For now: mark as needing manual check
-      changes.push('⚠️ Manuell Stripe-kontroll krävs — kör webhook retry via Stripe Dashboard')
+      await prisma.order.update({
+        where: { id: entityId },
+        data: { status: 'PAID' },
+      })
+      if (order.payment) {
+        await prisma.payment.update({
+          where: { id: order.payment.id },
+          data: { paidAt: new Date() },
+        })
+      }
+      changes.push('✅ Order uppdaterad till PAID')
+      changes.push('✅ Payment.paidAt satt')
+      changes.push('⚠️ OBS: Fulfillment + e-post behöver triggas manuellt (webhook-logik kördes inte)')
     } else {
-      changes.push('[DRY-RUN] Skulle kontrollera Stripe och uppdatera order till PAID om betald')
+      changes.push('[DRY-RUN] Skulle uppdatera order till PAID + sätta payment.paidAt')
     }
 
     return { success: true, action: 'SYNC_STRIPE_PAYMENT', entityId, dryRun, changes }
@@ -140,13 +161,29 @@ async function syncStripePayment(entityId: string, dryRun: boolean): Promise<Fix
   })
 
   if (marketOrder) {
-    changes.push(`MarketOrder ${entityId.slice(-6)} status: ${marketOrder.status}`)
-    changes.push(`Stripe PI: ${marketOrder.stripePaymentIntentId?.slice(-8) || 'saknas'}`)
+    if (!marketOrder.stripePaymentIntentId) {
+      return { success: false, action: 'SYNC_STRIPE_PAYMENT', entityId, dryRun, changes: [], error: 'Ingen Stripe PI kopplad' }
+    }
+
+    const pi = await stripe.paymentIntents.retrieve(marketOrder.stripePaymentIntentId)
+    changes.push(`MarketOrder ${entityId.slice(-6)} DB-status: ${marketOrder.status}`)
+    changes.push(`Stripe PI ${marketOrder.stripePaymentIntentId.slice(-8)}: status=${pi.status}`)
+
+    if (pi.status !== 'succeeded') {
+      changes.push('Stripe säger EJ succeeded — ingen åtgärd')
+      return { success: true, action: 'SYNC_STRIPE_PAYMENT', entityId, dryRun, changes }
+    }
+
+    changes.push('❗ MISMATCH: Stripe succeeded, DB ' + marketOrder.status)
 
     if (!dryRun) {
-      changes.push('⚠️ Manuell Stripe-kontroll krävs')
+      await prisma.marketOrder.update({
+        where: { id: entityId },
+        data: { status: 'PAID', paidAt: new Date() },
+      })
+      changes.push('✅ MarketOrder uppdaterad till PAID')
     } else {
-      changes.push('[DRY-RUN] Skulle kontrollera Stripe PI och uppdatera MarketOrder till PAID')
+      changes.push('[DRY-RUN] Skulle uppdatera MarketOrder till PAID')
     }
 
     return { success: true, action: 'SYNC_STRIPE_PAYMENT', entityId, dryRun, changes }
@@ -234,17 +271,70 @@ async function rebuildThumbnail(entityId: string, dryRun: boolean): Promise<FixR
   changes.push(`Thumbnail: ${listing.thumbnailUrl || 'SAKNAS'}`)
 
   if (!dryRun) {
-    // Use imageUrl as thumbnail fallback
+    // Temp fix: use imageUrl as thumbnail fallback
     await prisma.artworkListing.update({
       where: { id: entityId },
       data: { thumbnailUrl: listing.imageUrl },
     })
-    changes.push('✅ Thumbnail satt till imageUrl som fallback')
+    changes.push('✅ TEMP_FIX: Thumbnail satt till imageUrl som fallback')
+    changes.push('⚠️ Bilden kan vara för stor för listor — riktig thumbnail behövs')
+
+    // Create follow-up issue in BorisMemory
+    await prisma.borisMemory.create({
+      data: {
+        type: 'PATTERN',
+        title: `NEEDS_THUMB_GEN: "${listing.title}"`,
+        description: `Listing ${entityId.slice(-8)} använder imageUrl som thumbnail-fallback. Behöver riktig 600px thumbnail via Sharp.`,
+        tags: ['boris-fix', 'needs_thumb_gen', 'temp-fix-applied'],
+        confidence: 1.0,
+        resolved: false,
+      },
+    })
+    changes.push('📝 Skapade uppföljnings-issue NEEDS_THUMB_GEN i Boris Memory')
   } else {
-    changes.push('[DRY-RUN] Skulle sätta thumbnailUrl = imageUrl som fallback')
+    changes.push('[DRY-RUN] Skulle sätta thumbnailUrl = imageUrl (temp fix)')
+    changes.push('[DRY-RUN] Skulle skapa NEEDS_THUMB_GEN uppföljning')
   }
 
   return { success: true, action: 'REBUILD_THUMBNAIL', entityId, dryRun, changes }
+}
+
+async function markAbandoned(entityId: string, dryRun: boolean): Promise<FixResult> {
+  const changes: string[] = []
+
+  // Try Order
+  const order = await prisma.order.findUnique({ where: { id: entityId } })
+  if (order) {
+    changes.push(`Order ${entityId.slice(-6)} status: ${order.status}`)
+    if (order.status === 'CANCELED') {
+      return { success: true, action: 'MARK_ABANDONED', entityId, dryRun, changes: ['Redan CANCELED'] }
+    }
+    if (!dryRun) {
+      await prisma.order.update({ where: { id: entityId }, data: { status: 'CANCELED' } })
+      changes.push('✅ Order markerad som CANCELED')
+    } else {
+      changes.push('[DRY-RUN] Skulle markera order som CANCELED')
+    }
+    return { success: true, action: 'MARK_ABANDONED', entityId, dryRun, changes }
+  }
+
+  // Try MarketOrder
+  const mo = await prisma.marketOrder.findUnique({ where: { id: entityId } })
+  if (mo) {
+    changes.push(`MarketOrder ${entityId.slice(-6)} status: ${mo.status}`)
+    if (mo.status === 'CANCELED') {
+      return { success: true, action: 'MARK_ABANDONED', entityId, dryRun, changes: ['Redan CANCELED'] }
+    }
+    if (!dryRun) {
+      await prisma.marketOrder.update({ where: { id: entityId }, data: { status: 'CANCELED' } })
+      changes.push('✅ MarketOrder markerad som CANCELED')
+    } else {
+      changes.push('[DRY-RUN] Skulle markera MarketOrder som CANCELED')
+    }
+    return { success: true, action: 'MARK_ABANDONED', entityId, dryRun, changes }
+  }
+
+  return { success: false, action: 'MARK_ABANDONED', entityId, dryRun, changes: [], error: 'Order/MarketOrder hittades inte' }
 }
 
 async function recalcPrice(entityId: string, dryRun: boolean): Promise<FixResult> {

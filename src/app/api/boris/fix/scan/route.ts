@@ -1,9 +1,10 @@
 import { NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
+import Stripe from 'stripe'
 
 export interface BorisIssue {
   id: string
-  type: 'ORDER_STUCK' | 'ORDER_DUPLICATE' | 'MEDIA_MISSING' | 'PRICE_ZERO' | 'ARTIST_NO_STRIPE' | 'FULFILLMENT_FAILED'
+  type: 'ORDER_MISMATCH' | 'ORDER_ABANDONED' | 'ORDER_DUPLICATE' | 'MEDIA_MISSING' | 'MEDIA_TEMP_FIX' | 'PRICE_ZERO' | 'ARTIST_NO_STRIPE' | 'FULFILLMENT_FAILED'
   severity: 'high' | 'medium' | 'low'
   title: string
   description: string
@@ -20,54 +21,91 @@ export async function GET() {
   const issues: BorisIssue[] = []
   const now = new Date()
 
-  // ─── A) Orders stuck in PENDING > 30 min ──────────────
+  // ─── A) Order Reconciliation: Stripe vs DB mismatch ───
+  // Only flags real mismatches, not abandoned checkouts
   try {
-    const thirtyMinAgo = new Date(now.getTime() - 30 * 60 * 1000)
-    const stuckOrders = await prisma.order.findMany({
+    const stripe = new Stripe(process.env.STRIPE_SECRET_KEY || '', { apiVersion: '2025-01-27.acacia' as Stripe.LatestApiVersion })
+
+    // Find orders that are NOT paid in DB but have a Stripe session
+    const unpaidOrders = await prisma.order.findMany({
       where: {
-        status: 'AWAITING_PAYMENT',
-        createdAt: { lt: thirtyMinAgo },
+        status: { in: ['AWAITING_PAYMENT', 'DRAFT'] },
       },
-      include: {
-        payment: true,
-      },
+      include: { payment: true },
     })
 
-    for (const order of stuckOrders) {
-      const minutesStuck = Math.round((now.getTime() - order.createdAt.getTime()) / 60000)
-      issues.push({
-        id: `order-stuck-${order.id}`,
-        type: 'ORDER_STUCK',
-        severity: minutesStuck > 120 ? 'high' : 'medium',
-        title: `Order ${order.id.slice(-6)} fastnar i PENDING`,
-        description: `Order skapad ${minutesStuck} min sedan, fortfarande PENDING. Stripe session: ${order.payment?.stripeCheckoutSessionId?.slice(-8) || 'saknas'}`,
-        entityId: order.id,
-        entityType: 'Order',
-        revenueImpactSEK: order.totalCents / 100,
-        fixAction: 'SYNC_STRIPE_PAYMENT',
-        evidence: {
-          orderId: order.id,
-          status: order.status,
-          minutesStuck,
-          stripeSessionId: order.payment?.stripeCheckoutSessionId,
-          stripePaymentIntentId: order.payment?.stripePaymentIntentId,
-          paymentPaidAt: order.payment?.paidAt,
-        },
-        detectedAt: now.toISOString(),
-      })
+    for (const order of unpaidOrders) {
+      const sessionId = order.payment?.stripeCheckoutSessionId
+      if (!sessionId) continue // No Stripe session = customer never started payment
+
+      try {
+        const session = await stripe.checkout.sessions.retrieve(sessionId)
+
+        if (session.payment_status === 'paid' && order.status !== 'PAID') {
+          // MISMATCH: Stripe says paid, DB says not paid → needs fix
+          issues.push({
+            id: `order-mismatch-${order.id}`,
+            type: 'ORDER_MISMATCH',
+            severity: 'high',
+            title: `Order ${order.id.slice(-6)}: Stripe PAID, DB ${order.status}`,
+            description: `Stripe session ${sessionId.slice(-8)} är betald men ordern är fortfarande ${order.status}. Webhook missades troligen.`,
+            entityId: order.id,
+            entityType: 'Order',
+            revenueImpactSEK: order.totalCents / 100,
+            fixAction: 'SYNC_STRIPE_PAYMENT',
+            evidence: {
+              orderId: order.id,
+              dbStatus: order.status,
+              stripePaymentStatus: session.payment_status,
+              stripeSessionId: sessionId,
+              stripePaymentIntentId: session.payment_intent,
+              amountTotal: session.amount_total,
+              customerEmail: session.customer_details?.email,
+            },
+            detectedAt: now.toISOString(),
+          })
+        } else if (session.status === 'expired') {
+          // Abandoned: customer started but never paid — low severity info
+          const minutesOld = Math.round((now.getTime() - order.createdAt.getTime()) / 60000)
+          if (minutesOld > 1440) { // Only flag if > 24h old
+            issues.push({
+              id: `order-abandoned-${order.id}`,
+              type: 'ORDER_ABANDONED',
+              severity: 'low',
+              title: `Order ${order.id.slice(-6)}: övergiven (${Math.round(minutesOld / 60)}h)`,
+              description: `Stripe session expired. Kunden startade men betalade aldrig. Kan markeras CANCELED.`,
+              entityId: order.id,
+              entityType: 'Order',
+              revenueImpactSEK: 0,
+              fixAction: 'MARK_ABANDONED',
+              evidence: {
+                orderId: order.id,
+                dbStatus: order.status,
+                stripeStatus: session.status,
+                minutesOld,
+                stripeSessionId: sessionId,
+              },
+              detectedAt: now.toISOString(),
+            })
+          }
+        }
+        // session.status === 'open' → payment in progress, ignore
+      } catch (stripeErr) {
+        console.error(`[boris/fix/scan] Stripe check failed for ${order.id}:`, stripeErr)
+      }
     }
   } catch (err) {
-    console.error('[boris/fix/scan] Order scan failed:', err)
+    console.error('[boris/fix/scan] Order reconciliation failed:', err)
   }
 
-  // ─── B) MarketOrders stuck ────────────────────────────
+  // ─── B) MarketOrder Reconciliation: Stripe PI vs DB ───
   try {
-    const thirtyMinAgo = new Date(now.getTime() - 30 * 60 * 1000)
-    const stuckMarketOrders = await prisma.marketOrder.findMany({
-      where: {
-        status: 'PENDING',
-        createdAt: { lt: thirtyMinAgo },
-      },
+    const stripe = process.env.STRIPE_SECRET_KEY
+      ? new Stripe(process.env.STRIPE_SECRET_KEY, { apiVersion: '2025-01-27.acacia' as Stripe.LatestApiVersion })
+      : null
+
+    const pendingMarketOrders = await prisma.marketOrder.findMany({
+      where: { status: 'PENDING' },
       select: {
         id: true,
         totalCents: true,
@@ -77,28 +115,59 @@ export async function GET() {
       },
     })
 
-    for (const mo of stuckMarketOrders) {
-      const minutesStuck = Math.round((now.getTime() - mo.createdAt.getTime()) / 60000)
-      issues.push({
-        id: `market-stuck-${mo.id}`,
-        type: 'ORDER_STUCK',
-        severity: minutesStuck > 120 ? 'high' : 'medium',
-        title: `MarketOrder "${mo.listing.title}" fastnar`,
-        description: `MarketOrder PENDING i ${minutesStuck} min. PI: ${mo.stripePaymentIntentId?.slice(-8) || 'saknas'}`,
-        entityId: mo.id,
-        entityType: 'MarketOrder',
-        revenueImpactSEK: mo.totalCents / 100,
-        fixAction: 'SYNC_STRIPE_PAYMENT',
-        evidence: {
-          marketOrderId: mo.id,
-          minutesStuck,
-          stripePaymentIntentId: mo.stripePaymentIntentId,
-        },
-        detectedAt: now.toISOString(),
-      })
+    for (const mo of pendingMarketOrders) {
+      if (!mo.stripePaymentIntentId || !stripe) continue
+
+      try {
+        const pi = await stripe.paymentIntents.retrieve(mo.stripePaymentIntentId)
+
+        if (pi.status === 'succeeded') {
+          issues.push({
+            id: `market-mismatch-${mo.id}`,
+            type: 'ORDER_MISMATCH',
+            severity: 'high',
+            title: `MarketOrder "${mo.listing.title}": Stripe PAID, DB PENDING`,
+            description: `PaymentIntent ${mo.stripePaymentIntentId.slice(-8)} succeeded men MarketOrder är PENDING. Webhook missades.`,
+            entityId: mo.id,
+            entityType: 'MarketOrder',
+            revenueImpactSEK: mo.totalCents / 100,
+            fixAction: 'SYNC_STRIPE_PAYMENT',
+            evidence: {
+              marketOrderId: mo.id,
+              stripePaymentIntentId: mo.stripePaymentIntentId,
+              stripeStatus: pi.status,
+              dbStatus: 'PENDING',
+            },
+            detectedAt: now.toISOString(),
+          })
+        } else if (pi.status === 'canceled') {
+          const minutesOld = Math.round((now.getTime() - mo.createdAt.getTime()) / 60000)
+          if (minutesOld > 1440) {
+            issues.push({
+              id: `market-abandoned-${mo.id}`,
+              type: 'ORDER_ABANDONED',
+              severity: 'low',
+              title: `MarketOrder "${mo.listing.title}": övergiven (${Math.round(minutesOld / 60)}h)`,
+              description: `PaymentIntent canceled. Kan markeras CANCELED.`,
+              entityId: mo.id,
+              entityType: 'MarketOrder',
+              revenueImpactSEK: 0,
+              fixAction: 'MARK_ABANDONED',
+              evidence: {
+                marketOrderId: mo.id,
+                stripeStatus: pi.status,
+                minutesOld,
+              },
+              detectedAt: now.toISOString(),
+            })
+          }
+        }
+      } catch (stripeErr) {
+        console.error(`[boris/fix/scan] Stripe PI check failed for MarketOrder ${mo.id}:`, stripeErr)
+      }
     }
   } catch (err) {
-    console.error('[boris/fix/scan] MarketOrder scan failed:', err)
+    console.error('[boris/fix/scan] MarketOrder reconciliation failed:', err)
   }
 
   // ─── C) Failed fulfillments ───────────────────────────
