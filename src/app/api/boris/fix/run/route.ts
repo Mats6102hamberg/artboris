@@ -96,6 +96,22 @@ export async function POST(request: NextRequest) {
       })
     } catch { /* audit log failure is non-critical */ }
 
+    // If verification FAIL → create HIGH issue so it surfaces in next scan
+    if (result.verification?.status === 'FAIL' && !dryRun) {
+      try {
+        await prisma.borisMemory.create({
+          data: {
+            type: 'INCIDENT',
+            title: `FIX_FAILED: ${action} on ${entityId.slice(-8)}`,
+            description: `Post-check FAIL: ${result.verification.reason}. Changes: ${result.changes.join('. ')}`,
+            tags: ['boris-fix', 'fix_failed', action.toLowerCase(), 'needs-attention'],
+            confidence: 0.1,
+            resolved: false,
+          },
+        })
+      } catch { /* non-critical */ }
+    }
+
     return NextResponse.json(result)
   } catch (err) {
     console.error(`[boris/fix/run] ${action} failed:`, err)

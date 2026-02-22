@@ -9,12 +9,12 @@ const ORDER_MIN_AGE_MS = 5 * 60 * 1000 // Skip orders younger than 5 min
 
 export interface BorisIssue {
   id: string
-  type: 'ORDER_MISMATCH' | 'ORDER_ABANDONED' | 'ORDER_DUPLICATE' | 'MEDIA_MISSING' | 'MEDIA_TEMP_FIX' | 'PRICE_ZERO' | 'ARTIST_NO_STRIPE' | 'FULFILLMENT_FAILED' | 'NEEDS_FULFILLMENT' | 'NEEDS_ORDER_EMAIL'
+  type: 'ORDER_MISMATCH' | 'ORDER_ABANDONED' | 'ORDER_DUPLICATE' | 'MEDIA_MISSING' | 'MEDIA_TEMP_FIX' | 'PRICE_ZERO' | 'ARTIST_NO_STRIPE' | 'FULFILLMENT_FAILED' | 'NEEDS_FULFILLMENT' | 'NEEDS_ORDER_EMAIL' | 'FIX_FAILED'
   severity: 'high' | 'medium' | 'low'
   title: string
   description: string
   entityId: string
-  entityType: 'Order' | 'MarketOrder' | 'ArtworkListing' | 'ArtistProfile' | 'Fulfillment'
+  entityType: 'Order' | 'MarketOrder' | 'ArtworkListing' | 'ArtistProfile' | 'Fulfillment' | 'BorisMemory'
   revenueImpactSEK: number
   fixAction: string
   evidence: Record<string, unknown>
@@ -435,6 +435,34 @@ export async function GET() {
     }
   } catch (err) {
     console.error('[boris/fix/scan] NEEDS_ORDER_EMAIL scan failed:', err)
+  }
+
+  // ─── J) FIX_FAILED: previous fixes that failed post-check ─
+  try {
+    const failedMems = await prisma.borisMemory.findMany({
+      where: { tags: { has: 'fix_failed' }, resolved: false },
+      select: { id: true, title: true, description: true, createdAt: true, tags: true },
+    })
+    for (const mem of failedMems) {
+      const actionMatch = mem.title.match(/FIX_FAILED: (\w+) on (\w+)/)
+      const failedAction = actionMatch?.[1] || 'UNKNOWN'
+      const entityShort = actionMatch?.[2] || ''
+      issues.push({
+        id: `fix-failed-${mem.id.slice(-8)}`,
+        type: 'FIX_FAILED',
+        severity: 'high',
+        title: `Fix misslyckades: ${failedAction} (${entityShort})`,
+        description: mem.description,
+        entityId: entityShort,
+        entityType: 'BorisMemory',
+        revenueImpactSEK: 0,
+        fixAction: failedAction,
+        evidence: { source: 'post-check-fail', memoryId: mem.id, tags: mem.tags },
+        detectedAt: mem.createdAt.toISOString(),
+      })
+    }
+  } catch (err) {
+    console.error('[boris/fix/scan] FIX_FAILED scan failed:', err)
   }
 
   // Sort: high severity first, then by revenue impact
