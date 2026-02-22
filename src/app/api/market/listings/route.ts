@@ -32,7 +32,13 @@ export async function GET(request: NextRequest) {
     if (excludeCategory) where.category = { not: excludeCategory }
     if (!isOwnDashboard && artistId) where.artistId = artistId
 
-    const [listings, total] = await Promise.all([
+    // Featured sort: fetch larger pool, score in JS, return top N.
+    // Quality score = printQuality rank × 10 + tryOnWallCount × 3 + views
+    //   printQuality: perfect=4, good=3, fair=2, low/null=1
+    const QUALITY_RANK: Record<string, number> = { perfect: 4, good: 3, fair: 2, low: 1 }
+    const featuredPool = featured ? Math.max(limit * 4, 50) : limit
+
+    const [rawListings, total] = await Promise.all([
       prisma.artworkListing.findMany({
         where,
         include: {
@@ -40,14 +46,25 @@ export async function GET(request: NextRequest) {
             select: { id: true, displayName: true, avatarUrl: true },
           },
         },
-        orderBy: featured
-          ? [{ views: 'desc' }, { createdAt: 'desc' }]
-          : { createdAt: 'desc' },
-        skip: (page - 1) * limit,
-        take: limit,
+        orderBy: { createdAt: 'desc' },
+        skip: featured ? 0 : (page - 1) * limit,
+        take: featured ? featuredPool : limit,
       }),
       prisma.artworkListing.count({ where }),
     ])
+
+    const listings = featured
+      ? rawListings
+          .map((l: any) => ({
+            ...l,
+            _score: (QUALITY_RANK[l.printQuality ?? ''] ?? 1) * 10
+                  + (l.tryOnWallCount ?? 0) * 3
+                  + (l.views ?? 0),
+          }))
+          .sort((a: any, b: any) => b._score - a._score)
+          .slice(0, limit)
+          .map(({ _score, ...rest }: any) => rest)
+      : rawListings
 
     // Sanitize: public responses never expose full-res URLs
     const sanitized = isOwnDashboard

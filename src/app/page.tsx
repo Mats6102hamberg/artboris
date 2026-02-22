@@ -120,7 +120,7 @@ function TrustBar() {
   const { ref, visible } = useFadeIn()
   const items = [
     { icon: 'print', label: 'Museumkvalitet — Giclée fine art' },
-    { icon: 'eu', label: 'Tryckt i Sverige' },
+    { icon: 'eu', label: 'Tryckt i Europa' },
     { icon: 'artist', label: 'Konstnärer & fotografer' },
     { icon: 'frame', label: 'Ramad, klar att hänga' },
   ]
@@ -309,17 +309,11 @@ function BorisCuration() {
   return (
     <section ref={ref} className="py-14 sm:py-20 bg-[#FAFAF8] border-t border-gray-100">
       <div className={`max-w-6xl mx-auto px-6 text-center transition-all duration-700 ${visible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'}`}>
-        <div className="inline-flex items-center gap-3 mb-3">
-          <div className="w-7 h-7 rounded-full bg-gray-900 flex items-center justify-center">
-            <span className="text-[10px] font-bold text-white">B</span>
-          </div>
-          <span className="text-xs font-medium tracking-[0.15em] uppercase text-gray-400">Boris</span>
-        </div>
-        <p className="text-lg sm:text-xl text-gray-900 font-light tracking-tight" style={{ fontFamily: 'var(--font-playfair), Georgia, serif' }}>
+        <p className="text-lg sm:text-xl text-gray-900 font-light tracking-tight italic" style={{ fontFamily: 'var(--font-playfair), Georgia, serif' }}>
           &ldquo;Varje verk i galleriet är handplockat och kvalitetsgranskat.&rdquo;
         </p>
-        <p className="mt-3 text-sm text-gray-400">
-          AI-curator — analyserar stil, kvalitet och printbarhet.
+        <p className="mt-4 text-xs tracking-[0.15em] uppercase text-gray-400">
+          — Boris, curator
         </p>
       </div>
     </section>
