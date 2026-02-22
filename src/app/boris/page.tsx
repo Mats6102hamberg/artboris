@@ -314,6 +314,54 @@ export default function BorisDashboard() {
               </ol>
             </div>
 
+            {/* Sales Readiness */}
+            {dailyData.salesReadiness && dailyData.salesReadiness.artists.length > 0 && (
+              <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
+                <div className="px-5 py-4 border-b border-gray-100 flex items-center justify-between">
+                  <h2 className="font-semibold text-gray-900">🎯 Sales Readiness</h2>
+                  <span className={`text-sm font-bold px-3 py-1 rounded-full ${
+                    dailyData.salesReadiness.avgPercent >= 80 ? 'bg-green-100 text-green-700' :
+                    dailyData.salesReadiness.avgPercent >= 50 ? 'bg-amber-100 text-amber-700' :
+                    'bg-red-100 text-red-700'
+                  }`}>
+                    Snitt: {dailyData.salesReadiness.avgPercent}%
+                  </span>
+                </div>
+                <div className="divide-y divide-gray-50">
+                  {dailyData.salesReadiness.artists.map((a: { id: string; name: string; readyPercent: number; missing: string[] }) => (
+                    <div key={a.id} className="px-5 py-3">
+                      <div className="flex items-center justify-between mb-2">
+                        <span className="text-sm font-medium text-gray-900">{a.name}</span>
+                        <span className={`text-xs font-bold px-2 py-0.5 rounded-full ${
+                          a.readyPercent >= 80 ? 'bg-green-100 text-green-700' :
+                          a.readyPercent >= 50 ? 'bg-amber-100 text-amber-700' :
+                          'bg-red-100 text-red-700'
+                        }`}>
+                          {a.readyPercent}%
+                        </span>
+                      </div>
+                      {/* Progress bar */}
+                      <div className="h-2 bg-gray-100 rounded-full overflow-hidden mb-1.5">
+                        <div
+                          className={`h-full rounded-full transition-all ${
+                            a.readyPercent >= 80 ? 'bg-green-400' :
+                            a.readyPercent >= 50 ? 'bg-amber-400' :
+                            'bg-red-400'
+                          }`}
+                          style={{ width: `${a.readyPercent}%` }}
+                        />
+                      </div>
+                      {a.missing.length > 0 && (
+                        <p className="text-xs text-gray-500">
+                          Saknas: <span className="text-red-600 font-medium">{a.missing.join(', ')}</span>
+                        </p>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
             {/* Mini funnel */}
             <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
               <div className="px-5 py-4 border-b border-gray-100">

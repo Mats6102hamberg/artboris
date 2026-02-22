@@ -172,7 +172,86 @@ export async function GET() {
     actions.push('Inga akuta åtgärder — fortsätt övervaka')
   }
 
-  // ─── 5. Sessions & visitors ────────────────────────────
+  // ─── 5. Sales Readiness per artist ──────────────────────
+  interface ArtistReadiness {
+    id: string
+    name: string
+    readyPercent: number
+    missing: string[]
+  }
+
+  const artistReadiness: ArtistReadiness[] = []
+  try {
+    const artists = await prisma.artistProfile.findMany({
+      where: { isActive: true },
+      select: {
+        id: true,
+        displayName: true,
+        bio: true,
+        avatarUrl: true,
+        stripeAccountId: true,
+        stripeOnboardingDone: true,
+        listings: {
+          where: { isPublic: true },
+          select: { id: true },
+        },
+        _count: { select: { listings: true } },
+      },
+    })
+
+    for (const artist of artists) {
+      const missing: string[] = []
+      let score = 0
+
+      // 1. Stripe (20%)
+      if (artist.stripeAccountId && artist.stripeOnboardingDone) {
+        score += 20
+      } else {
+        missing.push('Stripe')
+      }
+
+      // 2. Bio (20%)
+      if (artist.bio && artist.bio.length >= 10) {
+        score += 20
+      } else {
+        missing.push('Bio')
+      }
+
+      // 3. At least 3 listings (20%)
+      if (artist._count.listings >= 3) {
+        score += 20
+      } else {
+        missing.push(`${3 - artist._count.listings} storlekar`)
+      }
+
+      // 4. At least 1 published (20%)
+      if (artist.listings.length >= 1) {
+        score += 20
+      } else {
+        missing.push('Publicerade verk')
+      }
+
+      // 5. Avatar (20%)
+      if (artist.avatarUrl && artist.avatarUrl.length > 0) {
+        score += 20
+      } else {
+        missing.push('Profilbild')
+      }
+
+      artistReadiness.push({
+        id: artist.id,
+        name: artist.displayName,
+        readyPercent: score,
+        missing,
+      })
+    }
+  } catch { /* silent */ }
+
+  const avgReadiness = artistReadiness.length > 0
+    ? Math.round(artistReadiness.reduce((sum, a) => sum + a.readyPercent, 0) / artistReadiness.length)
+    : 0
+
+  // ─── 6. Sessions & visitors ────────────────────────────
   const yesterdaySessions = await prisma.telemetryEvent.findMany({
     where: { event: 'PAGE_VIEW', createdAt: { gte: yesterdayStart, lte: yesterdayEnd } },
     distinct: ['sessionId'],
@@ -194,6 +273,10 @@ export async function GET() {
     biggestDrop,
     blockers,
     actions,
+    salesReadiness: {
+      avgPercent: avgReadiness,
+      artists: artistReadiness.sort((a, b) => a.readyPercent - b.readyPercent),
+    },
     funnel: funnelSteps.map(step => ({
       step,
       sessions: funnelCounts[step] || 0,
