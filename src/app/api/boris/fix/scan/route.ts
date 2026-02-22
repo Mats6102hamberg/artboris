@@ -1,11 +1,39 @@
 import { NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 import Stripe from 'stripe'
+import { sendBorisHighAlert } from '@/server/services/email/adminAlert'
 
-// Cooldown cache: don't re-check same Stripe session within 10 min
-const stripeCheckCache = new Map<string, number>()
+// Cooldown: don't re-check same Stripe session within 10 min
+// Persisted in BorisMemory to survive serverless cold starts
 const STRIPE_COOLDOWN_MS = 10 * 60 * 1000
 const ORDER_MIN_AGE_MS = 5 * 60 * 1000 // Skip orders younger than 5 min
+
+async function isStripeCooldown(stripeId: string): Promise<boolean> {
+  try {
+    const mem = await prisma.borisMemory.findFirst({
+      where: { tags: { hasEvery: ['stripe-cooldown', stripeId] } },
+      orderBy: { createdAt: 'desc' },
+      select: { createdAt: true },
+    })
+    if (!mem) return false
+    return Date.now() - mem.createdAt.getTime() < STRIPE_COOLDOWN_MS
+  } catch { return false }
+}
+
+async function setStripeCooldown(stripeId: string): Promise<void> {
+  try {
+    await prisma.borisMemory.create({
+      data: {
+        type: 'PATTERN',
+        title: `Stripe check: ${stripeId.slice(-8)}`,
+        description: `Cooldown marker for Stripe ID ${stripeId}`,
+        tags: ['stripe-cooldown', stripeId],
+        confidence: 1.0,
+        resolved: true,
+      },
+    })
+  } catch { /* non-critical */ }
+}
 
 export interface BorisIssue {
   id: string
@@ -13,6 +41,9 @@ export interface BorisIssue {
   severity: 'high' | 'medium' | 'low'
   title: string
   description: string
+  summary: string
+  primaryId: string
+  recommendedAction: string
   entityId: string
   entityType: 'Order' | 'MarketOrder' | 'ArtworkListing' | 'ArtistProfile' | 'Fulfillment' | 'BorisMemory'
   revenueImpactSEK: number
@@ -46,13 +77,12 @@ export async function GET() {
       const sessionId = order.payment?.stripeCheckoutSessionId
       if (!sessionId) continue // No Stripe session = customer never started payment
 
-      // Cooldown: skip if checked within last 10 min
-      const lastCheck = stripeCheckCache.get(sessionId)
-      if (lastCheck && now.getTime() - lastCheck < STRIPE_COOLDOWN_MS) continue
+      // Cooldown: skip if checked within last 10 min (persisted in DB)
+      if (await isStripeCooldown(sessionId)) continue
 
       try {
         const session = await stripe.checkout.sessions.retrieve(sessionId)
-        stripeCheckCache.set(sessionId, now.getTime())
+        await setStripeCooldown(sessionId)
 
         // Decision point: payment_status is the source of truth for money
         if (session.payment_status === 'paid' && order.status !== 'PAID') {
@@ -63,6 +93,9 @@ export async function GET() {
             severity: 'high',
             title: `Order ${order.id.slice(-6)}: Stripe PAID, DB ${order.status}`,
             description: `Stripe session ${sessionId.slice(-8)} är betald men ordern är fortfarande ${order.status}. Webhook missades troligen.`,
+            summary: `Stripe betald, DB ${order.status} — synka betalning`,
+            primaryId: sessionId,
+            recommendedAction: 'Kör SYNC_STRIPE_PAYMENT för att uppdatera DB till PAID',
             entityId: order.id,
             entityType: 'Order',
             revenueImpactSEK: order.totalCents / 100,
@@ -92,6 +125,9 @@ export async function GET() {
               severity: 'low',
               title: `Order ${order.id.slice(-6)}: övergiven (${Math.round(minutesOld / 60)}h)`,
               description: `Stripe session expired + ej betald. Kan markeras CANCELED.`,
+              summary: `Övergiven ${Math.round(minutesOld / 60)}h — säkert att rensa`,
+              primaryId: sessionId,
+              recommendedAction: 'Markera som CANCELED (auto-fixbar)',
               entityId: order.id,
               entityType: 'Order',
               revenueImpactSEK: 0,
@@ -139,12 +175,11 @@ export async function GET() {
       // Skip if younger than 5 min
       if (now.getTime() - mo.createdAt.getTime() < ORDER_MIN_AGE_MS) continue
       // Cooldown
-      const lastCheck = stripeCheckCache.get(mo.stripePaymentIntentId)
-      if (lastCheck && now.getTime() - lastCheck < STRIPE_COOLDOWN_MS) continue
+      if (await isStripeCooldown(mo.stripePaymentIntentId)) continue
 
       try {
         const pi = await stripe.paymentIntents.retrieve(mo.stripePaymentIntentId)
-        stripeCheckCache.set(mo.stripePaymentIntentId, now.getTime())
+        await setStripeCooldown(mo.stripePaymentIntentId)
 
         if (pi.status === 'succeeded') {
           issues.push({
@@ -153,6 +188,9 @@ export async function GET() {
             severity: 'high',
             title: `MarketOrder "${mo.listing.title}": Stripe PAID, DB PENDING`,
             description: `PaymentIntent ${mo.stripePaymentIntentId.slice(-8)} succeeded men MarketOrder är PENDING. Webhook missades.`,
+            summary: `Stripe PI succeeded, DB PENDING — synka betalning`,
+            primaryId: mo.stripePaymentIntentId,
+            recommendedAction: 'Kör SYNC_STRIPE_PAYMENT för att uppdatera MarketOrder till PAID',
             entityId: mo.id,
             entityType: 'MarketOrder',
             revenueImpactSEK: mo.totalCents / 100,
@@ -174,6 +212,9 @@ export async function GET() {
               severity: 'low',
               title: `MarketOrder "${mo.listing.title}": övergiven (${Math.round(minutesOld / 60)}h)`,
               description: `PaymentIntent canceled. Kan markeras CANCELED.`,
+              summary: `PI canceled ${Math.round(minutesOld / 60)}h sedan — säkert att rensa`,
+              primaryId: mo.stripePaymentIntentId,
+              recommendedAction: 'Markera som CANCELED (auto-fixbar)',
               entityId: mo.id,
               entityType: 'MarketOrder',
               revenueImpactSEK: 0,
@@ -212,6 +253,9 @@ export async function GET() {
         severity: 'high',
         title: `Leverans misslyckad (order ${orderId.slice(-6)})`,
         description: f.internalNote || 'Upscale eller tryckfil misslyckades',
+        summary: `Fulfillment FAILED — behöver retry`,
+        primaryId: f.id,
+        recommendedAction: 'Kör RETRY_FULFILLMENT för att återställa till NOT_STARTED',
         entityId: f.id,
         entityType: 'Fulfillment',
         revenueImpactSEK: f.orderItem.order.totalCents / 100,
@@ -251,6 +295,9 @@ export async function GET() {
         severity: 'medium',
         title: `Saknad thumbnail: "${listing.title}"`,
         description: 'Publicerad listing utan thumbnail — visas inte korrekt i galleri',
+        summary: `Thumbnail saknas — gallerivy påverkad`,
+        primaryId: listing.id,
+        recommendedAction: 'Kör REBUILD_THUMBNAIL för att sätta imageUrl som fallback',
         entityId: listing.id,
         entityType: 'ArtworkListing',
         revenueImpactSEK: 0,
@@ -297,6 +344,9 @@ export async function GET() {
         description: artist.stripeAccountId
           ? 'Stripe-konto finns men onboarding ej klar'
           : 'Ingen Stripe-koppling alls',
+        summary: `${artist.displayName}: ${artist.stripeAccountId ? 'onboarding ej klar' : 'ingen Stripe'} (${artist._count.listings} listings)`,
+        primaryId: artist.stripeAccountId || artist.id,
+        recommendedAction: hasListings ? 'Skicka påminnelse — konstnär har aktiva listings' : 'Låg prio — inga listings ännu',
         entityId: artist.id,
         entityType: 'ArtistProfile',
         revenueImpactSEK: 0,
@@ -330,6 +380,9 @@ export async function GET() {
         severity: 'high',
         title: `Order ${order.id.slice(-6)} har pris 0 kr`,
         description: 'Order med totalCents = 0, troligen prisberäkningsfel',
+        summary: `0 kr order — behöver prisomberäkning`,
+        primaryId: order.id,
+        recommendedAction: 'Kör RECALC_PRICE för att räkna om från items + frakt',
         entityId: order.id,
         entityType: 'Order',
         revenueImpactSEK: 0,
@@ -367,6 +420,9 @@ export async function GET() {
         severity: 'medium',
         title: mem.title.replace('NEEDS_THUMB_GEN: ', 'Temp thumbnail: '),
         description: 'Använder imageUrl som thumbnail-fallback. Behöver riktig 600px thumbnail via Sharp.',
+        summary: `Temp fallback aktiv — behöver riktig 600px thumbnail`,
+        primaryId: listingId,
+        recommendedAction: 'Generera riktig thumbnail via Sharp pipeline',
         entityId: listingId,
         entityType: 'ArtworkListing',
         revenueImpactSEK: 0,
@@ -398,6 +454,9 @@ export async function GET() {
         severity: 'medium',
         title: `Fulfillment behövs: Order ${orderId}`,
         description: mem.description,
+        summary: `PAID order utan fulfillment — behöver triggas`,
+        primaryId: orderId,
+        recommendedAction: 'Kör TRIGGER_FULFILLMENT för att skapa/resetta fulfillments',
         entityId: orderId,
         entityType: 'Order',
         revenueImpactSEK: 0,
@@ -425,6 +484,9 @@ export async function GET() {
         severity: 'medium',
         title: `Orderbekräftelse saknas: Order ${orderId}`,
         description: mem.description,
+        summary: `Kund har inte fått orderbekräftelse`,
+        primaryId: orderId,
+        recommendedAction: 'Kör SEND_ORDER_CONFIRMATION för att skicka mail via Resend',
         entityId: orderId,
         entityType: 'Order',
         revenueImpactSEK: 0,
@@ -453,6 +515,9 @@ export async function GET() {
         severity: 'high',
         title: `Fix misslyckades: ${failedAction} (${entityShort})`,
         description: mem.description,
+        summary: `${failedAction} misslyckades post-check — manuell åtgärd krävs`,
+        primaryId: mem.id,
+        recommendedAction: 'Undersök manuellt — kör om eller eskalera',
         entityId: entityShort,
         entityType: 'BorisMemory',
         revenueImpactSEK: 0,
@@ -473,11 +538,57 @@ export async function GET() {
     return b.revenueImpactSEK - a.revenueImpactSEK
   })
 
+  // ─── Notify on NEW high-severity issues ────────────────
+  const highIssues = issues.filter(i => i.severity === 'high')
+  if (highIssues.length > 0) {
+    try {
+      // Load last scan's known HIGH issue IDs
+      const lastScanMem = await prisma.borisMemory.findFirst({
+        where: { tags: { has: 'boris-scan-state' } },
+        orderBy: { createdAt: 'desc' },
+      })
+      const previousIds: string[] = lastScanMem?.data
+        ? (typeof lastScanMem.data === 'object' && 'highIds' in (lastScanMem.data as Record<string, unknown>)
+          ? ((lastScanMem.data as Record<string, unknown>).highIds as string[])
+          : [])
+        : []
+
+      const newHighIssues = highIssues.filter(i => !previousIds.includes(i.id))
+
+      if (newHighIssues.length > 0) {
+        const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://artboris.se'
+        await sendBorisHighAlert({
+          newHighCount: newHighIssues.length,
+          topIssues: newHighIssues.slice(0, 3).map(i => ({
+            title: i.title, type: i.type, entityId: i.entityId, revenueImpactSEK: i.revenueImpactSEK,
+          })),
+          totalIssueCount: issues.length,
+          dashboardUrl: `${baseUrl}/boris`,
+        })
+      }
+
+      // Persist current scan state
+      await prisma.borisMemory.create({
+        data: {
+          type: 'PATTERN',
+          title: `Scan state: ${highIssues.length} HIGH, ${issues.length} total`,
+          description: `HIGH IDs: ${highIssues.map(i => i.id).join(', ')}`,
+          tags: ['boris-scan-state'],
+          data: { highIds: highIssues.map(i => i.id), scannedAt: now.toISOString() },
+          confidence: 1.0,
+          resolved: true,
+        },
+      })
+    } catch (err) {
+      console.error('[boris/fix/scan] HIGH alert/state failed:', err)
+    }
+  }
+
   return NextResponse.json({
     scannedAt: now.toISOString(),
     issueCount: issues.length,
     bySeverity: {
-      high: issues.filter(i => i.severity === 'high').length,
+      high: highIssues.length,
       medium: issues.filter(i => i.severity === 'medium').length,
       low: issues.filter(i => i.severity === 'low').length,
     },

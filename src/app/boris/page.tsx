@@ -332,6 +332,7 @@ export default function BorisDashboard() {
             <div className="space-y-3">
               {fixData.issues.map((issue: {
                 id: string; type: string; severity: string; title: string; description: string;
+                summary?: string; primaryId?: string; recommendedAction?: string;
                 entityId: string; fixAction: string; revenueImpactSEK: number;
                 evidence: Record<string, unknown>
               }) => (
@@ -358,11 +359,20 @@ export default function BorisDashboard() {
                       </div>
                     </div>
                     <h3 className="text-sm font-semibold text-gray-900">{issue.title}</h3>
-                    <p className="text-xs text-gray-600 mt-1">{issue.description}</p>
+                    {issue.summary ? (
+                      <p className="text-xs text-gray-700 mt-1 font-medium">{issue.summary}</p>
+                    ) : (
+                      <p className="text-xs text-gray-600 mt-1">{issue.description}</p>
+                    )}
+                    {issue.recommendedAction && (
+                      <p className="text-[11px] text-blue-600 mt-1">→ {issue.recommendedAction}</p>
+                    )}
 
                     {/* Evidence */}
                     <details className="mt-2">
-                      <summary className="text-[10px] text-gray-400 cursor-pointer hover:text-gray-600">Visa bevis</summary>
+                      <summary className="text-[10px] text-gray-400 cursor-pointer hover:text-gray-600">Visa detaljer</summary>
+                      <p className="text-[10px] text-gray-500 mt-1">{issue.description}</p>
+                      {issue.primaryId && <p className="text-[10px] text-gray-400 mt-0.5">ID: {issue.primaryId}</p>}
                       <pre className="text-[10px] text-gray-500 mt-1 bg-gray-50 rounded p-2 overflow-x-auto">
                         {JSON.stringify(issue.evidence, null, 2)}
                       </pre>

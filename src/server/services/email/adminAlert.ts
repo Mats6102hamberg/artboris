@@ -80,6 +80,55 @@ export async function sendErrorAdminAlert(payload: ErrorAlertPayload): Promise<v
   }
 }
 
+// ── Boris HIGH issue alerts ──
+
+export interface BorisHighAlertPayload {
+  newHighCount: number
+  topIssues: { title: string; type: string; entityId: string; revenueImpactSEK: number }[]
+  totalIssueCount: number
+  dashboardUrl: string
+}
+
+export async function sendBorisHighAlert(payload: BorisHighAlertPayload): Promise<void> {
+  const adminEmail = getAdminEmail()
+  if (!adminEmail) return
+
+  const cooldownKey = 'boris:high-issues'
+  if (!shouldSendAlert(cooldownKey)) return
+
+  const subject = `🚨 Boris: ${payload.newHighCount} nya HIGH issues`
+  const issueLines = payload.topIssues.map((i, idx) =>
+    `  ${idx + 1}. [${i.type}] ${i.title} (${i.entityId.slice(-8)})${i.revenueImpactSEK > 0 ? ` — ${i.revenueImpactSEK} SEK risk` : ''}`
+  ).join('\n')
+
+  const body = [
+    `Boris hittade ${payload.newHighCount} nya HIGH-issues (${payload.totalIssueCount} totalt).`,
+    '',
+    'Top issues:',
+    issueLines,
+    '',
+    `Öppna Fix Panel: ${payload.dashboardUrl}`,
+    '',
+    'Skickat automatiskt av Boris M.',
+  ].join('\n')
+
+  try {
+    const { error } = await getResend().emails.send({
+      from: getFromEmail(),
+      to: adminEmail,
+      subject,
+      text: body,
+    })
+    if (error) {
+      console.error('[adminAlert] Boris HIGH alert Resend error:', error)
+    } else {
+      console.log(`[adminAlert] Boris HIGH alert sent to ${adminEmail}: ${payload.newHighCount} issues`)
+    }
+  } catch (err) {
+    console.error('[adminAlert] Failed to send Boris HIGH alert:', err)
+  }
+}
+
 // ── AI alerts ──
 
 export async function sendAIAdminAlert(payload: AIAlertPayload): Promise<void> {
