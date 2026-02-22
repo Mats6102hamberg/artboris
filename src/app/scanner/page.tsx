@@ -1,11 +1,5 @@
-import type { Metadata } from 'next'
-import ScannerClient from './ScannerClient'
-
-export const metadata: Metadata = {
-  title: 'Art Scanner — Hitta undervärderade konstverk',
-  description: 'Skanna auktionshusen och hitta undervärderade konstverk med vinstpotential. AI-driven prisanalys.',
-}
+import { redirect } from 'next/navigation'
 
 export default function Page() {
-  return <ScannerClient />
+  redirect('/admin/scanner')
 }

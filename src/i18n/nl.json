@@ -258,14 +258,13 @@
     },
     "features": {
       "title": "Alles wat je nodig hebt voor wandkunst",
-      "subtitle": "Zes krachtige tools — van AI-generatie tot kunstanalyse.",
+      "subtitle": "Vijf krachtige tools — van AI-generatie tot galerij.",
       "explore": "Ontdekken",
       "wallcraftStudio": { "title": "Wallcraft Studio", "desc": "Maak AI-gegenereerde wandkunst. Upload je kamer, kies een stijl en bekijk het werk in real-time op je muur." },
       "artMarket": { "title": "Art Market", "desc": "Ontdek unieke kunst van lokale kunstenaars en fotografen. Probeer het werk op je muur voordat je koopt." },
       "creativeTools": { "title": "Creatieve tools", "desc": "Mandala Maker, Pattern Studio, Abstract Painter en Color Field Studio — maak je eigen kunst." },
       "printYourOwn": { "title": "Print Your Own", "desc": "Upload je eigen foto en bekijk hoe het eruitziet op je muur. Bestel als poster met lijst." },
-      "artScanner": { "title": "Art Scanner", "desc": "Vind ondergewaardeerde kunstwerken op veilingen. AI-analyse met winstpotentieel en risiconiveau." },
-      "borisAI": { "title": "Boris AI — Kunstexpert", "desc": "Je persoonlijke kunstexpert. Analyseert werken, becommentarieert plaatsingen en geeft beleggingsadvies." }
+      "gallery": { "title": "Galerij", "desc": "Ontdek AI-gegenereerde kunst en unieke werken van kunstenaars. Vind inspiratie en sla je favorieten op." }
     },
     "boris": {
       "badge": "AI-aangedreven",

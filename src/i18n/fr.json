@@ -258,14 +258,13 @@
     },
     "features": {
       "title": "Tout ce qu'il faut pour l'art mural",
-      "subtitle": "Six outils puissants — de la génération IA à l'analyse d'art.",
+      "subtitle": "Cinq outils puissants — de la génération IA à la galerie.",
       "explore": "Explorer",
       "wallcraftStudio": { "title": "Wallcraft Studio", "desc": "Créez de l'art mural généré par IA. Téléchargez votre pièce, choisissez un style et voyez l'œuvre sur votre mur en temps réel." },
       "artMarket": { "title": "Art Market", "desc": "Découvrez de l'art unique d'artistes et photographes locaux. Essayez l'œuvre sur votre mur avant d'acheter." },
       "creativeTools": { "title": "Outils créatifs", "desc": "Mandala Maker, Pattern Studio, Abstract Painter et Color Field Studio — créez votre propre art." },
       "printYourOwn": { "title": "Print Your Own", "desc": "Téléchargez votre propre photo et voyez le résultat sur votre mur. Commandez en poster avec cadre." },
-      "artScanner": { "title": "Art Scanner", "desc": "Trouvez des œuvres sous-évaluées aux enchères. Analyse IA avec potentiel de profit et niveau de risque." },
-      "borisAI": { "title": "Boris AI — Expert en art", "desc": "Votre expert en art personnel. Analyse les œuvres, commente les placements et donne des conseils d'investissement." }
+      "gallery": { "title": "Galerie", "desc": "Explorez l'art généré par IA et des œuvres uniques d'artistes. Trouvez l'inspiration et sauvegardez vos favoris." }
     },
     "boris": {
       "badge": "Propulsé par l'IA",

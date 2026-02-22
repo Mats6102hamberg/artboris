@@ -264,14 +264,13 @@
     },
     "features": {
       "title": "Everything you need for wall art",
-      "subtitle": "Six powerful tools — from AI generation to art analysis.",
+      "subtitle": "Five powerful tools — from AI generation to gallery.",
       "explore": "Explore",
       "wallcraftStudio": { "title": "Wallcraft Studio", "desc": "Create AI-generated wall art. Upload your room, choose a style and see the artwork on your wall in real time." },
       "artMarket": { "title": "Art Market", "desc": "Discover unique art from local artists and photographers. Try the artwork on your wall before you buy." },
       "creativeTools": { "title": "Creative Tools", "desc": "Mandala Maker, Pattern Studio, Abstract Painter and Color Field Studio — create your own art." },
       "printYourOwn": { "title": "Print Your Own", "desc": "Upload your own photo and see how it looks on your wall. Order as a poster with frame." },
-      "artScanner": { "title": "Art Scanner", "desc": "Find undervalued artworks at auctions. AI-driven analysis with profit potential and risk level." },
-      "borisAI": { "title": "Boris AI — Art Expert", "desc": "Your personal art expert. Analyzes works, comments on placements and gives investment advice." }
+      "gallery": { "title": "Gallery", "desc": "Explore AI-generated art and unique works from artists. Find inspiration and save your favorites." }
     },
     "boris": {
       "badge": "AI-driven",

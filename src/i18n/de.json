@@ -258,14 +258,13 @@
     },
     "features": {
       "title": "Alles, was du für Wandkunst brauchst",
-      "subtitle": "Sechs leistungsstarke Werkzeuge — von KI-Generierung bis Kunstanalyse.",
+      "subtitle": "Fünf leistungsstarke Werkzeuge — von KI-Generierung bis Galerie.",
       "explore": "Entdecken",
       "wallcraftStudio": { "title": "Wallcraft Studio", "desc": "Erstelle KI-generierte Wandkunst. Lade dein Zimmer hoch, wähle einen Stil und sieh das Bild in Echtzeit an deiner Wand." },
       "artMarket": { "title": "Art Market", "desc": "Entdecke einzigartige Kunst von lokalen Künstlern und Fotografen. Teste das Werk an deiner Wand, bevor du kaufst." },
       "creativeTools": { "title": "Kreative Werkzeuge", "desc": "Mandala Maker, Pattern Studio, Abstract Painter und Color Field Studio — erstelle deine eigene Kunst." },
       "printYourOwn": { "title": "Print Your Own", "desc": "Lade dein eigenes Foto hoch und sieh, wie es an deiner Wand aussieht. Bestelle als Poster mit Rahmen." },
-      "artScanner": { "title": "Art Scanner", "desc": "Finde unterbewertete Kunstwerke bei Auktionen. KI-gestützte Analyse mit Gewinnpotenzial und Risikoniveau." },
-      "borisAI": { "title": "Boris AI — Kunstexperte", "desc": "Dein persönlicher Kunstexperte. Analysiert Werke, kommentiert Platzierungen und gibt Anlageberatung." }
+      "gallery": { "title": "Galerie", "desc": "Entdecke KI-generierte Kunst und einzigartige Werke von Künstlern. Finde Inspiration und speichere deine Favoriten." }
     },
     "boris": {
       "badge": "KI-gestützt",

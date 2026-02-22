@@ -264,14 +264,13 @@
     },
     "features": {
       "title": "Allt du behöver för väggkonst",
-      "subtitle": "Sex kraftfulla verktyg — från AI-generering till konstanalys.",
+      "subtitle": "Fem kraftfulla verktyg — från AI-generering till galleri.",
       "explore": "Utforska",
       "wallcraftStudio": { "title": "Wallcraft Studio", "desc": "Skapa AI-genererad väggkonst. Ladda upp ditt rum, välj stil och se tavlan på din vägg i realtid." },
       "artMarket": { "title": "Art Market", "desc": "Upptäck unik konst från lokala konstnärer och fotografer. Prova verket på din vägg innan du köper." },
       "creativeTools": { "title": "Kreativa verktyg", "desc": "Mandala Maker, Pattern Studio, Abstract Painter och Color Field Studio — skapa din egen konst." },
       "printYourOwn": { "title": "Print Your Own", "desc": "Ladda upp ditt eget foto och se hur det tar sig på din vägg. Beställ som poster med ram." },
-      "artScanner": { "title": "Art Scanner", "desc": "Hitta undervärderade konstverk på auktioner. AI-driven analys med vinstpotential och risknivå." },
-      "borisAI": { "title": "Boris AI — Konstexpert", "desc": "Din personliga konstexpert. Analyserar verk, kommenterar placeringar och ger investeringsråd." }
+      "gallery": { "title": "Galleri", "desc": "Utforska AI-genererad konst och unika verk från konstnärer. Hitta inspiration och spara dina favoriter." }
     },
     "boris": {
       "badge": "AI-driven",
