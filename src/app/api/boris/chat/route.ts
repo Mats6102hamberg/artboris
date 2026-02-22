@@ -16,6 +16,21 @@ export async function POST(request: NextRequest) {
 
   const monthAgo = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000)
 
+  // Fetch fix-scan issues for driftchef context (non-blocking)
+  let fixIssues: { type: string; severity: string; summary: string; entityId: string; fixAction: string; recommendedAction: string; revenueImpactSEK: number }[] = []
+  try {
+    const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'
+    const scanRes = await fetch(`${baseUrl}/api/boris/fix/scan`, { cache: 'no-store', signal: AbortSignal.timeout(8000) })
+    if (scanRes.ok) {
+      const scanData = await scanRes.json()
+      fixIssues = (scanData.issues || []).map((i: Record<string, unknown>) => ({
+        type: i.type, severity: i.severity, summary: i.summary,
+        entityId: i.entityId, fixAction: i.fixAction,
+        recommendedAction: i.recommendedAction, revenueImpactSEK: i.revenueImpactSEK,
+      }))
+    }
+  } catch { /* scan timeout is non-critical */ }
+
   const [
     paidOrders7d,
     paidOrdersTotal,
@@ -127,6 +142,32 @@ export async function POST(request: NextRequest) {
   const learningsSummary = uxLearnings.length > 0
     ? uxLearnings.map(l => `• ${l.title}`).join('\n')
     : 'Inga UX-lärdomar registrerade ännu'
+
+  // ─── Build fix panel context ───────────────────────────
+  const highIssues = fixIssues.filter(i => i.severity === 'high')
+  const medIssues = fixIssues.filter(i => i.severity === 'medium')
+  const lowIssues = fixIssues.filter(i => i.severity === 'low')
+
+  let driftStatus: string
+  if (highIssues.length > 0) {
+    driftStatus = `🔴 RÖD — ${highIssues.length} kritiska issues (${highIssues.map(i => i.type).join(', ')})`
+  } else if (medIssues.length > 0) {
+    driftStatus = `🟡 GUL — ${medIssues.length} medium issues, inga kritiska`
+  } else if (lowIssues.length > 0) {
+    driftStatus = `🟢 GRÖN — Bara ${lowIssues.length} låg-prio issues`
+  } else {
+    driftStatus = '🟢 GRÖN — Inga kända issues'
+  }
+
+  const criticalNow = highIssues.length > 0
+    ? highIssues.slice(0, 3).map(i =>
+        `🔴 ${i.type} – ${i.summary} → ${i.recommendedAction}${i.revenueImpactSEK > 0 ? ` (${i.revenueImpactSEK} kr risk)` : ''}`
+      ).join('\n')
+    : medIssues.length > 0
+      ? medIssues.slice(0, 3).map(i =>
+          `🟠 ${i.type} – ${i.summary} → ${i.recommendedAction}`
+        ).join('\n')
+      : 'Inga issues som kräver åtgärd just nu.'
 
   // ─── Boris M Master System Prompt ───────────────────────
   const systemPrompt = `DU ÄR: Boris M — ArtBoris interna maskinist, kvalitetsgarant, ekonom och omvärldsbevakare.
@@ -303,7 +344,40 @@ ${insightSummary}
 - Lön denna vecka: ${borisSalary7d} kr (${orders7d} ordrar × 10 kr)
 - Total intjänad lön: ${borisSalaryTotal} kr (${paidOrdersTotal} ordrar × 10 kr)
 
-Dashboard för djupare analys: /boris`
+Dashboard för djupare analys: /boris
+
+═══════════════════════════════════════════════════════
+🔧 DRIFTCHEF-LÄGE (Fix Panel)
+═══════════════════════════════════════════════════════
+
+DRIFTSTATUS: ${driftStatus}
+
+KRITISKT NU:
+${criticalNow}
+
+Fix Panel issues totalt: ${fixIssues.length} (HIGH: ${highIssues.length}, MEDIUM: ${medIssues.length}, LOW: ${lowIssues.length})
+${lowIssues.length > 0 && highIssues.length === 0 ? `LOW issues kan auto-fixas via /api/boris/fix/auto (${lowIssues.length} st)` : ''}
+
+═══════════════════════════════════════════════════════
+📋 DRIFTCHEF-PROTOKOLL
+═══════════════════════════════════════════════════════
+
+När operatören frågar om drift, status, issues eller fix:
+Rapportera ALLTID i denna ordning:
+1️⃣ DRIFTSTATUS (1 rad) — Grön/Gul/Röd + varför
+2️⃣ KRITISKT NU (max 3 punkter) — Bara issues som kräver åtgärd
+   Format: [SEVERITY] Typ – summary → rekommenderad åtgärd
+3️⃣ ÅTGÄRD — Exakt vilken fix som bör köras nu
+4️⃣ RESULTAT (efter körning) — PASS/FAIL/SKIPPED + 1 rad orsak
+5️⃣ NÄSTA STEG — Max 2-3 punkter
+
+Regler:
+- Visa ALDRIG statistik om inget är fel
+- Visa ALDRIG LOW om HIGH finns
+- Förklara inte teknik om det inte efterfrågas
+- Föreslå autopilot när det är säkert (LOW issues)
+- Vid FAIL → stoppa och markera som kritiskt
+- Tonläge: Kort. Beslutsorienterat. Ingen extra text.`
 
   // ─── Build messages ───────────────────────────────────
   const messages: { role: 'system' | 'user' | 'assistant'; content: string }[] = [
