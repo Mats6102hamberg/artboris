@@ -300,7 +300,25 @@ export default function BorisDashboard() {
                   <span className={`text-sm font-bold ${fixResult.success ? 'text-green-700' : 'text-red-700'}`}>
                     {fixResult.success ? '✅' : '❌'} {fixResult.action} {fixResult.dryRun ? '(DRY-RUN)' : '(LIVE)'}
                   </span>
+                  {fixResult.verification && (
+                    <span className={`text-xs font-bold px-2.5 py-1 rounded-full ${
+                      fixResult.verification.status === 'PASS' ? 'bg-green-200 text-green-800' :
+                      fixResult.verification.status === 'FAIL' ? 'bg-red-200 text-red-800' :
+                      'bg-gray-200 text-gray-600'
+                    }`}>
+                      {fixResult.verification.status === 'PASS' ? '✓ PASS' :
+                       fixResult.verification.status === 'FAIL' ? '✗ FAIL' : '⏭ SKIPPED'}
+                    </span>
+                  )}
                 </div>
+                {fixResult.verification && (
+                  <p className={`text-xs mb-2 ${
+                    fixResult.verification.status === 'PASS' ? 'text-green-700' :
+                    fixResult.verification.status === 'FAIL' ? 'text-red-700' : 'text-gray-500'
+                  }`}>
+                    Verification: {fixResult.verification.reason}
+                  </p>
+                )}
                 <div className="space-y-1">
                   {fixResult.changes?.map((c: string, i: number) => (
                     <p key={i} className="text-xs text-gray-700">{c}</p>

@@ -383,6 +383,60 @@ export async function GET() {
     console.error('[boris/fix/scan] NEEDS_THUMB_GEN scan failed:', err)
   }
 
+  // ─── H) NEEDS_FULFILLMENT_TRIGGER: post-reconciliation ─
+  try {
+    const fulfillmentMems = await prisma.borisMemory.findMany({
+      where: { tags: { has: 'needs_fulfillment_trigger' }, resolved: false },
+      select: { title: true, description: true, createdAt: true },
+    })
+    for (const mem of fulfillmentMems) {
+      const idMatch = mem.title.match(/Order (\w+)/)
+      const orderId = idMatch?.[1] || ''
+      issues.push({
+        id: `needs-fulfillment-${orderId || mem.createdAt.getTime()}`,
+        type: 'NEEDS_FULFILLMENT',
+        severity: 'medium',
+        title: `Fulfillment behövs: Order ${orderId}`,
+        description: mem.description,
+        entityId: orderId,
+        entityType: 'Order',
+        revenueImpactSEK: 0,
+        fixAction: 'TRIGGER_FULFILLMENT',
+        evidence: { source: 'post-reconciliation', memory: mem.title },
+        detectedAt: now.toISOString(),
+      })
+    }
+  } catch (err) {
+    console.error('[boris/fix/scan] NEEDS_FULFILLMENT scan failed:', err)
+  }
+
+  // ─── I) NEEDS_ORDER_EMAIL: post-reconciliation ────────
+  try {
+    const emailMems = await prisma.borisMemory.findMany({
+      where: { tags: { has: 'needs_order_email' }, resolved: false },
+      select: { title: true, description: true, createdAt: true },
+    })
+    for (const mem of emailMems) {
+      const idMatch = mem.title.match(/Order (\w+)/)
+      const orderId = idMatch?.[1] || ''
+      issues.push({
+        id: `needs-email-${orderId || mem.createdAt.getTime()}`,
+        type: 'NEEDS_ORDER_EMAIL',
+        severity: 'medium',
+        title: `Orderbekräftelse saknas: Order ${orderId}`,
+        description: mem.description,
+        entityId: orderId,
+        entityType: 'Order',
+        revenueImpactSEK: 0,
+        fixAction: 'SEND_ORDER_CONFIRMATION',
+        evidence: { source: 'post-reconciliation', memory: mem.title },
+        detectedAt: now.toISOString(),
+      })
+    }
+  } catch (err) {
+    console.error('[boris/fix/scan] NEEDS_ORDER_EMAIL scan failed:', err)
+  }
+
   // Sort: high severity first, then by revenue impact
   const severityOrder = { high: 0, medium: 1, low: 2 }
   issues.sort((a, b) => {

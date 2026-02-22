@@ -1,10 +1,16 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 import Stripe from 'stripe'
+import { sendOrderConfirmation as sendOrderConfirmationEmail } from '@/server/services/email/sendEmail'
 
 // Rate limit: max 5 fixes per hour
 const fixLog: { ts: number }[] = []
 const MAX_FIXES_PER_HOUR = 5
+
+interface Verification {
+  status: 'PASS' | 'FAIL' | 'SKIPPED'
+  reason: string
+}
 
 interface FixResult {
   success: boolean
@@ -12,6 +18,7 @@ interface FixResult {
   entityId: string
   dryRun: boolean
   changes: string[]
+  verification?: Verification
   error?: string
 }
 
@@ -59,6 +66,12 @@ export async function POST(request: NextRequest) {
       case 'MARK_ABANDONED':
         result = await markAbandoned(entityId, dryRun)
         break
+      case 'TRIGGER_FULFILLMENT':
+        result = await triggerFulfillment(entityId, dryRun)
+        break
+      case 'SEND_ORDER_CONFIRMATION':
+        result = await sendOrderConfirmationFix(entityId, dryRun)
+        break
       default:
         return NextResponse.json({ error: `Unknown action: ${action}` }, { status: 400 })
     }
@@ -69,13 +82,14 @@ export async function POST(request: NextRequest) {
     }
 
     // Audit log to Boris Memory
+    const verTag = result.verification ? `verify-${result.verification.status.toLowerCase()}` : 'no-verify'
     try {
       await prisma.borisMemory.create({
         data: {
           type: dryRun ? 'PATTERN' : 'INCIDENT',
-          title: `${dryRun ? '[DRY-RUN] ' : ''}${action} on ${entityId.slice(-8)}`,
+          title: `${dryRun ? '[DRY-RUN] ' : ''}${result.verification ? `[${result.verification.status}] ` : ''}${action} on ${entityId.slice(-8)}`,
           description: result.changes.join('. ') || (result.error ?? 'No changes'),
-          tags: ['boris-fix', action.toLowerCase(), dryRun ? 'dry-run' : 'executed'],
+          tags: ['boris-fix', action.toLowerCase(), dryRun ? 'dry-run' : 'executed', verTag],
           confidence: result.success ? 1.0 : 0.3,
           resolved: result.success && !dryRun,
         },
@@ -185,12 +199,27 @@ async function syncStripePayment(entityId: string, dryRun: boolean): Promise<Fix
         },
       })
       changes.push('📝 Skapade NEEDS_ORDER_EMAIL uppföljning')
+
+      // POST-CHECK: read back DB + verify against Stripe
+      const postOrder = await prisma.order.findUnique({ where: { id: entityId } })
+      const postSession = await stripe.checkout.sessions.retrieve(sessionId)
+      if (postOrder?.status === 'PAID' && postSession.payment_status === 'paid') {
+        return {
+          success: true, action: 'SYNC_STRIPE_PAYMENT', entityId, dryRun, changes,
+          verification: { status: 'PASS', reason: `DB=${postOrder.status}, Stripe=${postSession.payment_status} — match` },
+        }
+      } else {
+        return {
+          success: true, action: 'SYNC_STRIPE_PAYMENT', entityId, dryRun, changes,
+          verification: { status: 'FAIL', reason: `DB=${postOrder?.status}, Stripe=${postSession.payment_status} — mismatch kvarstår` },
+        }
+      }
     } else {
       changes.push('[DRY-RUN] Skulle uppdatera order till PAID + sätta payment.paidAt')
       changes.push('[DRY-RUN] Skulle skapa NEEDS_FULFILLMENT_TRIGGER + NEEDS_ORDER_EMAIL uppföljningar')
     }
 
-    return { success: true, action: 'SYNC_STRIPE_PAYMENT', entityId, dryRun, changes }
+    return { success: true, action: 'SYNC_STRIPE_PAYMENT', entityId, dryRun, changes, verification: { status: 'SKIPPED', reason: 'Dry-run' } }
   }
 
   // Try MarketOrder
@@ -223,11 +252,26 @@ async function syncStripePayment(entityId: string, dryRun: boolean): Promise<Fix
         data: { status: 'PAID', paidAt: new Date() },
       })
       changes.push('✅ MarketOrder uppdaterad till PAID')
+
+      // POST-CHECK
+      const postMo = await prisma.marketOrder.findUnique({ where: { id: entityId } })
+      const postPi = await stripe.paymentIntents.retrieve(marketOrder.stripePaymentIntentId)
+      if (postMo?.status === 'PAID' && postPi.status === 'succeeded') {
+        return {
+          success: true, action: 'SYNC_STRIPE_PAYMENT', entityId, dryRun, changes,
+          verification: { status: 'PASS', reason: `DB=${postMo.status}, Stripe PI=${postPi.status} — match` },
+        }
+      } else {
+        return {
+          success: true, action: 'SYNC_STRIPE_PAYMENT', entityId, dryRun, changes,
+          verification: { status: 'FAIL', reason: `DB=${postMo?.status}, Stripe PI=${postPi.status} — mismatch kvarstår` },
+        }
+      }
     } else {
       changes.push('[DRY-RUN] Skulle uppdatera MarketOrder till PAID')
     }
 
-    return { success: true, action: 'SYNC_STRIPE_PAYMENT', entityId, dryRun, changes }
+    return { success: true, action: 'SYNC_STRIPE_PAYMENT', entityId, dryRun, changes, verification: { status: 'SKIPPED', reason: 'Dry-run' } }
   }
 
   return { success: false, action: 'SYNC_STRIPE_PAYMENT', entityId, dryRun, changes: [], error: 'Order/MarketOrder hittades inte' }
@@ -377,10 +421,24 @@ async function markAbandoned(entityId: string, dryRun: boolean): Promise<FixResu
     if (!dryRun) {
       await prisma.order.update({ where: { id: entityId }, data: { status: 'CANCELED' } })
       changes.push('✅ Order markerad som CANCELED')
+
+      // POST-CHECK
+      const postOrder = await prisma.order.findUnique({ where: { id: entityId } })
+      if (postOrder?.status === 'CANCELED') {
+        return {
+          success: true, action: 'MARK_ABANDONED', entityId, dryRun, changes,
+          verification: { status: 'PASS', reason: `DB status=${postOrder.status} — korrekt` },
+        }
+      } else {
+        return {
+          success: true, action: 'MARK_ABANDONED', entityId, dryRun, changes,
+          verification: { status: 'FAIL', reason: `DB status=${postOrder?.status} — förväntade CANCELED` },
+        }
+      }
     } else {
       changes.push('[DRY-RUN] Skulle markera order som CANCELED')
     }
-    return { success: true, action: 'MARK_ABANDONED', entityId, dryRun, changes }
+    return { success: true, action: 'MARK_ABANDONED', entityId, dryRun, changes, verification: { status: 'SKIPPED', reason: 'Dry-run' } }
   }
 
   // Try MarketOrder
@@ -411,13 +469,178 @@ async function markAbandoned(entityId: string, dryRun: boolean): Promise<FixResu
     if (!dryRun) {
       await prisma.marketOrder.update({ where: { id: entityId }, data: { status: 'CANCELED' } })
       changes.push('✅ MarketOrder markerad som CANCELED')
+
+      // POST-CHECK
+      const postMo = await prisma.marketOrder.findUnique({ where: { id: entityId } })
+      if (postMo?.status === 'CANCELED') {
+        return {
+          success: true, action: 'MARK_ABANDONED', entityId, dryRun, changes,
+          verification: { status: 'PASS', reason: `DB status=${postMo.status} — korrekt` },
+        }
+      } else {
+        return {
+          success: true, action: 'MARK_ABANDONED', entityId, dryRun, changes,
+          verification: { status: 'FAIL', reason: `DB status=${postMo?.status} — förväntade CANCELED` },
+        }
+      }
     } else {
       changes.push('[DRY-RUN] Skulle markera MarketOrder som CANCELED')
     }
-    return { success: true, action: 'MARK_ABANDONED', entityId, dryRun, changes }
+    return { success: true, action: 'MARK_ABANDONED', entityId, dryRun, changes, verification: { status: 'SKIPPED', reason: 'Dry-run' } }
   }
 
   return { success: false, action: 'MARK_ABANDONED', entityId, dryRun, changes: [], error: 'Order/MarketOrder hittades inte' }
+}
+
+async function triggerFulfillment(orderId: string, dryRun: boolean): Promise<FixResult> {
+  const changes: string[] = []
+
+  const order = await prisma.order.findUnique({
+    where: { id: orderId },
+    include: {
+      items: { include: { fulfillment: true } },
+    },
+  })
+
+  if (!order) {
+    return { success: false, action: 'TRIGGER_FULFILLMENT', entityId: orderId, dryRun, changes: [], error: 'Order hittades inte' }
+  }
+
+  if (order.status !== 'PAID') {
+    return { success: false, action: 'TRIGGER_FULFILLMENT', entityId: orderId, dryRun, changes: [], error: `Order status är ${order.status}, inte PAID — kan inte trigga fulfillment` }
+  }
+
+  changes.push(`Order ${orderId.slice(-6)}: ${order.items.length} item(s)`)
+
+  let created = 0
+  let reset = 0
+
+  for (const item of order.items) {
+    if (!item.fulfillment) {
+      // No fulfillment exists — create one
+      if (!dryRun) {
+        await prisma.fulfillment.create({
+          data: {
+            orderItemId: item.id,
+            status: 'NOT_STARTED',
+            internalNote: `Skapad av Boris Fix ${new Date().toISOString()}`,
+          },
+        })
+      }
+      created++
+      changes.push(`✅ Skapade fulfillment för item ${item.id.slice(-6)} (${item.sizeCode})`)
+    } else if (item.fulfillment.status === 'FAILED' || item.fulfillment.status === 'NOT_STARTED') {
+      // Reset failed/stuck fulfillment
+      if (!dryRun) {
+        await prisma.fulfillment.update({
+          where: { id: item.fulfillment.id },
+          data: {
+            status: 'NOT_STARTED',
+            internalNote: `Reset av Boris Fix ${new Date().toISOString()}. Tidigare: ${item.fulfillment.internalNote || 'okänt'}`,
+          },
+        })
+      }
+      reset++
+      changes.push(`✅ Reset fulfillment ${item.fulfillment.id.slice(-6)} till NOT_STARTED`)
+    } else {
+      changes.push(`⏭️ Item ${item.id.slice(-6)} fulfillment redan ${item.fulfillment.status} — skip`)
+    }
+  }
+
+  if (dryRun) {
+    changes.push(`[DRY-RUN] Skulle skapa ${created} + resetta ${reset} fulfillments`)
+    return { success: true, action: 'TRIGGER_FULFILLMENT', entityId: orderId, dryRun, changes, verification: { status: 'SKIPPED', reason: 'Dry-run' } }
+  }
+
+  // Mark follow-up memory as resolved
+  try {
+    const mem = await prisma.borisMemory.findFirst({
+      where: { tags: { has: 'needs_fulfillment_trigger' }, resolved: false, title: { contains: orderId.slice(-6) } },
+    })
+    if (mem) {
+      await prisma.borisMemory.update({ where: { id: mem.id }, data: { resolved: true } })
+      changes.push('📝 NEEDS_FULFILLMENT_TRIGGER markerad som resolved')
+    }
+  } catch { /* non-critical */ }
+
+  // POST-CHECK: verify fulfillments exist and are NOT_STARTED or later
+  const postOrder = await prisma.order.findUnique({
+    where: { id: orderId },
+    include: { items: { include: { fulfillment: true } } },
+  })
+  const allHaveFulfillment = postOrder?.items.every(i => i.fulfillment !== null)
+  const noneAreFailed = postOrder?.items.every(i => i.fulfillment?.status !== 'FAILED')
+
+  if (allHaveFulfillment && noneAreFailed) {
+    return {
+      success: true, action: 'TRIGGER_FULFILLMENT', entityId: orderId, dryRun, changes,
+      verification: { status: 'PASS', reason: `${postOrder!.items.length} items alla har fulfillment, ingen FAILED` },
+    }
+  } else {
+    return {
+      success: true, action: 'TRIGGER_FULFILLMENT', entityId: orderId, dryRun, changes,
+      verification: { status: 'FAIL', reason: `Fulfillment saknas eller FAILED kvarstår` },
+    }
+  }
+}
+
+async function sendOrderConfirmationFix(orderId: string, dryRun: boolean): Promise<FixResult> {
+  const changes: string[] = []
+
+  const order = await prisma.order.findUnique({
+    where: { id: orderId },
+    include: { shippingAddress: true },
+  })
+
+  if (!order) {
+    return { success: false, action: 'SEND_ORDER_CONFIRMATION', entityId: orderId, dryRun, changes: [], error: 'Order hittades inte' }
+  }
+
+  if (order.status !== 'PAID') {
+    return { success: false, action: 'SEND_ORDER_CONFIRMATION', entityId: orderId, dryRun, changes: [], error: `Order status är ${order.status}, inte PAID` }
+  }
+
+  const email = order.shippingAddress?.confirmationEmail || order.shippingAddress?.email
+  if (!email) {
+    return { success: false, action: 'SEND_ORDER_CONFIRMATION', entityId: orderId, dryRun, changes: [], error: 'Ingen e-postadress på ordern' }
+  }
+
+  changes.push(`Order ${orderId.slice(-6)} status: ${order.status}`)
+  changes.push(`Mottagare: ${email}`)
+
+  if (!dryRun) {
+    try {
+      await sendOrderConfirmationEmail(orderId)
+      changes.push('✅ Orderbekräftelse-mail skickat via Resend')
+
+      // Mark follow-up memory as resolved
+      try {
+        const mem = await prisma.borisMemory.findFirst({
+          where: { tags: { has: 'needs_order_email' }, resolved: false, title: { contains: orderId.slice(-6) } },
+        })
+        if (mem) {
+          await prisma.borisMemory.update({ where: { id: mem.id }, data: { resolved: true } })
+          changes.push('📝 NEEDS_ORDER_EMAIL markerad som resolved')
+        }
+      } catch { /* non-critical */ }
+
+      return {
+        success: true, action: 'SEND_ORDER_CONFIRMATION', entityId: orderId, dryRun, changes,
+        verification: { status: 'PASS', reason: `Mail skickat till ${email}` },
+      }
+    } catch (err) {
+      changes.push(`❌ Mail misslyckades: ${err instanceof Error ? err.message : 'okänt'}`)
+      return {
+        success: false, action: 'SEND_ORDER_CONFIRMATION', entityId: orderId, dryRun, changes,
+        verification: { status: 'FAIL', reason: `Resend-fel: ${err instanceof Error ? err.message : 'okänt'}` },
+        error: err instanceof Error ? err.message : 'Mail send failed',
+      }
+    }
+  } else {
+    changes.push(`[DRY-RUN] Skulle skicka orderbekräftelse till ${email}`)
+  }
+
+  return { success: true, action: 'SEND_ORDER_CONFIRMATION', entityId: orderId, dryRun, changes, verification: { status: 'SKIPPED', reason: 'Dry-run' } }
 }
 
 async function recalcPrice(entityId: string, dryRun: boolean): Promise<FixResult> {
