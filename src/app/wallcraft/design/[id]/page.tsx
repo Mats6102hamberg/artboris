@@ -570,16 +570,16 @@ export default function WallcraftDesignPage() {
               })()}
             </div>
 
-            {needsUpscaling && selectedSizeDpi && (
-              <div className="rounded-2xl p-4 border bg-purple-50 border-purple-200">
+            {needsUpscaling && (
+              <div className="rounded-2xl p-4 border bg-emerald-50 border-emerald-200">
                 <div className="flex items-start gap-3">
-                  <span className="text-lg">✨</span>
+                  <span className="text-lg">✓</span>
                   <div>
-                    <p className="text-sm font-medium text-purple-900">
-                      AI-uppskalning ingår
+                    <p className="text-sm font-medium text-emerald-900">
+                      Tryckoptimerad med AI
                     </p>
-                    <p className="text-xs mt-1 text-purple-700">
-                      {selectedSizeDpi.dpi} DPI — Vi förstärker bilden automatiskt med AI för bästa tryckresultat i denna storlek.
+                    <p className="text-xs mt-1 text-emerald-700">
+                      Bilden förstärks automatiskt med AI-uppskalning för skarpt tryckresultat i vald storlek. Ingår utan extra kostnad.
                     </p>
                   </div>
                 </div>

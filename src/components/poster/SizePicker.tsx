@@ -51,10 +51,10 @@ export default function SizePicker({ selectedSizeId, onSelect, imageWidth, image
           const isBlocked = false // AI upscale handles all sizes
           const isFair = quality === 'fair' || quality === 'low'
 
-          const qualityBadge = quality === 'perfect' ? { label: '✓', cls: 'bg-green-100 text-green-700' }
-            : quality === 'good' ? { label: '○', cls: 'bg-blue-100 text-blue-700' }
-            : quality === 'fair' ? { label: 'AI', cls: 'bg-amber-100 text-amber-700' }
-            : quality === 'low' ? { label: 'AI', cls: 'bg-purple-100 text-purple-700' }
+          const qualityBadge = quality === 'perfect' ? { label: '✓ HD', cls: 'bg-green-100 text-green-700' }
+            : quality === 'good' ? { label: '✓ HD', cls: 'bg-green-100 text-green-700' }
+            : quality === 'fair' ? { label: '✓ AI', cls: 'bg-purple-100 text-purple-700' }
+            : quality === 'low' ? { label: '✓ AI', cls: 'bg-purple-100 text-purple-700' }
             : null
 
           return (
@@ -68,9 +68,7 @@ export default function SizePicker({ selectedSizeId, onSelect, imageWidth, image
                   ? 'border-gray-100 bg-gray-50 opacity-50 cursor-not-allowed'
                   : selectedSizeId === size.id
                     ? 'border-blue-500 ring-2 ring-blue-200 bg-blue-50'
-                    : isFair
-                      ? 'border-amber-200 hover:border-amber-300 bg-amber-50/30'
-                      : 'border-gray-200 hover:border-gray-300 bg-white'
+                    : 'border-gray-200 hover:border-gray-300 bg-white'
                 }
               `}
             >
@@ -86,7 +84,7 @@ export default function SizePicker({ selectedSizeId, onSelect, imageWidth, image
                   {dims && <p className={`text-[9px] leading-tight ${isBlocked ? 'text-gray-300' : 'text-gray-500'}`}>{dims}</p>}
                   {qualityBadge && (
                     <span className={`inline-block mt-0.5 text-[8px] font-bold px-1.5 py-0.5 rounded-full ${qualityBadge.cls}`}>
-                      {qualityBadge.label} {dpi} DPI
+                      {qualityBadge.label}
                     </span>
                   )}
                   {!qualityBadge && (
