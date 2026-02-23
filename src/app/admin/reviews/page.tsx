@@ -237,6 +237,16 @@ export default function AdminReviewsPage() {
                     </div>
                   )}
 
+                  {listing.reviewStatus === 'APPROVED' && (
+                    <button
+                      onClick={() => handleAction(listing.id, 'REJECT')}
+                      disabled={actionLoading === listing.id}
+                      className="mt-4 w-full px-3 py-2 text-sm bg-red-50 text-red-700 rounded-lg hover:bg-red-100 disabled:opacity-50 transition-colors font-medium"
+                    >
+                      {actionLoading === listing.id ? '...' : 'Ta bort från galleri'}
+                    </button>
+                  )}
+
                   {listing.reviewStatus === 'REJECTED' && (
                     <button
                       onClick={() => handleAction(listing.id, 'APPROVE')}

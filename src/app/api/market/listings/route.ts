@@ -197,8 +197,8 @@ export async function POST(request: NextRequest) {
         artistPriceSEK,
         isOriginal,
         maxPrints,
-        reviewStatus: 'PROCESSING',
-        isPublic: false,
+        reviewStatus: 'APPROVED',
+        isPublic: true,
       },
     })
 
