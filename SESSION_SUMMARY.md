@@ -402,6 +402,19 @@
   - Seed: `POST /api/admin/seed?secret=artboris-admin-2024` (kör efter första Google-login)
   - `ADMIN_SECRET` = `artboris-admin-2024` (satt på Vercel)
 
+### 44. Formatväljare — stående / liggande / fyrkantigt
+- **Prisma:** `aspectRatio String @default("portrait")` tillagd i Design-modellen
+- **Typ:** `AspectRatio` typ + `ASPECT_RATIO_MAP` i `types/design.ts` — mappar till Flux aspect_ratio och DALL-E size
+- **generatePreview.ts:** Dynamisk `aspect_ratio` (Flux) + `size` (DALL-E) baserat på valt format
+- **refinePreview.ts:** Samma dynamiska aspect ratio vid shuffle/refine
+- **API routes:** `/api/designs/generate` + `/api/designs/refine` accepterar `aspectRatio` parameter
+- **Studio UI:** Visuell formatväljare i steg 3 (AI-läge) — tre knappar med formatikonboxar
+- **Create UI:** Samma formatväljare i båda lägen (img2img + utan motiv)
+- **Design editor:** Shuffle skickar `aspectRatio` från sparad design
+- **Format:** portrait (2:3), landscape (3:2), square (1:1)
+- **Bakåtkompatibelt:** Default "portrait" — befintliga designs opåverkade
+- **Filer:** `types/design.ts`, `prisma/schema.prisma`, `generatePreview.ts`, `refinePreview.ts`, `api/designs/generate/route.ts`, `api/designs/refine/route.ts`, `wallcraft/studio/page.tsx`, `wallcraft/create/page.tsx`, `wallcraft/design/[id]/page.tsx`
+
 ## Kända issues / TODO
 - **Admin seed:** Logga in med Google (`mhg10mhg@gmail.com`) först, sedan kör seed-endpointen för att få ADMIN-roll
 - Market checkout saknar orderbekräftelse-mejlval (bara Wallcraft + Poster Lab har det)

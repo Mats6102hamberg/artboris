@@ -33,6 +33,14 @@ export interface DesignControls {
   textPosition: 'top' | 'center' | 'bottom' | 'none'
 }
 
+export type AspectRatio = 'portrait' | 'landscape' | 'square'
+
+export const ASPECT_RATIO_MAP: Record<AspectRatio, { flux: string; dalle: string; label: string }> = {
+  portrait:  { flux: '2:3', dalle: '1024x1792', label: 'Stående' },
+  landscape: { flux: '3:2', dalle: '1792x1024', label: 'Liggande' },
+  square:    { flux: '1:1', dalle: '1024x1024', label: 'Fyrkantigt' },
+}
+
 export type MoodType =
   | 'calm'
   | 'energetic'

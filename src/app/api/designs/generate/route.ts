@@ -27,7 +27,7 @@ export async function POST(request: NextRequest) {
     }
 
     const body = await request.json()
-    const { style, controls, userDescription, roomImageUrl, wallCorners, inputImageUrl, promptStrength } = body as {
+    const { style, controls, userDescription, roomImageUrl, wallCorners, inputImageUrl, promptStrength, aspectRatio } = body as {
       style: StylePreset
       controls: DesignControls
       userDescription?: string
@@ -35,6 +35,7 @@ export async function POST(request: NextRequest) {
       wallCorners?: string
       inputImageUrl?: string
       promptStrength?: number
+      aspectRatio?: 'portrait' | 'landscape' | 'square'
     }
 
     if (!style) {
@@ -70,6 +71,7 @@ export async function POST(request: NextRequest) {
       wallCorners,
       inputImageUrl,
       promptStrength,
+      aspectRatio,
     })
 
     if (!result.success) {

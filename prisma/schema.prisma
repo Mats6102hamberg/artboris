@@ -151,6 +151,7 @@ model Design {
   cropMode          CropMode @default(COVER)
   cropOffsetX       Float    @default(0)  // -1 to 1, 0 = centered
   cropOffsetY       Float    @default(0)  // -1 to 1, 0 = centered
+  aspectRatio       String   @default("portrait") // portrait | landscape | square
 
   isAiGenerated Boolean @default(false)
   isPublic      Boolean @default(false)

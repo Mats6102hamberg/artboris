@@ -1,6 +1,6 @@
 import OpenAI from 'openai'
 import Replicate from 'replicate'
-import { StylePreset, DesignControls, DesignVariant } from '@/types/design'
+import { StylePreset, DesignControls, DesignVariant, AspectRatio, ASPECT_RATIO_MAP } from '@/types/design'
 import { buildRefinePrompt } from '@/lib/prompts/templates'
 import { checkPromptSafety } from '@/lib/prompts/safety'
 import { isDemoMode } from '@/lib/demo/demoImages'
@@ -16,6 +16,7 @@ export interface RefinePreviewInput {
   feedback: string
   controls: DesignControls
   style?: StylePreset
+  aspectRatio?: AspectRatio
 }
 
 export interface RefinePreviewResult {
@@ -26,7 +27,8 @@ export interface RefinePreviewResult {
 }
 
 export async function refinePreview(input: RefinePreviewInput): Promise<RefinePreviewResult> {
-  const { originalPrompt, feedback, controls, style } = input
+  const { originalPrompt, feedback, controls, style, aspectRatio = 'portrait' } = input
+  const arConfig = ASPECT_RATIO_MAP[aspectRatio] || ASPECT_RATIO_MAP.portrait
 
   const prompt = buildRefinePrompt(originalPrompt, feedback, controls, style)
 
@@ -71,7 +73,7 @@ export async function refinePreview(input: RefinePreviewInput): Promise<RefinePr
         model: 'dall-e-3',
         prompt,
         n: 1,
-        size: '1024x1792',
+        size: arConfig.dalle as '1024x1792' | '1792x1024' | '1024x1024',
         quality: 'standard',
       }),
       fallback: async () => {
@@ -82,7 +84,7 @@ export async function refinePreview(input: RefinePreviewInput): Promise<RefinePr
         const replicateInput: Record<string, unknown> = {
           prompt,
           num_outputs: 1,
-          aspect_ratio: '2:3',
+          aspect_ratio: arConfig.flux,
           output_format: 'webp',
           output_quality: 90,
         }

@@ -9,7 +9,7 @@ import WallMarker from '@/components/poster/WallMarker'
 import StylePicker from '@/components/poster/StylePicker'
 import CreditBadge from '@/components/poster/CreditBadge'
 import PrintYourOwn from '@/components/poster/PrintYourOwn'
-import { type StylePreset } from '@/types/design'
+import { type StylePreset, type AspectRatio } from '@/types/design'
 import { useTelemetry } from '@/hooks/useTelemetry'
 
 import { DEMO_ROOM_IMAGE, DEMO_WALL_CORNERS } from '@/lib/demo/demoImages'
@@ -25,6 +25,7 @@ export default function StudioPage() {
   const [selectedStyle, setSelectedStyle] = useState<StylePreset | null>(null)
   const [userDescription, setUserDescription] = useState('')
   const [isGenerating, setIsGenerating] = useState(false)
+  const [aspectRatio, setAspectRatio] = useState<AspectRatio>('portrait')
   const [mode, setMode] = useState<'ai' | 'upload'>('ai')
   const [uploadedArtUrl, setUploadedArtUrl] = useState<string | null>(null)
   const [isCreatingUpload, setIsCreatingUpload] = useState(false)
@@ -69,6 +70,7 @@ export default function StudioPage() {
           controls: null,
           roomImageUrl: roomImageUrl || undefined,
           wallCorners: wallCorners.length === 4 ? JSON.stringify(wallCorners) : undefined,
+          aspectRatio,
         }),
       })
       const data = await res.json()
@@ -224,6 +226,36 @@ export default function StudioPage() {
                   <h2 className="text-2xl font-light text-gray-900">{t('studio.style.title')}</h2>
                   <p className="text-gray-500 mt-2">{t('studio.style.description')}</p>
                 </div>
+
+                {/* Format selector */}
+                <div>
+                  <p className="text-sm font-medium text-gray-700 mb-3 text-center">Välj format</p>
+                  <div className="flex justify-center gap-3">
+                    {([
+                      { id: 'portrait' as AspectRatio, label: 'Stående', w: 'w-8', h: 'h-12' },
+                      { id: 'landscape' as AspectRatio, label: 'Liggande', w: 'w-12', h: 'h-8' },
+                      { id: 'square' as AspectRatio, label: 'Fyrkantigt', w: 'w-10', h: 'h-10' },
+                    ]).map((fmt) => (
+                      <button
+                        key={fmt.id}
+                        onClick={() => setAspectRatio(fmt.id)}
+                        className={`flex flex-col items-center gap-2 px-4 py-3 rounded-xl border-2 transition-all ${
+                          aspectRatio === fmt.id
+                            ? 'border-gray-900 bg-gray-50 shadow-sm'
+                            : 'border-gray-200 bg-white hover:border-gray-300'
+                        }`}
+                      >
+                        <div className={`${fmt.w} ${fmt.h} rounded-sm border-2 ${
+                          aspectRatio === fmt.id ? 'border-gray-900 bg-gray-900/5' : 'border-gray-300 bg-gray-50'
+                        }`} />
+                        <span className={`text-xs font-medium ${
+                          aspectRatio === fmt.id ? 'text-gray-900' : 'text-gray-500'
+                        }`}>{fmt.label}</span>
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
                 <StylePicker selectedStyle={selectedStyle} onSelect={setSelectedStyle} />
                 <textarea
                   value={userDescription}

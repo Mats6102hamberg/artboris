@@ -40,6 +40,7 @@ interface DesignData {
   frameId: string
   sizeId: string
   isPublic: boolean
+  aspectRatio?: string
   variants: DesignVariantData[]
 }
 
@@ -228,6 +229,7 @@ export default function WallcraftDesignPage() {
           controls: null,
           designId: id,
           variantCount: design.variants.length,
+          aspectRatio: design.aspectRatio || 'portrait',
         }),
       })
       const data = await res.json()

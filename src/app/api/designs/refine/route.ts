@@ -29,12 +29,13 @@ export async function POST(request: NextRequest) {
     lastRefineTime.set(userId, now)
 
     const body = await request.json()
-    const { originalPrompt, feedback, controls, designId, variantCount } = body as {
+    const { originalPrompt, feedback, controls, designId, variantCount, aspectRatio } = body as {
       originalPrompt: string
       feedback: string
       controls: DesignControls
       designId?: string
       variantCount?: number
+      aspectRatio?: 'portrait' | 'landscape' | 'square'
     }
 
     if (!originalPrompt) {
@@ -73,6 +74,7 @@ export async function POST(request: NextRequest) {
       originalPrompt,
       feedback: feedback || '',
       controls,
+      aspectRatio,
     })
 
     if (!result.success) {

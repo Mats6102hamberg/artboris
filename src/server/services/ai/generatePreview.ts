@@ -1,6 +1,6 @@
 import Replicate from 'replicate'
 import OpenAI from 'openai'
-import { StylePreset, DesignControls, DesignVariant } from '@/types/design'
+import { StylePreset, DesignControls, DesignVariant, AspectRatio, ASPECT_RATIO_MAP } from '@/types/design'
 import { buildGeneratePrompt } from '@/lib/prompts/templates'
 import { checkPromptSafety } from '@/lib/prompts/safety'
 import { isDemoMode, getDemoVariants } from '@/lib/demo/demoImages'
@@ -24,6 +24,7 @@ export interface GeneratePreviewInput {
   wallCorners?: string
   inputImageUrl?: string
   promptStrength?: number
+  aspectRatio?: AspectRatio
 }
 
 export interface GeneratePreviewResult {
@@ -35,7 +36,7 @@ export interface GeneratePreviewResult {
 }
 
 export async function generatePreview(input: GeneratePreviewInput): Promise<GeneratePreviewResult> {
-  const { style, controls, userDescription, count = 4, inputImageUrl, promptStrength } = input
+  const { style, controls, userDescription, count = 4, inputImageUrl, promptStrength, aspectRatio = 'portrait' } = input
 
   const { prompt, negativePrompt } = buildGeneratePrompt(style, controls, userDescription)
 
@@ -66,7 +67,7 @@ export async function generatePreview(input: GeneratePreviewInput): Promise<Gene
     try {
       // Generate variants in parallel
       const promises = Array.from({ length: count }, (_, i) =>
-        generateSingleVariant(prompt, i, style, negativePrompt, inputImageUrl, promptStrength)
+        generateSingleVariant(prompt, i, style, negativePrompt, inputImageUrl, promptStrength, aspectRatio)
       )
 
       const results = await Promise.allSettled(promises)
@@ -128,6 +129,7 @@ export async function generatePreview(input: GeneratePreviewInput): Promise<Gene
           prompt,
           isAiGenerated: true,
           isPublic: true,
+          aspectRatio,
           roomImageUrl: input.roomImageUrl || null,
           wallCorners: input.wallCorners || null,
           variants: {
@@ -157,7 +159,8 @@ async function generateSingleVariant(
   style: StylePreset,
   negativePrompt?: string,
   inputImageUrl?: string,
-  promptStrength?: number
+  promptStrength?: number,
+  aspectRatio: AspectRatio = 'portrait'
 ): Promise<Omit<DesignVariant, 'designId'> | null> {
   try {
     const seed = Math.floor(Math.random() * 999999)
@@ -169,10 +172,11 @@ async function generateSingleVariant(
       ? 'black-forest-labs/flux-dev'
       : 'black-forest-labs/flux-schnell'
 
+    const arConfig = ASPECT_RATIO_MAP[aspectRatio] || ASPECT_RATIO_MAP.portrait
     const baseInput: Record<string, unknown> = {
       prompt,
       num_outputs: 1,
-      aspect_ratio: '2:3',
+      aspect_ratio: arConfig.flux,
       output_format: 'webp',
       output_quality: 90,
       seed,
@@ -208,7 +212,7 @@ async function generateSingleVariant(
             model: 'dall-e-3',
             prompt,
             n: 1,
-            size: '1024x1792',
+            size: arConfig.dalle as '1024x1792' | '1792x1024' | '1024x1024',
             quality: 'standard',
           })
           const url = res.data?.[0]?.url
