@@ -12,6 +12,7 @@ interface Listing {
   technique: string
   category: string
   year: number | null
+  imageUrl: string
   thumbnailUrl: string
   artistPriceSEK: number
   isOriginal: boolean
@@ -31,6 +32,7 @@ export default function MarketPage() {
   const [loading, setLoading] = useState(true)
   const [category, setCategory] = useState('all')
   const [page, setPage] = useState(1)
+  const [lightbox, setLightbox] = useState<Listing | null>(null)
 
   const fetchListings = useCallback(async () => {
     setLoading(true)
@@ -147,7 +149,7 @@ export default function MarketPage() {
               <div
                 key={listing.id}
                 className="group cursor-pointer"
-                onClick={() => router.push(`/market/${listing.id}`)}
+                onClick={() => setLightbox(listing)}
               >
                 <ProtectedImage
                   src={listing.thumbnailUrl}
@@ -184,6 +186,56 @@ export default function MarketPage() {
           </div>
         )}
       </div>
+
+      {/* Lightbox */}
+      {lightbox && (
+        <div
+          className="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4"
+          onClick={() => setLightbox(null)}
+        >
+          <div
+            className="relative max-w-3xl w-full bg-white rounded-2xl overflow-hidden shadow-2xl"
+            onClick={e => e.stopPropagation()}
+          >
+            {/* Close button */}
+            <button
+              onClick={() => setLightbox(null)}
+              className="absolute top-3 right-3 z-10 w-8 h-8 bg-black/50 hover:bg-black/70 text-white rounded-full flex items-center justify-center transition-colors"
+            >
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+              </svg>
+            </button>
+
+            {/* Large protected image */}
+            <ProtectedImage
+              src={lightbox.imageUrl || lightbox.thumbnailUrl}
+              alt={lightbox.title}
+              className="w-full h-auto max-h-[70vh] object-contain"
+              wrapperClassName="bg-gray-50"
+            />
+
+            {/* Info bar */}
+            <div className="p-5 flex items-center justify-between">
+              <div>
+                <h3 className="font-semibold text-gray-900 text-lg">{lightbox.title}</h3>
+                <p className="text-sm text-gray-500">{lightbox.artist.displayName}</p>
+              </div>
+              <div className="flex items-center gap-3">
+                <span className="text-lg font-bold text-gray-900">
+                  {formatPrice(lightbox.artistPriceSEK)} kr
+                </span>
+                <button
+                  onClick={() => router.push(`/market/${lightbox.id}`)}
+                  className="px-4 py-2 bg-gray-900 text-white text-sm font-medium rounded-lg hover:bg-gray-800 transition-colors"
+                >
+                  Visa detaljer
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 }

@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
+import { useSession } from 'next-auth/react'
 import { useTranslation } from '@/lib/i18n/context'
 import Button from '@/components/ui/Button'
 import LanguageSwitcher from '@/components/ui/LanguageSwitcher'
@@ -29,6 +30,9 @@ const AI_STYLE_FILTERS = ['all', 'nordic', 'abstract', 'minimal', 'botanical', '
 export default function GalleryPage() {
   const { t } = useTranslation()
   const router = useRouter()
+  const { data: session } = useSession()
+  const isAdmin = (session?.user as any)?.role === 'ADMIN'
+  const [deletingId, setDeletingId] = useState<string | null>(null)
   const [section, setSection] = useState<Section>('ai')
   const [items, setItems] = useState<GalleryItem[]>([])
   const [loading, setLoading] = useState(true)

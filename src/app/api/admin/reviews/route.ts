@@ -109,3 +109,32 @@ export async function PATCH(request: NextRequest) {
     return NextResponse.json({ error: 'Kunde inte uppdatera.' }, { status: 500 })
   }
 }
+
+// DELETE — hard-delete a listing permanently (admin only)
+export async function DELETE(request: NextRequest) {
+  try {
+    const body = await request.json()
+    const { listingId } = body as { listingId: string }
+
+    if (!listingId) {
+      return NextResponse.json({ error: 'listingId krävs.' }, { status: 400 })
+    }
+
+    const listing = await prisma.artworkListing.findUnique({
+      where: { id: listingId },
+      select: { id: true, title: true, artistId: true },
+    })
+
+    if (!listing) {
+      return NextResponse.json({ error: 'Listing hittades inte.' }, { status: 404 })
+    }
+
+    await prisma.artworkListing.delete({ where: { id: listingId } })
+
+    console.log(`[admin/reviews] DELETED listing ${listingId} "${listing.title}" permanently`)
+    return NextResponse.json({ success: true })
+  } catch (error) {
+    console.error('[admin/reviews DELETE] Error:', error)
+    return NextResponse.json({ error: 'Kunde inte radera.' }, { status: 500 })
+  }
+}

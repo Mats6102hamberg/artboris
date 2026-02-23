@@ -48,6 +48,7 @@ export default function AdminReviewsPage() {
   const [actionLoading, setActionLoading] = useState<string | null>(null)
   const [expandedId, setExpandedId] = useState<string | null>(null)
   const [rejectReason, setRejectReason] = useState('')
+  const [deleteConfirmId, setDeleteConfirmId] = useState<string | null>(null)
 
   const fetchListings = useCallback(async () => {
     try {
@@ -88,6 +89,28 @@ export default function AdminReviewsPage() {
       }
     } catch (err) {
       console.error('Action failed:', err)
+    } finally {
+      setActionLoading(null)
+    }
+  }
+
+  const handleHardDelete = async (listingId: string) => {
+    setActionLoading(listingId)
+    try {
+      const res = await fetch('/api/admin/reviews', {
+        method: 'DELETE',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ listingId }),
+      })
+      const data = await res.json()
+      if (data.success) {
+        setDeleteConfirmId(null)
+        await fetchListings()
+      } else {
+        alert(data.error || 'Kunde inte radera')
+      }
+    } catch (err) {
+      console.error('Delete failed:', err)
     } finally {
       setActionLoading(null)
     }
@@ -256,6 +279,37 @@ export default function AdminReviewsPage() {
                       Ångra — Godkänn ändå
                     </button>
                   )}
+
+                  {/* Hard delete — alla statusar */}
+                  <div className="mt-2 border-t border-gray-100 pt-2">
+                    {deleteConfirmId === listing.id ? (
+                      <div className="space-y-2">
+                        <p className="text-xs text-red-600 font-medium">Radera permanent? Detta kan inte ångras.</p>
+                        <div className="flex gap-2">
+                          <button
+                            onClick={() => handleHardDelete(listing.id)}
+                            disabled={actionLoading === listing.id}
+                            className="flex-1 px-3 py-2 text-sm bg-red-600 text-white rounded-lg hover:bg-red-700 disabled:opacity-50 transition-colors font-medium"
+                          >
+                            {actionLoading === listing.id ? '...' : 'Ja, radera'}
+                          </button>
+                          <button
+                            onClick={() => setDeleteConfirmId(null)}
+                            className="px-3 py-2 text-sm text-gray-500 hover:text-gray-700 transition-colors"
+                          >
+                            Avbryt
+                          </button>
+                        </div>
+                      </div>
+                    ) : (
+                      <button
+                        onClick={() => setDeleteConfirmId(listing.id)}
+                        className="w-full px-3 py-1.5 text-xs text-gray-400 hover:text-red-600 transition-colors"
+                      >
+                        Radera permanent
+                      </button>
+                    )}
+                  </div>
                 </div>
               </div>
             ))}

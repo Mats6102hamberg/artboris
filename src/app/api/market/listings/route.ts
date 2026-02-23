@@ -76,13 +76,13 @@ export async function GET(request: NextRequest) {
           .map(({ _score, ...rest }: any) => rest)
       : rawListings
 
-    // Sanitize: public responses never expose full-res URLs
+    // Sanitize: public responses never expose print-res or original URLs
     const sanitized = isOwnDashboard
       ? listings
-      : listings.map(({ imageUrl, printUrl, originalUploadUrl, ...safe }: any) => ({
+      : listings.map(({ printUrl, originalUploadUrl, ...safe }: any) => ({
           ...safe,
-          // Use thumbnailUrl for display; fall back to imageUrl only if no thumbnail exists
-          thumbnailUrl: safe.thumbnailUrl || imageUrl,
+          // thumbnailUrl for grid; imageUrl kept as displayUrl for lightbox
+          thumbnailUrl: safe.thumbnailUrl || safe.imageUrl,
         }))
 
     return NextResponse.json({

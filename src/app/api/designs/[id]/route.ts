@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 import { getUserId } from '@/lib/auth/getUserId'
+import { auth } from '@/lib/auth'
 
 // GET — load a design with its variants
 export async function GET(
@@ -36,15 +37,20 @@ export async function DELETE(
     const { id } = await params
     const anonId = await getUserId()
 
+    // Check if admin
+    const session = await auth()
+    const isAdmin = (session?.user as any)?.role === 'ADMIN'
+
     const existing = await prisma.design.findUnique({ where: { id } })
     if (!existing) {
       return NextResponse.json({ error: 'Design not found.' }, { status: 404 })
     }
-    if (existing.userId !== anonId) {
+    if (!isAdmin && existing.userId !== anonId) {
       return NextResponse.json({ error: 'Unauthorized.' }, { status: 403 })
     }
 
     await prisma.design.delete({ where: { id } })
+    console.log(`[designs/[id]] DELETED design ${id} by ${isAdmin ? 'ADMIN' : 'owner'}`)
 
     return NextResponse.json({ success: true })
   } catch (error) {
