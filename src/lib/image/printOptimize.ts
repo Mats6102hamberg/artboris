@@ -1,5 +1,7 @@
 import sharp from 'sharp'
+import { put } from '@vercel/blob'
 import { POSTER_SIZES, cmToPixels } from './resize'
+import { upscaleImage } from '@/server/services/ai/upscale'
 
 /**
  * Crimson print specs:
@@ -120,11 +122,32 @@ export async function optimizeForPrint(inputBuffer: Buffer): Promise<OptimizeRes
 
   const longSide = Math.max(origW, origH)
 
-  // Step 2: Validate minimum
+  // Step 2: AI upscale if too small for print
   if (longSide < MIN_LONG_SIDE) {
-    throw new Error(
-      `Bilden är för liten (${origW}×${origH}px). Minsta krav: ${MIN_LONG_SIDE}px på längsta sidan.`
-    )
+    console.log(`[printOptimize] Image too small (${origW}×${origH}, ${longSide}px). AI upscaling...`)
+
+    try {
+      // Upload temp image to get a URL for Replicate
+      const tempSlug = `market/temp/${Date.now()}_${Math.random().toString(36).slice(2, 6)}.jpg`
+      const tempJpeg = await sharp(inputBuffer).jpeg({ quality: 90 }).toBuffer()
+      const tempBlob = await put(tempSlug, tempJpeg, { access: 'public', contentType: 'image/jpeg' })
+
+      const neededFactor = Math.ceil(MIN_LONG_SIDE / longSide)
+      const factor: 2 | 4 = neededFactor <= 2 ? 2 : 4
+
+      const result = await upscaleImage({ imageUrl: tempBlob.url, upscaleFactor: factor })
+      const upscaledRes = await fetch(result.url)
+      if (!upscaledRes.ok) throw new Error(`Failed to download upscaled image: ${upscaledRes.status}`)
+
+      inputBuffer = Buffer.from(await upscaledRes.arrayBuffer())
+      const upMeta = await sharp(inputBuffer).metadata()
+      console.log(`[printOptimize] Upscaled ${factor}× → ${upMeta.width}×${upMeta.height}`)
+    } catch (err) {
+      console.error('[printOptimize] AI upscale failed:', err)
+      throw new Error(
+        `Bilden är för liten (${origW}×${origH}px) och kunde inte AI-förstoras. Minsta krav: ${MIN_LONG_SIDE}px.`
+      )
+    }
   }
 
   // Step 3-4: Process — sRGB + optional downscale
