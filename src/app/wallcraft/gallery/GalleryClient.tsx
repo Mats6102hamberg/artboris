@@ -109,6 +109,32 @@ export default function GalleryPage() {
     return () => { cancelled = true }
   }, [section, activeStyle, sortBy, fetchAiItems, fetchMarketItems])
 
+  const handleAdminDelete = async (item: GalleryItem, e: React.MouseEvent) => {
+    e.stopPropagation()
+    if (!confirm(`Radera "${item.title}" permanent?`)) return
+    setDeletingId(item.id)
+    try {
+      const endpoint = item.type === 'market'
+        ? '/api/admin/reviews'
+        : `/api/designs/${item.designId || item.id}`
+      const res = await fetch(endpoint, {
+        method: 'DELETE',
+        headers: { 'Content-Type': 'application/json' },
+        ...(item.type === 'market' && { body: JSON.stringify({ listingId: item.id }) }),
+      })
+      const data = await res.json()
+      if (data.success) {
+        setItems(prev => prev.filter(i => i.id !== item.id))
+      } else {
+        alert(data.error || 'Kunde inte radera')
+      }
+    } catch {
+      alert('Kunde inte radera')
+    } finally {
+      setDeletingId(null)
+    }
+  }
+
   const handleCardClick = (item: GalleryItem) => {
     if (item.type === 'market') {
       router.push(`/market/${item.id}`)
@@ -222,6 +248,22 @@ export default function GalleryPage() {
                         AI
                       </span>
                     </div>
+                  )}
+                  {isAdmin && (
+                    <button
+                      onClick={(e) => handleAdminDelete(item, e)}
+                      disabled={deletingId === item.id}
+                      className="absolute top-2 right-2 z-20 w-7 h-7 bg-red-600/90 backdrop-blur-sm text-white rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity hover:bg-red-700 disabled:opacity-50"
+                      title="Radera permanent (admin)"
+                    >
+                      {deletingId === item.id ? (
+                        <div className="w-3 h-3 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                      ) : (
+                        <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                        </svg>
+                      )}
+                    </button>
                   )}
                   <div className="absolute inset-0 bg-gradient-to-t from-black/30 via-transparent to-transparent sm:opacity-0 sm:group-hover:opacity-100 transition-opacity" />
                   <div className="absolute bottom-3 left-3 right-3 flex flex-col gap-2 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity">

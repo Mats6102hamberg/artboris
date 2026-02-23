@@ -415,6 +415,15 @@
 - **Bakåtkompatibelt:** Default "portrait" — befintliga designs opåverkade
 - **Filer:** `types/design.ts`, `prisma/schema.prisma`, `generatePreview.ts`, `refinePreview.ts`, `api/designs/generate/route.ts`, `api/designs/refine/route.ts`, `wallcraft/studio/page.tsx`, `wallcraft/create/page.tsx`, `wallcraft/design/[id]/page.tsx`
 
+### 45. Admin + användare kan radera bilder
+- **Admin hard-delete market listings:** Ny DELETE-metod i `/api/admin/reviews` — raderar listing permanent (inte bara soft-reject)
+- **Admin reviews UI:** "Radera permanent"-knapp under varje kort med inline-bekräftelse ("Ja, radera" / "Avbryt")
+- **Admin kan radera alla designs:** `/api/designs/[id]` DELETE kontrollerar nu admin-session — admin bypasear ownership-check
+- **Gallery admin-delete:** Röd papperskorg-knapp (hover) på varje galleri-kort — synlig bara för admin (ADMIN role via useSession)
+- **Användare kan radera egna:** Befintligt flöde intakt — design editor "Ta bort design" modal + MyArtworks papperskorg
+- **Loggar:** Alla deletes loggar `by ADMIN` eller `by owner` i console
+- **Filer:** `api/admin/reviews/route.ts`, `api/designs/[id]/route.ts`, `admin/reviews/page.tsx`, `wallcraft/gallery/GalleryClient.tsx`
+
 ## Kända issues / TODO
 - **Admin seed:** Logga in med Google (`mhg10mhg@gmail.com`) först, sedan kör seed-endpointen för att få ADMIN-roll
 - Market checkout saknar orderbekräftelse-mejlval (bara Wallcraft + Poster Lab har det)
