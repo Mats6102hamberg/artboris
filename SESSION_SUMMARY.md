@@ -6,7 +6,7 @@
 - **GitHub:** `https://github.com/Mats6102hamberg/artboris.git`
 - **Branch:** `main`
 - **Deploy:** Vercel (kopplat till GitHub-repot)
-- **Senaste commit:** `bb0a3a3`
+- **Senaste commit:** `bf71c1f`
 
 ## Tech Stack
 - Next.js 16, React 19, TypeScript
@@ -359,32 +359,64 @@
 - **Checkout-knappar:** Visar grandTotal (poster + ram + passepartout + akrylglas + tillbehör)
 - **Filer:** `AddonsPanel.tsx`, `prints.ts`, `CartContext.tsx`, `design/[id]/page.tsx`
 
+### 39. Admin-sektion (NextAuth + role-check)
+- **Commits:** `37730cb`, `cfdce87`, `f236261`
+- **Auth:** NextAuth JWT med role-check i `/admin/layout.tsx` (ADMIN krävs)
+- **Seed:** `POST /api/admin/seed` (kräver ADMIN_SECRET) — sätter admin-roll
+- **Layout:** `AdminShell.tsx` — sidebar med collapsible nav
+- **Sidor:** Dashboard, Art Scanner, Boris M, Ordrar, Market-ordrar, Granskningar, Prissättning, Inbjudningar
+- **Boris/Scanner borttagna från publik vy** — redirectar till `/admin/*`
+
+### 40. Premium startsida — digital galleri-upplevelse
+- **Commits:** `5415f44`, `82cb4fa`, `bfb16da`, `2dfd790`
+- **Ny page.tsx:** HeroSection, TrustBar, CuratedGallery, WallcraftBlock, ArtistBlock, BorisCuration, Footer
+- **Playfair Display** serif font via `next/font/google` i layout.tsx
+- **Hero:** Hämtar featured listing som bakgrundsbild via `next/image` med `priority`
+- **Curated Gallery:** `?featured=1` API — quality score sorting
+- **Quality score:** `printQuality_rank × 100 + tryOnWallCount × 10 + log10(views+1) × 10`
+- **next.config.ts:** `remotePatterns` för Vercel Blob + Unsplash
+- **Copy:** Premium svenskt galleri-språk, sektionslabels, Boris editorial quote
+
+### 41. Auto-publicering + AI-upscale + alla storlekar valbara
+- **Commits:** `9664347`, `64c4d6f`, `ff79e34`
+- **Auto-publicering:** Alla uploads → `reviewStatus: APPROVED, isPublic: true` direkt. Admin tar bort manuellt via "Ta bort från galleri"-knapp i `/admin/reviews`
+- **AI-upscale i printOptimize:** Bilder under 1500px upscalas automatiskt via Replicate Real-ESRGAN (2× eller 4×) istället för att kastas
+- **Alla storlekar valbara:** SizePicker blockerar inte längre `low` DPI — visar lila "AI"-badge istället
+- **Design editor:** Röd "för låg upplösning"-varning ersatt med lila "✨ AI-uppskalning ingår"
+- **Fix:** Skräptext (Boris-rapport) borttagen från `CreativePartnership.tsx`
+
+### 42. Demo-rum redesignat
+- **Commit:** `bf71c1f`
+- **room-sample.svg:** Stor soffa ersatt med liten stol + sidobord mot väggen
+- **Väggen dominerar** ~85% av scenen — bättre för att visa konst
+- **Behåller:** Lampa, växt (nu på bordet), väggtextur, taklist, golvlist
+
 ## Kända issues / TODO
+- **Google OAuth:** `GOOGLE_CLIENT_ID` / `GOOGLE_CLIENT_SECRET` saknas — login ger 401: invalid_client. Behöver sättas i Google Cloud Console + Vercel env vars.
 - Market checkout saknar orderbekräftelse-mejlval (bara Wallcraft + Poster Lab har det)
 - Crimson-priser (costSEK) behöver fyllas i efter avtal med Crimson
 - Frame-assets är PNG-placeholders, behöver riktiga rambilder
 
 ## Git-historik (senaste 20)
 ```
-bb0a3a3 feat: passepartout, akrylglas, skruvar & skruvmejsel som tillval på design-sidan
-7571f9d feat: /wallcraft/credits köp-sida + Credits-länk i nav + CreditBadge navigerar till köp-sidan
-db484c1 fix: kompaktare Creative Tools-kort — alla samma storlek, inget täcker
-7542120 feat: Skapa AI-konst knapp i hero + 'Skapa ny konst från motiv' i galleri & design-sida + /wallcraft/create sida
+bf71c1f feat: redesign demo room — small chair + side table replaces large sofa
+ff79e34 feat: all sizes selectable — AI upscale handles low DPI
+64c4d6f feat: AI upscale small images in printOptimize pipeline (Real-ESRGAN)
+9664347 feat: auto-publish uploads, admin 'Ta bort från galleri', fix CreativePartnership
+2dfd790 Improved featured score: printQuality×100 + tryOnWall×10 + log10(views+1)×10
+bfb16da Mini-polish: quality score, 'Tryckt i Europa', Boris editorial quote
+82cb4fa WOW-polish: hero from real listings, next/image, premium copy
+5415f44 Redesign homepage: premium gallery experience
+f236261 Remove Boris from public, redirect to /admin/boris
+cfdce87 Add admin seed endpoint
+37730cb Admin dashboard: sidebar layout, scanner moved to admin-only
+42f9e82 Image protection: strip imageUrl from public APIs
+589739e Boris driftchef-läge
+bb0a3a3 feat: passepartout, akrylglas, skruvar & skruvmejsel
+7571f9d feat: /wallcraft/credits köp-sida
+db484c1 fix: kompaktare Creative Tools-kort
+7542120 feat: Skapa AI-konst knapp + /wallcraft/create
 e94d67a fix: ta bort all auth från Boris (temporärt)
-0a9cc81 fix: synlig text i Boris Dashboard — explicit textfärger + tomma-tillstånd
-6521ff2 fix: synlig textfärg i Boris Chat inputfält
-079fb70 fix: BorisChatPanel pollar localStorage
-fe149e6 fix: flytta Boris dashboard till /boris
-0bbb32f feat: hemlig admin-ingång — 5 snabba klick på 'by Artboris'
-835084f feat: Boris M Chat — flytande AI-chattpanel för admin
-8a21cb9 docs: uppdatera SESSION_SUMMARY med Boris M (sektion 33)
-3561cfd feat: Boris M Lager 2-5 — Trends, Report, Auto-Incident
-57ff58f feat: Boris M — telemetri, funnel-analys, memory, insights + admin dashboard
-441e3aa feat: 'Eget verk'-flik i Wallcraft Studio
-1855a1f fix: detaljerad loggning i generatePreview (debug)
-da280dd fix: visa vilken safety-pattern som triggar (debug)
-fc61ab9 fix: loggning i safety check + force redeploy
-3945e68 feat: ta bort design — DELETE endpoint + bekräftelse-modal
-24bb535 fix: kreativa verktyg → create-from-upload
-b423257 feat: auto-detect språk + välkomst-språkväljare
+0a9cc81 fix: synlig text i Boris Dashboard
+835084f feat: Boris M Chat — flytande AI-chattpanel
 ```
