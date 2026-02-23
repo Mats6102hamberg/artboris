@@ -1,9 +1,13 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 import { borisChat } from '@/lib/boris/aiProvider'
+import { requireAdmin } from '@/lib/auth/requireAdmin'
 
 // POST — Boris M conversational AI
 export async function POST(request: NextRequest) {
+  const adminCheck = await requireAdmin()
+  if (adminCheck instanceof NextResponse) return adminCheck
+
 
   const { message, history } = await request.json()
   if (!message || typeof message !== 'string') {

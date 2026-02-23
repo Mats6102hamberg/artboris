@@ -1,8 +1,11 @@
 import { NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
+import { requireAdmin } from '@/lib/auth/requireAdmin'
 
 // GET — Boris Daily Machine Report
 export async function GET() {
+  const adminCheck = await requireAdmin()
+  if (adminCheck instanceof NextResponse) return adminCheck
   const now = new Date()
 
   // Yesterday: 00:00 → 23:59

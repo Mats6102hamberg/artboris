@@ -1,8 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
+import { requireAdmin } from '@/lib/auth/requireAdmin'
 
 // GET — sales & trend intelligence
 export async function GET(request: NextRequest) {
+  const adminCheck = await requireAdmin()
+  if (adminCheck instanceof NextResponse) return adminCheck
 
   const { searchParams } = new URL(request.url)
   const days = parseInt(searchParams.get('days') || '30', 10)

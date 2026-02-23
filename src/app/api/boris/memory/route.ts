@@ -1,8 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
+import { requireAdmin } from '@/lib/auth/requireAdmin'
 
 // GET — list memories (filtered by type, tags, resolved)
 export async function GET(request: NextRequest) {
+  const adminCheck = await requireAdmin()
+  if (adminCheck instanceof NextResponse) return adminCheck
 
   const { searchParams } = new URL(request.url)
   const type = searchParams.get('type') as 'INCIDENT' | 'UX_LEARNING' | 'PATTERN' | null
@@ -29,6 +32,9 @@ export async function GET(request: NextRequest) {
 export async function POST(request: NextRequest) {
 
   try {
+    const adminCheck = await requireAdmin()
+    if (adminCheck instanceof NextResponse) return adminCheck
+
     const body = await request.json()
     const { type, title, description, data, tags, confidence } = body
 
@@ -58,6 +64,9 @@ export async function POST(request: NextRequest) {
 export async function PATCH(request: NextRequest) {
 
   try {
+    const adminCheck = await requireAdmin()
+    if (adminCheck instanceof NextResponse) return adminCheck
+
     const body = await request.json()
     const { id, ...updates } = body
 

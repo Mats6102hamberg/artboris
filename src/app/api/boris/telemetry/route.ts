@@ -1,10 +1,14 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 import { Prisma } from '@prisma/client'
+import { requireAdmin } from '@/lib/auth/requireAdmin'
 
 // POST — batch insert telemetry events
 export async function POST(request: NextRequest) {
   try {
+    const adminCheck = await requireAdmin()
+    if (adminCheck instanceof NextResponse) return adminCheck
+
     const { events } = await request.json()
 
     if (!Array.isArray(events) || events.length === 0) {
@@ -37,6 +41,8 @@ export async function POST(request: NextRequest) {
 
 // GET — query events
 export async function GET(request: NextRequest) {
+  const adminCheck = await requireAdmin()
+  if (adminCheck instanceof NextResponse) return adminCheck
 
   const { searchParams } = new URL(request.url)
   const event = searchParams.get('event')

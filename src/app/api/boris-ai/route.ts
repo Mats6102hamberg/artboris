@@ -1,9 +1,13 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { BorisArtAI } from '@/lib/borisArtAI'
 import { rateLimit, getClientIP } from '@/lib/boris/rateLimit'
+import { requireAdmin } from '@/lib/auth/requireAdmin'
 
 export async function POST(request: NextRequest) {
   try {
+    const adminCheck = await requireAdmin()
+    if (adminCheck instanceof NextResponse) return adminCheck
+
     // Rate limit: 20 requests per minute per IP
     const ip = getClientIP(request)
     const limit = rateLimit(`boris-ai:${ip}`, 20, 60_000)

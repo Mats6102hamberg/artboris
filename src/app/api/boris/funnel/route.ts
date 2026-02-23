@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
+import { requireAdmin } from '@/lib/auth/requireAdmin'
 
 const FUNNEL_STEPS = [
   'PAGE_VIEW',
@@ -19,6 +20,8 @@ const FUNNEL_STEPS = [
 
 // GET — funnel analysis with drop-off rates, segmented by device/locale
 export async function GET(request: NextRequest) {
+  const adminCheck = await requireAdmin()
+  if (adminCheck instanceof NextResponse) return adminCheck
   const { searchParams } = new URL(request.url)
   const days = parseInt(searchParams.get('days') || '7', 10)
   const device = searchParams.get('device') // mobile, desktop, tablet
