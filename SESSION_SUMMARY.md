@@ -391,8 +391,19 @@
 - **Väggen dominerar** ~85% av scenen — bättre för att visa konst
 - **Behåller:** Lampa, växt (nu på bordet), väggtextur, taklist, golvlist
 
+### 43. Google OAuth + Admin-åtkomst konfigurerat
+- **Google Cloud Console:** Projekt "Boris Run", OAuth client "Web client 2"
+  - JS origins: `https://artboris.vercel.app`
+  - Redirect URI: `https://artboris.vercel.app/api/auth/callback/google`
+- **Vercel env vars (production):** `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET`, `NEXTAUTH_SECRET`, `NEXTAUTH_URL` — alla satta
+- **Admin-åtkomst:**
+  - URL: `https://artboris.vercel.app/admin`
+  - Kräver Google-login med `mhg10mhg@gmail.com` + ADMIN-roll i DB
+  - Seed: `POST /api/admin/seed?secret=artboris-admin-2024` (kör efter första Google-login)
+  - `ADMIN_SECRET` = `artboris-admin-2024` (satt på Vercel)
+
 ## Kända issues / TODO
-- **Google OAuth:** `GOOGLE_CLIENT_ID` / `GOOGLE_CLIENT_SECRET` saknas — login ger 401: invalid_client. Behöver sättas i Google Cloud Console + Vercel env vars.
+- **Admin seed:** Logga in med Google (`mhg10mhg@gmail.com`) först, sedan kör seed-endpointen för att få ADMIN-roll
 - Market checkout saknar orderbekräftelse-mejlval (bara Wallcraft + Poster Lab har det)
 - Crimson-priser (costSEK) behöver fyllas i efter avtal med Crimson
 - Frame-assets är PNG-placeholders, behöver riktiga rambilder
