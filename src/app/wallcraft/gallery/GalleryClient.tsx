@@ -38,16 +38,18 @@ export default function GalleryPage() {
   const [loading, setLoading] = useState(true)
   const [activeStyle, setActiveStyle] = useState('all')
   const [sortBy, setSortBy] = useState<'recent' | 'popular'>('popular')
+  const [hasMore, setHasMore] = useState(false)
+  const [loadingMore, setLoadingMore] = useState(false)
 
-  const fetchAiItems = useCallback(async () => {
-    const params = new URLSearchParams({ sortBy })
+  const fetchAiItems = useCallback(async (offset = 0) => {
+    const params = new URLSearchParams({ sortBy, offset: String(offset), limit: '60' })
     if (activeStyle !== 'all') {
       params.set('style', activeStyle)
     }
     const res = await fetch(`/api/gallery/list?${params}`)
     const data = await res.json()
     if (data.success) {
-      return (data.items || []).map((item: any) => ({
+      const mapped = (data.items || []).map((item: any) => ({
         id: item.id,
         designId: item.designId || item.id,
         title: item.title,
@@ -59,8 +61,9 @@ export default function GalleryPage() {
         isAiGenerated: true,
         type: item.type || 'ai-variant',
       }))
+      return { items: mapped, hasMore: data.hasMore || false }
     }
-    return []
+    return { items: [], hasMore: false }
   }, [activeStyle, sortBy])
 
   const fetchMarketItems = useCallback(async (category: string, excludeCategory?: string) => {
@@ -88,18 +91,19 @@ export default function GalleryPage() {
 
     const load = async () => {
       try {
-        let result: GalleryItem[] = []
         if (section === 'ai') {
-          result = await fetchAiItems()
+          const { items: result, hasMore: more } = await fetchAiItems(0)
+          if (!cancelled) { setItems(result); setHasMore(more) }
         } else if (section === 'photographers') {
-          result = await fetchMarketItems('photo')
+          const result = await fetchMarketItems('photo')
+          if (!cancelled) { setItems(result); setHasMore(false) }
         } else {
-          result = await fetchMarketItems('', 'photo')
+          const result = await fetchMarketItems('', 'photo')
+          if (!cancelled) { setItems(result); setHasMore(false) }
         }
-        if (!cancelled) setItems(result)
       } catch (err) {
         console.error('[Gallery] fetch error:', err)
-        if (!cancelled) setItems([])
+        if (!cancelled) { setItems([]); setHasMore(false) }
       } finally {
         if (!cancelled) setLoading(false)
       }
@@ -132,6 +136,19 @@ export default function GalleryPage() {
       alert('Kunde inte radera')
     } finally {
       setDeletingId(null)
+    }
+  }
+
+  const handleLoadMore = async () => {
+    setLoadingMore(true)
+    try {
+      const { items: more, hasMore: stillMore } = await fetchAiItems(items.length)
+      setItems(prev => [...prev, ...more])
+      setHasMore(stillMore)
+    } catch {
+      console.error('[Gallery] load more failed')
+    } finally {
+      setLoadingMore(false)
     }
   }
 
@@ -308,6 +325,26 @@ export default function GalleryPage() {
                 </div>
               </div>
             ))}
+          </div>
+        )}
+
+        {/* Load more */}
+        {hasMore && !loading && (
+          <div className="flex justify-center mt-10">
+            <button
+              onClick={handleLoadMore}
+              disabled={loadingMore}
+              className="px-8 py-3 bg-white border border-gray-200 rounded-full text-sm font-medium text-gray-700 hover:border-gray-400 hover:shadow-sm transition-all disabled:opacity-50"
+            >
+              {loadingMore ? (
+                <span className="flex items-center gap-2">
+                  <div className="w-4 h-4 border-2 border-gray-300 border-t-gray-700 rounded-full animate-spin" />
+                  Laddar...
+                </span>
+              ) : (
+                'Visa fler'
+              )}
+            </button>
           </div>
         )}
       </div>
