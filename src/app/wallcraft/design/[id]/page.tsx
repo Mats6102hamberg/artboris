@@ -569,19 +569,15 @@ export default function WallcraftDesignPage() {
             </div>
 
             {needsUpscaling && selectedSizeDpi && (
-              <div className={`rounded-2xl p-4 border ${selectedSizeDpi.quality === 'fair' ? 'bg-amber-50 border-amber-200' : 'bg-red-50 border-red-200'}`}>
+              <div className="rounded-2xl p-4 border bg-purple-50 border-purple-200">
                 <div className="flex items-start gap-3">
-                  <span className="text-lg">{selectedSizeDpi.quality === 'fair' ? '⚠️' : '🚫'}</span>
+                  <span className="text-lg">✨</span>
                   <div>
-                    <p className={`text-sm font-medium ${selectedSizeDpi.quality === 'fair' ? 'text-amber-900' : 'text-red-900'}`}>
-                      {selectedSizeDpi.quality === 'fair'
-                        ? 'Bilden behöver AI-uppskalning'
-                        : 'Upplösningen är för låg'}
+                    <p className="text-sm font-medium text-purple-900">
+                      AI-uppskalning ingår
                     </p>
-                    <p className={`text-xs mt-1 ${selectedSizeDpi.quality === 'fair' ? 'text-amber-700' : 'text-red-700'}`}>
-                      {selectedSizeDpi.dpi} DPI — {selectedSizeDpi.quality === 'fair'
-                        ? 'Vi uppskalerar bilden automatiskt med AI vid beställning för bästa tryckresultat.'
-                        : 'Välj en mindre storlek för godtagbar tryckkvalitet.'}
+                    <p className="text-xs mt-1 text-purple-700">
+                      {selectedSizeDpi.dpi} DPI — Vi förstärker bilden automatiskt med AI för bästa tryckresultat i denna storlek.
                     </p>
                   </div>
                 </div>

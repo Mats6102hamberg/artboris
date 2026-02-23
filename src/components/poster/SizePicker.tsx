@@ -48,13 +48,13 @@ export default function SizePicker({ selectedSizeId, onSelect, imageWidth, image
           const hasDpi = imageWidth && imageHeight && imageWidth > 0 && imageHeight > 0
           const dpi = hasDpi ? getEffectiveDpi(imageWidth, imageHeight, size.widthCm, size.heightCm) : null
           const quality = dpi !== null ? dpiQuality(dpi) : null
-          const isBlocked = quality === 'low'
-          const isFair = quality === 'fair'
+          const isBlocked = false // AI upscale handles all sizes
+          const isFair = quality === 'fair' || quality === 'low'
 
           const qualityBadge = quality === 'perfect' ? { label: '✓', cls: 'bg-green-100 text-green-700' }
             : quality === 'good' ? { label: '○', cls: 'bg-blue-100 text-blue-700' }
-            : quality === 'fair' ? { label: '⚠', cls: 'bg-amber-100 text-amber-700' }
-            : quality === 'low' ? { label: '✕', cls: 'bg-red-100 text-red-600' }
+            : quality === 'fair' ? { label: 'AI', cls: 'bg-amber-100 text-amber-700' }
+            : quality === 'low' ? { label: 'AI', cls: 'bg-purple-100 text-purple-700' }
             : null
 
           return (
