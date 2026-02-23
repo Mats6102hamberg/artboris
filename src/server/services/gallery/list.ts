@@ -24,7 +24,7 @@ export interface GalleryListItem {
 }
 
 export async function listGallery(options: GalleryListOptions = {}) {
-  const { style, limit = 60, offset = 0, sortBy = 'recent' } = options
+  const { style, limit = 200, offset = 0, sortBy = 'recent' } = options
 
   const designWhere: any = { isPublic: true }
   if (style) designWhere.style = style

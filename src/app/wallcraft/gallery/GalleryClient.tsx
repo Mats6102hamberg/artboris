@@ -42,7 +42,7 @@ export default function GalleryPage() {
   const [loadingMore, setLoadingMore] = useState(false)
 
   const fetchAiItems = useCallback(async (offset = 0) => {
-    const params = new URLSearchParams({ sortBy, offset: String(offset), limit: '60' })
+    const params = new URLSearchParams({ sortBy, offset: String(offset), limit: '200' })
     if (activeStyle !== 'all') {
       params.set('style', activeStyle)
     }
