@@ -21,31 +21,28 @@
   <!-- Crown molding -->
   <rect x="200" y="100" width="800" height="6" fill="#d8d0c4" rx="1"/>
   <rect x="200" y="106" width="800" height="2" fill="#c8c0b4"/>
-  <!-- Sofa — larger, closer -->
-  <rect x="320" y="415" width="560" height="85" rx="16" fill="#6b7b8d"/>
-  <rect x="330" y="370" width="540" height="55" rx="14" fill="#7b8b9d"/>
-  <!-- Sofa arms -->
-  <rect x="320" y="400" width="65" height="100" rx="12" fill="#5b6b7d"/>
-  <rect x="815" y="400" width="65" height="100" rx="12" fill="#5b6b7d"/>
-  <!-- Sofa legs -->
-  <rect x="345" y="498" width="8" height="12" rx="2" fill="#444"/>
-  <rect x="847" y="498" width="8" height="12" rx="2" fill="#444"/>
-  <!-- Cushions — more detail -->
-  <rect x="395" y="385" width="80" height="42" rx="10" fill="#8fa4b8"/>
-  <rect x="500" y="380" width="75" height="48" rx="10" fill="#a0b4c4"/>
-  <rect x="600" y="382" width="78" height="45" rx="10" fill="#95aabb"/>
-  <rect x="700" y="385" width="75" height="42" rx="10" fill="#8fa4b8"/>
-  <!-- Throw blanket on sofa -->
-  <path d="M720,395 Q740,375 760,400 Q770,420 750,430 Q730,425 720,395Z" fill="#c4a882" opacity="0.6"/>
-  <!-- Side table -->
-  <rect x="920" y="435" width="80" height="65" rx="5" fill="#8b7355"/>
-  <rect x="928" y="425" width="64" height="15" rx="3" fill="#9b8365"/>
-  <!-- Plant — lusher -->
-  <circle cx="960" cy="400" r="28" fill="#5a8a5a"/>
-  <circle cx="942" cy="388" r="22" fill="#4a7a4a"/>
-  <circle cx="978" cy="385" r="24" fill="#6a9a6a"/>
-  <circle cx="955" cy="375" r="16" fill="#5a9a5a"/>
-  <rect x="955" y="420" width="12" height="18" rx="3" fill="#c4a070"/>
+  <!-- Small chair — right side, against wall -->
+  <!-- Chair seat -->
+  <rect x="760" y="430" width="80" height="12" rx="4" fill="#8b7355"/>
+  <!-- Chair back -->
+  <rect x="770" y="380" width="60" height="55" rx="8" fill="#a08060"/>
+  <rect x="775" y="385" width="50" height="45" rx="6" fill="#b8a080"/>
+  <!-- Chair legs -->
+  <rect x="768" y="442" width="6" height="56" rx="2" fill="#6b5535"/>
+  <rect x="826" y="442" width="6" height="56" rx="2" fill="#6b5535"/>
+  <!-- Small side table — next to chair -->
+  <rect x="860" y="445" width="55" height="55" rx="4" fill="#8b7355"/>
+  <rect x="865" y="438" width="45" height="10" rx="3" fill="#9b8365"/>
+  <!-- Table legs -->
+  <rect x="865" y="498" width="5" height="8" rx="1" fill="#6b5535"/>
+  <rect x="905" y="498" width="5" height="8" rx="1" fill="#6b5535"/>
+  <!-- Small vase on table -->
+  <rect x="880" y="418" width="14" height="22" rx="5" fill="#c4a882"/>
+  <ellipse cx="887" cy="418" rx="8" ry="3" fill="#b89872"/>
+  <!-- Plant — compact, on table -->
+  <circle cx="887" cy="408" r="12" fill="#5a8a5a"/>
+  <circle cx="880" cy="402" r="9" fill="#4a7a4a"/>
+  <circle cx="894" cy="404" r="10" fill="#6a9a6a"/>
   <!-- Floor lamp — left side -->
   <rect x="240" y="320" width="8" height="180" fill="#333"/>
   <ellipse cx="244" cy="315" rx="38" ry="22" fill="#f5e6c8"/>
@@ -54,6 +51,6 @@
   <ellipse cx="300" cy="280" rx="80" ry="60" fill="#fff8e0" opacity="0.04"/>
   <!-- Window light effect on wall -->
   <rect x="400" y="130" width="180" height="250" fill="#fff" opacity="0.04" rx="3"/>
-  <!-- Subtle shadow under sofa -->
-  <ellipse cx="600" cy="505" rx="280" ry="8" fill="#000" opacity="0.08"/>
+  <!-- Subtle shadow under furniture -->
+  <ellipse cx="810" cy="505" rx="100" ry="5" fill="#000" opacity="0.06"/>
 </svg>
