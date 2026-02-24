@@ -4,6 +4,24 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useSession, signOut } from 'next-auth/react';
 import { useState, useRef, useEffect, useCallback } from 'react';
+import { useTranslation } from '@/lib/i18n/context';
+import { SUPPORTED_LOCALES, type Locale } from '@/lib/i18n';
+
+const LOCALE_FLAGS: Record<Locale, string> = {
+  en: '🇬🇧',
+  sv: '🇸🇪',
+  de: '🇩🇪',
+  fr: '🇫🇷',
+  nl: '🇳🇱',
+};
+
+const LOCALE_NAMES: Record<Locale, string> = {
+  en: 'English',
+  sv: 'Svenska',
+  de: 'Deutsch',
+  fr: 'Français',
+  nl: 'Nederlands',
+};
 
 const navItems = [
   {
@@ -66,9 +84,12 @@ const hiddenPrefixes = ['/admin', '/auth', '/checkout', '/result', '/boris'];
 export default function GlobalNav() {
   const pathname = usePathname();
   const { data: session, status } = useSession();
+  const { locale, setLocale, t } = useTranslation();
   const [menuOpen, setMenuOpen] = useState(false);
+  const [langOpen, setLangOpen] = useState(false);
   const [hidden, setHidden] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
+  const langRef = useRef<HTMLDivElement>(null);
   const lastScrollY = useRef(0);
   const scrollThreshold = 10;
 
@@ -93,12 +114,15 @@ export default function GlobalNav() {
       if (menuRef.current && !menuRef.current.contains(e.target as Node)) {
         setMenuOpen(false);
       }
+      if (langRef.current && !langRef.current.contains(e.target as Node)) {
+        setLangOpen(false);
+      }
     }
-    if (menuOpen) {
+    if (menuOpen || langOpen) {
       document.addEventListener('mousedown', handleClickOutside);
       return () => document.removeEventListener('mousedown', handleClickOutside);
     }
-  }, [menuOpen]);
+  }, [menuOpen, langOpen]);
 
   if (hiddenPrefixes.some((p) => pathname.startsWith(p))) {
     return null;
@@ -134,6 +158,38 @@ export default function GlobalNav() {
           );
         })}
 
+        {/* Divider + Language switcher */}
+        <li className="flex items-center">
+          <span className="w-px h-5 bg-white/20 mx-0.5" aria-hidden="true" />
+          <div className="relative" ref={langRef}>
+            <button
+              onClick={() => { setLangOpen((v) => !v); setMenuOpen(false); }}
+              className="flex items-center justify-center w-9 h-9 rounded-full transition-colors text-white/60 hover:text-white hover:bg-white/10"
+              aria-label="Change language"
+            >
+              <span className="text-sm">{LOCALE_FLAGS[locale]}</span>
+            </button>
+            {langOpen && (
+              <div className="absolute bottom-full mb-2 left-1/2 -translate-x-1/2 bg-gray-900 border border-white/20 rounded-lg shadow-xl py-1 min-w-[140px]">
+                {SUPPORTED_LOCALES.map((loc) => (
+                  <button
+                    key={loc}
+                    onClick={() => { setLocale(loc); setLangOpen(false); }}
+                    className={`w-full text-left px-4 py-2 text-sm flex items-center gap-2 transition-colors ${
+                      locale === loc
+                        ? 'text-white bg-white/10 font-medium'
+                        : 'text-white/70 hover:text-white hover:bg-white/10'
+                    }`}
+                  >
+                    <span>{LOCALE_FLAGS[loc]}</span>
+                    <span>{LOCALE_NAMES[loc]}</span>
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
+        </li>
+
         {/* Divider + Account/Login button */}
         <li className="flex items-center">
           <span className="w-px h-5 bg-white/20 mx-0.5" aria-hidden="true" />
@@ -155,7 +211,7 @@ export default function GlobalNav() {
                     onClick={() => signOut({ callbackUrl: '/' })}
                     className="w-full text-left px-4 py-2 text-sm text-white/80 hover:text-white hover:bg-white/10 transition-colors"
                   >
-                    Logga ut
+                    {t('nav.signOut') !== 'nav.signOut' ? t('nav.signOut') : 'Sign out'}
                   </button>
                 </div>
               )}

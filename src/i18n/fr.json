@@ -7,7 +7,8 @@
     "studio": "Studio",
     "gallery": "Galerie",
     "pricing": "Tarifs",
-    "signIn": "Se connecter"
+    "signIn": "Se connecter",
+    "signOut": "Se déconnecter"
   },
   "landing": {
     "hero": {
