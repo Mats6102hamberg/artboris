@@ -198,7 +198,7 @@ export default function GlobalNav() {
               <button
                 onClick={() => setMenuOpen((v) => !v)}
                 className="flex items-center justify-center w-9 h-9 rounded-full transition-colors text-white/60 hover:text-white hover:bg-white/10"
-                aria-label="Konto"
+                aria-label={t('nav.signOut')}
               >
                 <svg viewBox="0 0 24 24" fill="currentColor" stroke="none" className="w-5 h-5">
                   <circle cx="12" cy="8" r="4" />
@@ -219,7 +219,7 @@ export default function GlobalNav() {
           ) : (
             <Link
               href="/auth/login"
-              title="Logga in"
+              title={t('nav.signIn')}
               className="flex items-center justify-center w-9 h-9 rounded-full transition-colors text-white/60 hover:text-white hover:bg-white/10"
             >
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.5} strokeLinecap="round" strokeLinejoin="round" className="w-5 h-5">

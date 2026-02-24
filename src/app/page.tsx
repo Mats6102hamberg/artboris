@@ -3,6 +3,7 @@
 import { useState, useEffect, useRef } from 'react'
 import Image from 'next/image'
 import Link from 'next/link'
+import { useTranslation } from '@/lib/i18n/context'
 
 const FALLBACK_HERO = 'https://images.unsplash.com/photo-1513519245088-0e12902e35ca?w=1920&q=80&auto=format&fit=crop'
 
@@ -35,7 +36,7 @@ function useFadeIn() {
 }
 
 // ─── Hero ───
-function HeroSection() {
+function HeroSection({ t }: { t: (key: string) => string }) {
   const [loaded, setLoaded] = useState(false)
   const [heroImg, setHeroImg] = useState<string>(FALLBACK_HERO)
   const [heroArtist, setHeroArtist] = useState<string>('')
@@ -60,7 +61,7 @@ function HeroSection() {
       <div className="absolute inset-0">
         <Image
           src={heroImg}
-          alt="Utvald konst från ArtBoris"
+          alt="ArtBoris"
           fill
           className="object-cover"
           priority
@@ -73,27 +74,26 @@ function HeroSection() {
       {/* Content */}
       <div className={`relative z-10 text-center px-6 max-w-3xl transition-all duration-1000 ease-out ${loaded ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'}`}>
         <h1 className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-light text-white leading-[1.1] tracking-tight" style={{ fontFamily: 'var(--font-playfair), Georgia, serif' }}>
-          Gör ditt hem
+          {t('homepage.heroTitle1')}
           <br />
-          till ett galleri
+          {t('homepage.heroTitle2')}
         </h1>
         <p className="mt-6 text-base sm:text-lg text-white/70 max-w-lg mx-auto leading-relaxed">
-          Handplockade prints — AI-konst, fotografi och klassiska verk.
-          Tryckt i museumkvalitet, levererat hem till dig.
+          {t('homepage.heroSubtitle')}
         </p>
         <div className="mt-10 flex flex-col sm:flex-row items-center justify-center gap-4">
           <Link
             href="/market"
             className="inline-flex items-center gap-2.5 bg-white text-gray-900 px-8 py-4 rounded-full text-sm font-medium tracking-wide hover:bg-gray-100 transition-all shadow-lg shadow-black/10"
           >
-            Utforska galleriet
+            {t('homepage.heroCta')}
             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" /></svg>
           </Link>
           <Link
             href="/wallcraft/studio"
             className="inline-flex items-center gap-2 text-white/90 border border-white/30 backdrop-blur-sm px-8 py-4 rounded-full text-sm font-medium tracking-wide hover:bg-white/10 hover:border-white/50 transition-all"
           >
-            Skapa din egen konst
+            {t('homepage.heroCtaSecondary')}
           </Link>
         </div>
       </div>
@@ -101,7 +101,7 @@ function HeroSection() {
       {/* Artist credit */}
       {heroArtist && (
         <div className={`absolute bottom-20 sm:bottom-8 right-6 transition-opacity duration-1000 delay-700 ${loaded ? 'opacity-50' : 'opacity-0'}`}>
-          <p className="text-[11px] text-white/60 tracking-wide">Verk av {heroArtist}</p>
+          <p className="text-[11px] text-white/60 tracking-wide">{t('homepage.heroArtistCredit')} {heroArtist}</p>
         </div>
       )}
 
@@ -116,13 +116,13 @@ function HeroSection() {
 }
 
 // ─── Trust Bar ───
-function TrustBar() {
+function TrustBar({ t }: { t: (key: string) => string }) {
   const { ref, visible } = useFadeIn()
   const items = [
-    { icon: 'print', label: 'Museumkvalitet — Giclée fine art' },
-    { icon: 'eu', label: 'Tryckt i Europa' },
-    { icon: 'artist', label: 'Konstnärer & fotografer' },
-    { icon: 'frame', label: 'Ramad, klar att hänga' },
+    { icon: 'print', label: t('homepage.trustPrint') },
+    { icon: 'eu', label: t('homepage.trustEu') },
+    { icon: 'artist', label: t('homepage.trustArtist') },
+    { icon: 'frame', label: t('homepage.trustFrame') },
   ]
 
   return (
@@ -155,7 +155,7 @@ function TrustBar() {
 }
 
 // ─── Curated Gallery ───
-function CuratedGallery() {
+function CuratedGallery({ t }: { t: (key: string) => string }) {
   const { ref, visible } = useFadeIn()
   const [listings, setListings] = useState<Listing[]>([])
 
@@ -172,9 +172,9 @@ function CuratedGallery() {
     <section ref={ref} className="py-16 sm:py-24 bg-white">
       <div className={`max-w-6xl mx-auto px-6 transition-all duration-700 ${visible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-6'}`}>
         <div className="text-center mb-14">
-          <p className="text-xs font-medium tracking-[0.2em] uppercase text-gray-400 mb-4">Kurerat urval</p>
+          <p className="text-xs font-medium tracking-[0.2em] uppercase text-gray-400 mb-4">{t('homepage.curatedLabel')}</p>
           <h2 className="text-3xl sm:text-4xl lg:text-5xl font-light tracking-tight text-gray-900 leading-tight" style={{ fontFamily: 'var(--font-playfair), Georgia, serif' }}>
-            Utvald konst för ditt hem
+            {t('homepage.curatedTitle')}
           </h2>
         </div>
 
@@ -217,7 +217,7 @@ function CuratedGallery() {
             href="/market"
             className="inline-flex items-center gap-2.5 text-gray-900 border border-gray-200 px-8 py-3.5 rounded-full text-sm font-medium tracking-wide hover:border-gray-400 hover:shadow-sm transition-all"
           >
-            Visa hela samlingen
+            {t('homepage.curatedViewAll')}
             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" /></svg>
           </Link>
         </div>
@@ -227,7 +227,7 @@ function CuratedGallery() {
 }
 
 // ─── Wallcraft Experience Block ───
-function WallcraftBlock() {
+function WallcraftBlock({ t }: { t: (key: string) => string }) {
   const { ref, visible } = useFadeIn()
 
   return (
@@ -239,7 +239,7 @@ function WallcraftBlock() {
             <div className="aspect-[4/3] bg-gray-50 rounded-lg overflow-hidden relative">
               <Image
                 src="https://images.unsplash.com/photo-1586023492125-27b2c045efd7?w=960&q=80&auto=format&fit=crop"
-                alt="Konst på vägg i modern interiör"
+                alt="Wallcraft"
                 fill
                 className="object-cover"
                 sizes="(max-width: 1024px) 100vw, 50vw"
@@ -251,19 +251,19 @@ function WallcraftBlock() {
 
           {/* Right: Text */}
           <div className="max-w-lg">
-            <p className="text-xs font-medium tracking-[0.2em] uppercase text-gray-400 mb-4">Visualisera</p>
+            <p className="text-xs font-medium tracking-[0.2em] uppercase text-gray-400 mb-4">{t('homepage.wallcraftLabel')}</p>
             <h2 className="text-3xl sm:text-4xl font-light tracking-tight text-gray-900 leading-tight" style={{ fontFamily: 'var(--font-playfair), Georgia, serif' }}>
-              Se konsten på
-              <br />din egen vägg
+              {t('homepage.wallcraftTitle1')}
+              <br />{t('homepage.wallcraftTitle2')}
             </h2>
             <p className="mt-6 text-gray-500 leading-relaxed">
-              Ladda upp ett foto av ditt rum. Välj verk, ram och storlek — och se exakt hur det kommer se ut innan du beställer.
+              {t('homepage.wallcraftDesc')}
             </p>
             <Link
               href="/wallcraft/studio"
               className="mt-8 inline-flex items-center gap-2.5 bg-gray-900 text-white px-7 py-3.5 rounded-full text-sm font-medium tracking-wide hover:bg-gray-800 transition-all"
             >
-              Prova på din vägg
+              {t('homepage.wallcraftCta')}
               <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" /></svg>
             </Link>
           </div>
@@ -274,26 +274,25 @@ function WallcraftBlock() {
 }
 
 // ─── Artist Block ───
-function ArtistBlock() {
+function ArtistBlock({ t }: { t: (key: string) => string }) {
   const { ref, visible } = useFadeIn()
 
   return (
     <section ref={ref} className="py-16 sm:py-24 bg-white">
       <div className={`max-w-6xl mx-auto px-6 transition-all duration-700 ${visible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-6'}`}>
         <div className="max-w-2xl mx-auto text-center">
-          <p className="text-xs font-medium tracking-[0.2em] uppercase text-gray-400 mb-4">För konstnärer</p>
+          <p className="text-xs font-medium tracking-[0.2em] uppercase text-gray-400 mb-4">{t('homepage.artistLabel')}</p>
           <h2 className="text-3xl sm:text-4xl font-light tracking-tight text-gray-900 leading-tight" style={{ fontFamily: 'var(--font-playfair), Georgia, serif' }}>
-            Visa din konst för hela Norden
+            {t('homepage.artistTitle')}
           </h2>
           <p className="mt-6 text-gray-500 leading-relaxed max-w-lg mx-auto">
-            Vi hanterar tryck, frakt och betalning. Du laddar upp — vi gör resten.
-            Ingen startavgift, ingen bindningstid.
+            {t('homepage.artistDesc')}
           </p>
           <Link
             href="/market/artist"
             className="mt-8 inline-flex items-center gap-2.5 bg-gray-900 text-white px-7 py-3.5 rounded-full text-sm font-medium tracking-wide hover:bg-gray-800 transition-all"
           >
-            Ansök som konstnär
+            {t('homepage.artistCta')}
             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" /></svg>
           </Link>
         </div>
@@ -303,17 +302,17 @@ function ArtistBlock() {
 }
 
 // ─── Boris Curation Signature ───
-function BorisCuration() {
+function BorisCuration({ t }: { t: (key: string) => string }) {
   const { ref, visible } = useFadeIn()
 
   return (
     <section ref={ref} className="py-14 sm:py-20 bg-[#FAFAF8] border-t border-gray-100">
       <div className={`max-w-6xl mx-auto px-6 text-center transition-all duration-700 ${visible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'}`}>
         <p className="text-lg sm:text-xl text-gray-900 font-light tracking-tight italic" style={{ fontFamily: 'var(--font-playfair), Georgia, serif' }}>
-          &ldquo;Varje verk i galleriet är handplockat och kvalitetsgranskat.&rdquo;
+          &ldquo;{t('homepage.borisQuote')}&rdquo;
         </p>
         <p className="mt-4 text-xs tracking-[0.15em] uppercase text-gray-400">
-          — Boris, curator
+          {t('homepage.borisCurator')}
         </p>
       </div>
     </section>
@@ -321,7 +320,7 @@ function BorisCuration() {
 }
 
 // ─── Footer ───
-function Footer() {
+function Footer({ t }: { t: (key: string) => string }) {
   return (
     <footer className="bg-white border-t border-gray-100 py-14 sm:py-16">
       <div className="max-w-6xl mx-auto px-6">
@@ -329,20 +328,19 @@ function Footer() {
           <div className="col-span-2 md:col-span-1">
             <span className="text-base font-semibold tracking-[0.15em] uppercase text-gray-900">Artboris</span>
             <p className="mt-3 text-sm text-gray-400 leading-relaxed max-w-xs">
-              Handplockade prints för moderna hem.
-              Konst, fotografi och AI-genererade verk.
+              {t('homepage.footerTagline')}
             </p>
           </div>
           <div>
-            <h4 className="text-xs font-semibold text-gray-900 uppercase tracking-wider mb-4">Utforska</h4>
+            <h4 className="text-xs font-semibold text-gray-900 uppercase tracking-wider mb-4">{t('homepage.footerExplore')}</h4>
             <div className="space-y-2.5">
-              <a href="/market" className="block text-sm text-gray-400 hover:text-gray-700 transition-colors">Galleri</a>
-              <a href="/wallcraft/studio" className="block text-sm text-gray-400 hover:text-gray-700 transition-colors">Wallcraft Studio</a>
-              <a href="/wallcraft/gallery" className="block text-sm text-gray-400 hover:text-gray-700 transition-colors">Community</a>
+              <a href="/market" className="block text-sm text-gray-400 hover:text-gray-700 transition-colors">{t('homepage.footerGallery')}</a>
+              <a href="/wallcraft/studio" className="block text-sm text-gray-400 hover:text-gray-700 transition-colors">{t('homepage.footerStudio')}</a>
+              <a href="/wallcraft/gallery" className="block text-sm text-gray-400 hover:text-gray-700 transition-colors">{t('homepage.footerCommunity')}</a>
             </div>
           </div>
           <div>
-            <h4 className="text-xs font-semibold text-gray-900 uppercase tracking-wider mb-4">Skapa</h4>
+            <h4 className="text-xs font-semibold text-gray-900 uppercase tracking-wider mb-4">{t('homepage.footerCreate')}</h4>
             <div className="space-y-2.5">
               <a href="/wallcraft/mandala" className="block text-sm text-gray-400 hover:text-gray-700 transition-colors">Mandala Maker</a>
               <a href="/wallcraft/pattern" className="block text-sm text-gray-400 hover:text-gray-700 transition-colors">Pattern Studio</a>
@@ -351,18 +349,18 @@ function Footer() {
             </div>
           </div>
           <div>
-            <h4 className="text-xs font-semibold text-gray-900 uppercase tracking-wider mb-4">Konstnärer</h4>
+            <h4 className="text-xs font-semibold text-gray-900 uppercase tracking-wider mb-4">{t('homepage.footerArtists')}</h4>
             <div className="space-y-2.5">
-              <a href="/market/artist" className="block text-sm text-gray-400 hover:text-gray-700 transition-colors">Konstnärsportal</a>
+              <a href="/market/artist" className="block text-sm text-gray-400 hover:text-gray-700 transition-colors">{t('homepage.footerArtistPortal')}</a>
               <a href="/wallcraft/print-your-own" className="block text-sm text-gray-400 hover:text-gray-700 transition-colors">Print Your Own</a>
             </div>
           </div>
         </div>
 
         <div className="mt-12 pt-8 border-t border-gray-100 flex flex-col sm:flex-row items-center justify-between gap-4">
-          <p className="text-xs text-gray-300">&copy; {new Date().getFullYear()} Artboris. Alla rättigheter förbehållna.</p>
+          <p className="text-xs text-gray-300">&copy; {new Date().getFullYear()} Artboris. {t('homepage.footerRights')}</p>
           <div className="flex items-center gap-6">
-            <a href="/terms" className="text-xs text-gray-300 hover:text-gray-500 transition-colors">Villkor</a>
+            <a href="/terms" className="text-xs text-gray-300 hover:text-gray-500 transition-colors">{t('homepage.footerTerms')}</a>
           </div>
         </div>
       </div>
@@ -372,15 +370,17 @@ function Footer() {
 
 // ─── Page ───
 export default function Home() {
+  const { t } = useTranslation()
+
   return (
     <div className="min-h-screen bg-white text-gray-900">
-      <HeroSection />
-      <TrustBar />
-      <CuratedGallery />
-      <WallcraftBlock />
-      <ArtistBlock />
-      <BorisCuration />
-      <Footer />
+      <HeroSection t={t} />
+      <TrustBar t={t} />
+      <CuratedGallery t={t} />
+      <WallcraftBlock t={t} />
+      <ArtistBlock t={t} />
+      <BorisCuration t={t} />
+      <Footer t={t} />
     </div>
   )
 }

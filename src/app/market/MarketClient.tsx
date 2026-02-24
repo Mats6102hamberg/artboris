@@ -4,6 +4,7 @@ import { useState, useEffect, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
 import { MARKET_CATEGORIES } from '@/lib/pricing/market'
 import ProtectedImage from '@/components/ui/ProtectedImage'
+import { useTranslation } from '@/lib/i18n/context'
 
 interface Listing {
   id: string
@@ -27,6 +28,7 @@ interface Listing {
 
 export default function MarketPage() {
   const router = useRouter()
+  const { t } = useTranslation()
   const [listings, setListings] = useState<Listing[]>([])
   const [total, setTotal] = useState(0)
   const [loading, setLoading] = useState(true)
@@ -69,7 +71,7 @@ export default function MarketPage() {
               href="/market/artist"
               className="text-sm font-medium text-gray-600 hover:text-gray-900 transition-colors"
             >
-              För konstnärer
+              {t('marketPage.forArtists')}
             </a>
             <a
               href="/wallcraft"
@@ -88,8 +90,7 @@ export default function MarketPage() {
             Art Market
           </h1>
           <p className="mt-4 text-lg text-gray-300 max-w-2xl mx-auto">
-            Upptäck unik konst från lokala konstnärer och fotografer.
-            Prova verket på din egen vägg innan du köper.
+            {t('marketPage.subtitle')}
           </p>
         </div>
       </div>
@@ -105,7 +106,7 @@ export default function MarketPage() {
                 : 'bg-white text-gray-600 hover:bg-gray-100 border border-gray-200'
             }`}
           >
-            Alla
+            {t('marketPage.all')}
           </button>
           {MARKET_CATEGORIES.map(cat => (
             <button
@@ -121,7 +122,7 @@ export default function MarketPage() {
             </button>
           ))}
         </div>
-        <p className="mt-3 text-sm text-gray-500">{total} konstverk</p>
+        <p className="mt-3 text-sm text-gray-500">{total} {t('marketPage.artworksCount')}</p>
       </div>
 
       {/* Grid */}
@@ -134,13 +135,13 @@ export default function MarketPage() {
           </div>
         ) : listings.length === 0 ? (
           <div className="text-center py-20">
-            <p className="text-gray-500 text-lg">Inga konstverk hittades.</p>
-            <p className="text-gray-400 text-sm mt-2">Bli den första att ladda upp!</p>
+            <p className="text-gray-500 text-lg">{t('marketPage.noArtworks')}</p>
+            <p className="text-gray-400 text-sm mt-2">{t('marketPage.beFirst')}</p>
             <a
               href="/market/artist"
               className="inline-block mt-6 px-6 py-3 bg-gray-900 text-white rounded-lg hover:bg-gray-800 transition-colors"
             >
-              Registrera dig som konstnär
+              {t('marketPage.registerAsArtist')}
             </a>
           </div>
         ) : (
@@ -165,7 +166,7 @@ export default function MarketPage() {
                   <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
                   <div className="absolute bottom-0 left-0 right-0 p-4 translate-y-2 group-hover:translate-y-0 opacity-0 group-hover:opacity-100 transition-all duration-300">
                     <button className="w-full bg-white text-gray-900 text-sm font-medium py-2 rounded-lg hover:bg-gray-100 transition-colors">
-                      Prova på min vägg →
+                      {t('marketPage.tryOnWall')}
                     </button>
                   </div>
                 </ProtectedImage>
@@ -229,7 +230,7 @@ export default function MarketPage() {
                   onClick={() => router.push(`/market/${lightbox.id}`)}
                   className="px-4 py-2 bg-gray-900 text-white text-sm font-medium rounded-lg hover:bg-gray-800 transition-colors"
                 >
-                  Visa detaljer
+                  {t('marketPage.viewDetails')}
                 </button>
               </div>
             </div>
