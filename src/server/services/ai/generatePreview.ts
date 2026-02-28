@@ -4,7 +4,7 @@ import { StylePreset, DesignControls, DesignVariant, AspectRatio, ASPECT_RATIO_M
 import { buildGeneratePrompt } from '@/lib/prompts/templates'
 import { checkPromptSafety } from '@/lib/prompts/safety'
 import { isDemoMode, getDemoVariants } from '@/lib/demo/demoImages'
-import { isBorisStyle } from '@/lib/prompts/styles'
+import { isBorisStyle, isArtistStyle } from '@/lib/prompts/styles'
 import { put } from '@vercel/blob'
 import { prisma } from '@/lib/prisma'
 import { withAIRetry } from '@/server/services/ai/withAIRetry'
@@ -25,6 +25,7 @@ export interface GeneratePreviewInput {
   inputImageUrl?: string
   promptStrength?: number
   aspectRatio?: AspectRatio
+  quality?: 'preview' | 'standard'
 }
 
 export interface GeneratePreviewResult {
@@ -36,7 +37,7 @@ export interface GeneratePreviewResult {
 }
 
 export async function generatePreview(input: GeneratePreviewInput): Promise<GeneratePreviewResult> {
-  const { style, controls, userDescription, count = 4, inputImageUrl, promptStrength, aspectRatio = 'portrait' } = input
+  const { style, controls, userDescription, count = 4, inputImageUrl, promptStrength, aspectRatio = 'portrait', quality = 'standard' } = input
 
   const { prompt, negativePrompt } = buildGeneratePrompt(style, controls, userDescription)
 
@@ -67,7 +68,7 @@ export async function generatePreview(input: GeneratePreviewInput): Promise<Gene
     try {
       // Generate variants in parallel
       const promises = Array.from({ length: count }, (_, i) =>
-        generateSingleVariant(prompt, i, style, negativePrompt, inputImageUrl, promptStrength, aspectRatio)
+        generateSingleVariant(prompt, i, style, negativePrompt, inputImageUrl, promptStrength, aspectRatio, quality)
       )
 
       const results = await Promise.allSettled(promises)
@@ -160,14 +161,17 @@ async function generateSingleVariant(
   negativePrompt?: string,
   inputImageUrl?: string,
   promptStrength?: number,
-  aspectRatio: AspectRatio = 'portrait'
+  aspectRatio: AspectRatio = 'portrait',
+  quality: 'preview' | 'standard' = 'standard'
 ): Promise<Omit<DesignVariant, 'designId'> | null> {
   try {
     const seed = Math.floor(Math.random() * 999999)
 
+    const isPreview = quality === 'preview'
+
     // Use flux-dev for Boris styles (better quality, supports negative prompt) and img2img
-    // Use flux-schnell for regular styles (faster/cheaper)
-    const useFluxDev = inputImageUrl || isBorisStyle(style)
+    // Use flux-schnell for regular styles (faster/cheaper) and always for preview quality
+    const useFluxDev = !isPreview && (inputImageUrl || isBorisStyle(style))
     const model = useFluxDev
       ? 'black-forest-labs/flux-dev'
       : 'black-forest-labs/flux-schnell'
@@ -176,14 +180,28 @@ async function generateSingleVariant(
     const baseInput: Record<string, unknown> = {
       prompt,
       num_outputs: 1,
-      aspect_ratio: arConfig.flux,
       output_format: 'webp',
-      output_quality: 90,
       seed,
     }
 
+    // Preview mode: use explicit small dimensions instead of aspect_ratio
+    if (isPreview) {
+      const previewDims: Record<AspectRatio, { width: number; height: number }> = {
+        portrait:  { width: 512, height: 768 },
+        landscape: { width: 768, height: 512 },
+        square:    { width: 512, height: 512 },
+      }
+      const dims = previewDims[aspectRatio] || previewDims.portrait
+      baseInput.width = dims.width
+      baseInput.height = dims.height
+      baseInput.output_quality = 70
+    } else {
+      baseInput.aspect_ratio = arConfig.flux
+      baseInput.output_quality = 90
+    }
+
     // Boris styles use flux-dev which needs inference steps
-    if (isBorisStyle(style) && !inputImageUrl) {
+    if (isBorisStyle(style) && !inputImageUrl && !isPreview) {
       baseInput.num_inference_steps = 28
     }
 

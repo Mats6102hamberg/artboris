@@ -6,6 +6,7 @@ import SentryUserSync from '@/components/SentryUserSync'
 import { I18nProvider } from '@/lib/i18n/context'
 import { detectLocale } from '@/lib/i18n'
 import LocaleWelcome from '@/components/ui/LocaleWelcome'
+import LocaleSync from '@/components/LocaleSync'
 
 export default function Providers({ children }: { children: React.ReactNode }) {
   const initialLocale = typeof window !== 'undefined' ? detectLocale() : undefined
@@ -14,6 +15,7 @@ export default function Providers({ children }: { children: React.ReactNode }) {
     <SessionProvider>
       <I18nProvider initialLocale={initialLocale}>
         <SentryUserSync />
+        <LocaleSync />
         <LocaleWelcome />
         <ErrorBoundary>{children}</ErrorBoundary>
       </I18nProvider>

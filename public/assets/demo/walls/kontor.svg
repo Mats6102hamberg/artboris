@@ -1,0 +1,56 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="640" viewBox="150 60 900 480">
+  <!-- Floor -->
+  <polygon points="0,500 1200,500 1200,800 0,800" fill="#a89878"/>
+  <polygon points="0,500 400,400 800,400 1200,500" fill="#b8a888"/>
+  <!-- Back wall — sage green -->
+  <rect x="200" y="100" width="800" height="400" fill="#d4ddd4"/>
+  <defs>
+    <pattern id="wg-o" width="4" height="4" patternUnits="userSpaceOnUse">
+      <rect width="4" height="4" fill="#ccd5cc"/>
+      <rect x="1" y="1" width="2" height="2" fill="#d4ddd4" opacity="0.5"/>
+    </pattern>
+  </defs>
+  <rect x="200" y="100" width="800" height="400" fill="url(#wg-o)" opacity="0.25"/>
+  <!-- Left wall -->
+  <polygon points="0,50 200,100 200,500 0,600" fill="#c8d1c8"/>
+  <!-- Right wall -->
+  <polygon points="1200,50 1000,100 1000,500 1200,600" fill="#c0c9c0"/>
+  <!-- Baseboard -->
+  <rect x="200" y="480" width="800" height="20" fill="#a09888" rx="2"/>
+  <!-- Crown molding -->
+  <rect x="200" y="100" width="800" height="6" fill="#c4cdc4" rx="1"/>
+  <!-- Desk -->
+  <rect x="350" y="400" width="500" height="18" rx="3" fill="#b8a078"/>
+  <!-- Desk legs -->
+  <rect x="360" y="418" width="8" height="80" rx="2" fill="#8b7a58"/>
+  <rect x="838" y="418" width="8" height="80" rx="2" fill="#8b7a58"/>
+  <!-- Monitor -->
+  <rect x="510" y="320" width="180" height="80" rx="6" fill="#333"/>
+  <rect x="515" y="325" width="170" height="68" rx="4" fill="#4a6a8a"/>
+  <!-- Monitor stand -->
+  <rect x="585" y="400" width="30" height="5" rx="1" fill="#444"/>
+  <rect x="595" y="395" width="10" height="8" fill="#444"/>
+  <!-- Keyboard -->
+  <rect x="520" y="408" width="140" height="10" rx="3" fill="#ddd"/>
+  <!-- Office chair -->
+  <rect x="540" y="450" width="120" height="30" rx="10" fill="#444"/>
+  <rect x="555" y="430" width="90" height="25" rx="8" fill="#555"/>
+  <!-- Chair base -->
+  <rect x="596" y="478" width="8" height="22" fill="#333"/>
+  <ellipse cx="600" cy="500" rx="40" ry="5" fill="#333"/>
+  <!-- Bookshelf right -->
+  <rect x="900" y="200" width="80" height="300" rx="4" fill="#8b7a58"/>
+  <rect x="905" y="210" width="70" height="55" rx="2" fill="#a09078"/>
+  <rect x="905" y="275" width="70" height="55" rx="2" fill="#a09078"/>
+  <rect x="905" y="340" width="70" height="55" rx="2" fill="#a09078"/>
+  <!-- Books -->
+  <rect x="910" y="220" width="12" height="40" rx="1" fill="#c45050"/>
+  <rect x="925" y="225" width="10" height="35" rx="1" fill="#4a7a9a"/>
+  <rect x="938" y="218" width="14" height="42" rx="1" fill="#5a8a5a"/>
+  <!-- Plant on desk -->
+  <circle cx="440" cy="380" r="16" fill="#5a8a5a"/>
+  <circle cx="432" cy="374" r="12" fill="#4a7a4a"/>
+  <rect x="433" y="392" width="14" height="12" rx="4" fill="#c4a882"/>
+  <!-- Shadow -->
+  <ellipse cx="600" cy="505" rx="200" ry="5" fill="#000" opacity="0.05"/>
+</svg>

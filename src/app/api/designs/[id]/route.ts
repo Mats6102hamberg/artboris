@@ -92,6 +92,8 @@ export async function PATCH(
     if (body.cropOffsetX !== undefined) allowedFields.cropOffsetX = body.cropOffsetX
     if (body.cropOffsetY !== undefined) allowedFields.cropOffsetY = body.cropOffsetY
     if (body.isAiGenerated !== undefined) allowedFields.isAiGenerated = body.isAiGenerated
+    if (body.roomImageUrl !== undefined) allowedFields.roomImageUrl = body.roomImageUrl
+    if (body.wallCorners !== undefined) allowedFields.wallCorners = body.wallCorners
 
     const design = await prisma.design.update({
       where: { id },

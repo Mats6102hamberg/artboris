@@ -201,6 +201,80 @@ export const STYLE_DEFINITIONS: Record<StylePreset, StyleDefinition> = {
     printModifier: 'Hahnemühle paper texture, matte surface, soft tonal transitions, subtle film grain, medium format photography look, gallery lighting',
     variationHints: ['double exposure feeling', 'light passing through skin', 'ethereal atmosphere'],
   },
+
+  // --- Artist Collection ---
+  'artist-matisse': {
+    id: 'artist-matisse',
+    label: 'Matisse',
+    description: 'Fauvistisk stil med djärva färgfält och organiska kurvor',
+    previewUrl: '/styles/artist-matisse.webp',
+    promptPrefix: 'Fauvist painting style, bold flat color fields, simplified organic forms, flowing curves, vibrant complementary colors, decorative patterns, expressive cutout shapes, joyful Mediterranean palette',
+    defaultMood: 'playful',
+    defaultColors: ['#E63946', '#1D3557', '#F4A261', '#2A9D8F', '#F1FAEE'],
+  },
+  'artist-warhol': {
+    id: 'artist-warhol',
+    label: 'Andy Warhol',
+    description: 'Pop art med upprepade motiv och neonpalett',
+    previewUrl: '/styles/artist-warhol.webp',
+    promptPrefix: 'Pop art style, repeated motifs in grid layout, silkscreen printing texture, neon and fluorescent color palette, high contrast, bold outlines, mass media aesthetic, commercial art look',
+    defaultMood: 'energetic',
+    defaultColors: ['#FF1493', '#00BFFF', '#FFD700', '#FF4500', '#00FF00'],
+  },
+  'artist-zorn': {
+    id: 'artist-zorn',
+    label: 'Anders Zorn',
+    description: 'Nordiskt realistiskt måleri med begränsad palett',
+    previewUrl: '/styles/artist-zorn.webp',
+    promptPrefix: 'Nordic realist oil painting, limited palette of black white yellow ochre and vermillion red, warm golden light, loose confident brushstrokes, intimate atmosphere, Scandinavian landscape or portrait',
+    defaultMood: 'calm',
+    defaultColors: ['#D4A574', '#8B0000', '#F5E6CC', '#2C2C2C', '#C9A96E'],
+  },
+  'artist-sommarang': {
+    id: 'artist-sommarang',
+    label: 'Sommaräng',
+    description: 'Skandinavisk sommaräng med vilda blommor och gyllene ljus',
+    previewUrl: '/styles/artist-sommarang.webp',
+    promptPrefix: 'Scandinavian summer meadow painting, wild flowers in golden sunlight, impressionist brushwork, warm pastoral atmosphere, birch trees, soft haze, idyllic Nordic countryside, luminous sky',
+    defaultMood: 'dreamy',
+    defaultColors: ['#F5E6CC', '#8BC34A', '#FFD700', '#E8A87C', '#87CEEB'],
+  },
+  'artist-monet': {
+    id: 'artist-monet',
+    label: 'Monet',
+    description: 'Impressionistiska penseldrag, ljusspel och pastell',
+    previewUrl: '/styles/artist-monet.webp',
+    promptPrefix: 'Impressionist painting style, visible loose brushstrokes, play of light on water and gardens, pastel color harmony, atmospheric haze, plein air feeling, soft reflections, dappled sunlight',
+    defaultMood: 'dreamy',
+    defaultColors: ['#A8D8EA', '#AA96DA', '#FCBAD3', '#B5EAD7', '#F5F0EB'],
+  },
+  'artist-hokusai': {
+    id: 'artist-hokusai',
+    label: 'Hokusai',
+    description: 'Japansk ukiyo-e med vågor och berg, träsnitt-textur',
+    previewUrl: '/styles/artist-hokusai.webp',
+    promptPrefix: 'Japanese ukiyo-e woodblock print style, dramatic waves and mountains, limited indigo and earth tone palette, bold outlines, flat color areas, woodgrain texture, traditional Japanese composition',
+    defaultMood: 'dramatic',
+    defaultColors: ['#1A3A5C', '#F5F0EB', '#BC002D', '#D4A574', '#2C2C2C'],
+  },
+  'artist-klimt': {
+    id: 'artist-klimt',
+    label: 'Klimt',
+    description: 'Art nouveau med gulddetaljer och ornamentala mönster',
+    previewUrl: '/styles/artist-klimt.webp',
+    promptPrefix: 'Art nouveau painting style, gold leaf details, ornamental mosaic patterns, figurative elements with decorative backgrounds, Byzantine-inspired, rich jewel tones, intricate spiral and geometric ornaments',
+    defaultMood: 'elegant',
+    defaultColors: ['#D4AF37', '#4A0E4E', '#F5E6CC', '#8B6914', '#1A1A2E'],
+  },
+  'artist-mondrian': {
+    id: 'artist-mondrian',
+    label: 'Mondrian',
+    description: 'Geometrisk abstraktion med primärfärger och svarta linjer',
+    previewUrl: '/styles/artist-mondrian.webp',
+    promptPrefix: 'Geometric abstract composition, strict grid of thick black lines on white background, rectangles filled with primary red yellow and blue, neoplasticism, asymmetric balance, clean minimalist',
+    defaultMood: 'bold',
+    defaultColors: ['#FF0000', '#0000FF', '#FFD700', '#000000', '#FFFFFF'],
+  },
 }
 
 export const MOOD_LABELS: Record<MoodType, string> = {
@@ -242,5 +316,13 @@ export function getBorisStyles(): StyleDefinition[] {
 }
 
 export function getRegularStyles(): StyleDefinition[] {
-  return Object.values(STYLE_DEFINITIONS).filter((s) => !s.id.startsWith('boris-'))
+  return Object.values(STYLE_DEFINITIONS).filter((s) => !s.id.startsWith('boris-') && !s.id.startsWith('artist-'))
+}
+
+export function isArtistStyle(style: StylePreset): boolean {
+  return style.startsWith('artist-')
+}
+
+export function getArtistStyles(): StyleDefinition[] {
+  return Object.values(STYLE_DEFINITIONS).filter((s) => s.id.startsWith('artist-'))
 }

@@ -2,6 +2,7 @@
 
 import * as Sentry from '@sentry/nextjs'
 import { useEffect } from 'react'
+import { useTranslation } from '@/lib/i18n/context'
 
 export default function GlobalError({
   error,
@@ -10,6 +11,8 @@ export default function GlobalError({
   error: Error & { digest?: string }
   reset: () => void
 }) {
+  const { t } = useTranslation()
+
   useEffect(() => {
     Sentry.captureException(error)
   }, [error])
@@ -18,9 +21,9 @@ export default function GlobalError({
     <html>
       <body style={{ fontFamily: 'system-ui, sans-serif', padding: '2rem', background: '#FAFAF8' }}>
         <div style={{ maxWidth: '600px', margin: '4rem auto', textAlign: 'center' }}>
-          <h1 style={{ fontSize: '1.5rem', fontWeight: 600, color: '#111' }}>Något gick fel</h1>
+          <h1 style={{ fontSize: '1.5rem', fontWeight: 600, color: '#111' }}>{t('errors.somethingWentWrong')}</h1>
           <p style={{ color: '#666', marginTop: '0.5rem', fontSize: '0.875rem' }}>
-            {error?.message || 'Okänt fel'}
+            {error?.message || t('errors.unknownError')}
           </p>
           {error?.digest && (
             <p style={{ color: '#999', marginTop: '0.25rem', fontSize: '0.75rem' }}>
@@ -40,7 +43,7 @@ export default function GlobalError({
               fontSize: '0.875rem',
             }}
           >
-            Försök igen
+            {t('errors.tryAgain')}
           </button>
         </div>
       </body>

@@ -10,12 +10,16 @@ import SizePicker from '@/components/poster/SizePicker'
 import CreditBadge from '@/components/poster/CreditBadge'
 import PublishToggle from '@/components/poster/PublishToggle'
 import VariantsGrid from '@/components/poster/VariantsGrid'
+import FullscreenSwipeViewer from '@/components/poster/FullscreenSwipeViewer'
 import Button from '@/components/ui/Button'
 import { calculatePrintPrice, formatSEK, getFrameById as getFrame, FRAME_OPTIONS, getAccessoryPrice } from '@/lib/pricing/prints'
 import { getSizeById } from '@/lib/image/resize'
 import { useCart } from '@/lib/cart/CartContext'
 import BorisVoice from '@/components/boris/BorisVoice'
+import WallSwitcher from '@/components/poster/WallSwitcher'
+import WallMarker from '@/components/poster/WallMarker'
 import { getBorisComment } from '@/lib/boris/curatorVoice'
+import { DEMO_WALLS, detectDemoWallId, getDemoWallById, type DemoWall } from '@/lib/demo/demoWalls'
 import { useTelemetry } from '@/hooks/useTelemetry'
 
 interface DesignVariantData {
@@ -47,7 +51,7 @@ interface DesignData {
 export default function WallcraftDesignPage() {
   const { id } = useParams<{ id: string }>()
   const router = useRouter()
-  const { t } = useTranslation()
+  const { t, locale } = useTranslation()
 
   const [design, setDesign] = useState<DesignData | null>(null)
   const [loading, setLoading] = useState(true)
@@ -69,7 +73,17 @@ export default function WallcraftDesignPage() {
   const [imageDims, setImageDims] = useState<{ w: number; h: number } | null>(null)
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false)
   const [isDeleting, setIsDeleting] = useState(false)
+  const [showFullscreen, setShowFullscreen] = useState(false)
   const lastShuffleTime = useRef(0)
+
+  // Wall switcher state
+  const [activeRoomImageUrl, setActiveRoomImageUrl] = useState<string | null>(null)
+  const [activeWallCorners, setActiveWallCorners] = useState<{ x: number; y: number }[]>([])
+  const [selectedWallId, setSelectedWallId] = useState<string | null>(null)
+  const [showCustomWallModal, setShowCustomWallModal] = useState(false)
+  const [customWallStep, setCustomWallStep] = useState<'upload' | 'mark'>('upload')
+  const [customRoomUrl, setCustomRoomUrl] = useState<string | null>(null)
+  const [customCorners, setCustomCorners] = useState<{ x: number; y: number }[]>([])
 
   // Boris curator voice
   const [borisMessage, setBorisMessage] = useState<string | null>(null)
@@ -86,11 +100,11 @@ export default function WallcraftDesignPage() {
     hasShownPlacement.current = true
     // First: enhancement message (show immediately)
     const t1 = setTimeout(() => {
-      setBorisMessage(getBorisComment({ type: 'enhancement' }))
+      setBorisMessage(getBorisComment({ type: 'enhancement' }, locale))
     }, 800)
     // Then: placement message
     const t2 = setTimeout(() => {
-      setBorisMessage(getBorisComment({ type: 'placement' }))
+      setBorisMessage(getBorisComment({ type: 'placement' }, locale))
     }, 10000)
     return () => { clearTimeout(t1); clearTimeout(t2) }
   }, [])
@@ -106,7 +120,7 @@ export default function WallcraftDesignPage() {
         type: 'style_match',
         frameId,
         style: design.style || 'default',
-      }))
+      }, locale))
     }, 400)
   }, [frameId, design])
 
@@ -116,7 +130,7 @@ export default function WallcraftDesignPage() {
     prevSizeId.current = sizeId
     if (borisTimeout.current) clearTimeout(borisTimeout.current)
     borisTimeout.current = setTimeout(() => {
-      setBorisMessage(getBorisComment({ type: 'size_change', sizeId }))
+      setBorisMessage(getBorisComment({ type: 'size_change', sizeId }, locale))
     }, 400)
   }, [sizeId])
 
@@ -127,7 +141,7 @@ export default function WallcraftDesignPage() {
     prevScale.current = scale
     if (borisTimeout.current) clearTimeout(borisTimeout.current)
     borisTimeout.current = setTimeout(() => {
-      setBorisMessage(getBorisComment({ type: 'scale', direction }))
+      setBorisMessage(getBorisComment({ type: 'scale', direction }, locale))
     }, 800)
   }, [scale])
 
@@ -157,6 +171,24 @@ export default function WallcraftDesignPage() {
           if (d.selectedVariantId && d.variants.length > 0) {
             const idx = d.variants.findIndex((v) => v.id === d.selectedVariantId)
             setSelectedVariantIndex(idx >= 0 ? idx : 0)
+          }
+          // Initialize wall state
+          if (d.roomImageUrl) {
+            setActiveRoomImageUrl(d.roomImageUrl)
+            const corners = d.wallCorners ? JSON.parse(d.wallCorners) : []
+            setActiveWallCorners(corners)
+            const detectedId = detectDemoWallId(d.roomImageUrl)
+            setSelectedWallId(detectedId)
+            if (!detectedId) {
+              setCustomRoomUrl(d.roomImageUrl)
+              setCustomCorners(corners)
+            }
+          } else {
+            // Default to first demo wall
+            const defaultWall = DEMO_WALLS[0]
+            setActiveRoomImageUrl(defaultWall.imageUrl)
+            setActiveWallCorners(defaultWall.wallCorners)
+            setSelectedWallId(defaultWall.id)
           }
         } else {
           setError(data.error || t('common.error'))
@@ -289,6 +321,40 @@ export default function WallcraftDesignPage() {
     handleSelectVariant(next)
   }
 
+  const handleWallSwitch = (wall: DemoWall) => {
+    setActiveRoomImageUrl(wall.imageUrl)
+    setActiveWallCorners(wall.wallCorners)
+    setSelectedWallId(wall.id)
+    saveToDb({ roomImageUrl: wall.imageUrl, wallCorners: JSON.stringify(wall.wallCorners) })
+    if (borisTimeout.current) clearTimeout(borisTimeout.current)
+    borisTimeout.current = setTimeout(() => {
+      setBorisMessage(getBorisComment({ type: 'wall_change', wallId: wall.id }, locale))
+    }, 400)
+  }
+
+  const handleCustomWallConfirm = () => {
+    if (!customRoomUrl || customCorners.length < 4) return
+    setActiveRoomImageUrl(customRoomUrl)
+    setActiveWallCorners(customCorners)
+    setSelectedWallId(null)
+    setShowCustomWallModal(false)
+    setCustomWallStep('upload')
+    saveToDb({ roomImageUrl: customRoomUrl, wallCorners: JSON.stringify(customCorners) })
+    if (borisTimeout.current) clearTimeout(borisTimeout.current)
+    borisTimeout.current = setTimeout(() => {
+      setBorisMessage(getBorisComment({ type: 'wall_change', wallId: 'custom' }, locale))
+    }, 400)
+  }
+
+  const handleCustomWallUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    if (!file) return
+    const url = URL.createObjectURL(file)
+    setCustomRoomUrl(url)
+    setCustomCorners([])
+    setCustomWallStep('mark')
+  }
+
   const pricing = calculatePrintPrice(sizeId, frameId, { matEnabled: addons.matEnabled, acrylicGlass: addons.acrylicGlass })
   const accessoriesTotal = (addons.screws ? getAccessoryPrice('screws') : 0) + (addons.screwdriver ? getAccessoryPrice('screwdriver') : 0)
   const grandTotal = pricing.totalPriceSEK + accessoriesTotal
@@ -317,7 +383,6 @@ export default function WallcraftDesignPage() {
   const needsUpscaling = selectedSizeDpi ? selectedSizeDpi.quality === 'fair' || selectedSizeDpi.quality === 'low' : false
 
   const selectedVariant = design?.variants[selectedVariantIndex ?? 0]
-  const wallCorners = design?.wallCorners ? JSON.parse(design.wallCorners) : []
 
   const gridVariants = (design?.variants || []).map((v) => ({
     id: v.id,
@@ -352,7 +417,7 @@ export default function WallcraftDesignPage() {
       designId: design.id,
       variantId: selectedVariant.id,
       imageUrl: selectedVariant.imageUrl,
-      roomImageUrl: design.roomImageUrl || null,
+      roomImageUrl: activeRoomImageUrl || design.roomImageUrl || null,
       style: design.style,
       prompt: design.prompt,
       sizeId,
@@ -433,11 +498,11 @@ export default function WallcraftDesignPage() {
           {/* Preview */}
           <div className="lg:col-span-3">
             <div className="relative">
-              {design.roomImageUrl && selectedVariant ? (
+              {activeRoomImageUrl && selectedVariant ? (
                 <MockupPreview
-                  roomImageUrl={design.roomImageUrl}
+                  roomImageUrl={activeRoomImageUrl}
                   designImageUrl={selectedVariant.imageUrl}
-                  wallCorners={wallCorners}
+                  wallCorners={activeWallCorners}
                   frameId={frameId}
                   sizeId={sizeId}
                   positionX={positionX}
@@ -449,7 +514,7 @@ export default function WallcraftDesignPage() {
                     if (moveDebounce.current) clearTimeout(moveDebounce.current)
                     moveDebounce.current = setTimeout(() => {
                       if (Math.random() < 0.3) { // 30% chance to comment on moves
-                        setBorisMessage(getBorisComment({ type: 'move' }))
+                        setBorisMessage(getBorisComment({ type: 'move' }, locale))
                       }
                     }, 1500)
                   }}
@@ -457,7 +522,12 @@ export default function WallcraftDesignPage() {
                   realisticMode={realisticMode}
                 />
               ) : selectedVariant ? (
-                <div className="aspect-[2/3] rounded-2xl overflow-hidden shadow-lg">
+                <div
+                  className="aspect-[2/3] rounded-2xl overflow-hidden shadow-lg cursor-pointer md:cursor-default"
+                  onClick={() => {
+                    if (window.innerWidth < 768) setShowFullscreen(true)
+                  }}
+                >
                   <img src={selectedVariant.imageUrl} alt="Design" className="w-full h-full object-cover" />
                 </div>
               ) : null}
@@ -509,6 +579,25 @@ export default function WallcraftDesignPage() {
               )}
             </div>
 
+            {/* Wall Switcher */}
+            <WallSwitcher
+              walls={DEMO_WALLS}
+              selectedWallId={selectedWallId}
+              onSelectWall={handleWallSwitch}
+              onSelectCustom={() => {
+                if (customRoomUrl && customCorners.length >= 4) {
+                  // Already have a custom wall, just switch to it
+                  setActiveRoomImageUrl(customRoomUrl)
+                  setActiveWallCorners(customCorners)
+                  setSelectedWallId(null)
+                  saveToDb({ roomImageUrl: customRoomUrl, wallCorners: JSON.stringify(customCorners) })
+                } else {
+                  setShowCustomWallModal(true)
+                }
+              }}
+              customThumbnail={customRoomUrl}
+            />
+
             {/* Boris curator voice */}
             <BorisVoice message={borisMessage} className="mt-4" />
 
@@ -537,6 +626,7 @@ export default function WallcraftDesignPage() {
                   variants={gridVariants}
                   selectedIndex={selectedVariantIndex}
                   onSelect={handleSelectVariant}
+                  onFullscreen={() => setShowFullscreen(true)}
                 />
               </div>
             )}
@@ -767,6 +857,80 @@ export default function WallcraftDesignPage() {
               >
                 Avbryt
               </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Fullscreen swipe viewer */}
+      {showFullscreen && design && design.variants.length > 0 && (
+        <FullscreenSwipeViewer
+          variants={design.variants.map(v => ({ id: v.id, imageUrl: v.imageUrl }))}
+          initialIndex={selectedVariantIndex ?? 0}
+          selectedIndex={selectedVariantIndex}
+          onClose={() => setShowFullscreen(false)}
+          onSelect={(index) => {
+            handleSelectVariant(index)
+          }}
+        />
+      )}
+
+      {/* Custom wall upload modal */}
+      {showCustomWallModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm">
+          <div className="bg-white rounded-2xl max-w-lg w-full mx-4 shadow-2xl overflow-hidden">
+            <div className="flex items-center justify-between px-5 py-4 border-b border-gray-100">
+              <h3 className="text-base font-semibold text-gray-900">
+                {customWallStep === 'upload' ? t('demoWalls.uploadYourWall') : t('demoWalls.markCorners')}
+              </h3>
+              <button
+                onClick={() => { setShowCustomWallModal(false); setCustomWallStep('upload') }}
+                className="text-gray-400 hover:text-gray-600"
+              >
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+            </div>
+
+            <div className="p-5">
+              {customWallStep === 'upload' ? (
+                <label className="block cursor-pointer">
+                  <div className="border-2 border-dashed border-gray-300 rounded-xl p-10 text-center hover:border-blue-400 hover:bg-blue-50/30 transition-colors">
+                    <svg className="w-10 h-10 text-gray-400 mx-auto mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" />
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M15 13a3 3 0 11-6 0 3 3 0 016 0z" />
+                    </svg>
+                    <p className="text-sm font-medium text-gray-700">{t('demoWalls.uploadYourWall')}</p>
+                    <p className="text-xs text-gray-400 mt-1">JPG, PNG, WebP</p>
+                  </div>
+                  <input type="file" accept="image/*" className="hidden" onChange={handleCustomWallUpload} />
+                </label>
+              ) : customRoomUrl ? (
+                <div>
+                  <WallMarker
+                    imageUrl={customRoomUrl}
+                    corners={customCorners}
+                    onCornersChange={setCustomCorners}
+                    maxCorners={4}
+                  />
+                  <div className="mt-4 flex gap-3">
+                    <button
+                      onClick={() => setCustomWallStep('upload')}
+                      className="flex-1 py-2.5 text-sm text-gray-600 border border-gray-200 rounded-xl hover:bg-gray-50"
+                    >
+                      {t('common.back')}
+                    </button>
+                    <button
+                      onClick={handleCustomWallConfirm}
+                      disabled={customCorners.length < 4}
+                      className="flex-1 py-2.5 text-sm font-medium text-white bg-blue-600 rounded-xl hover:bg-blue-700 disabled:opacity-40 disabled:cursor-not-allowed"
+                    >
+                      {t('demoWalls.useThisWall')}
+                    </button>
+                  </div>
+                </div>
+              ) : null}
             </div>
           </div>
         </div>

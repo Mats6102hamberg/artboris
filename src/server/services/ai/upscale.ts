@@ -1,4 +1,5 @@
 import Replicate from 'replicate'
+import sharp from 'sharp'
 import { withAIRetry } from '@/server/services/ai/withAIRetry'
 
 const replicate = new Replicate({
@@ -18,6 +19,8 @@ const SIZE_DIMENSIONS: Record<string, { widthCm: number; heightCm: number }> = {
 export interface UpscaleInput {
   imageUrl: string
   upscaleFactor?: number // 2, 4, or 8 (8 = two-pass: 4× then 2×)
+  sourceWidthPx?: number
+  sourceHeightPx?: number
 }
 
 export interface UpscaleResult {
@@ -90,9 +93,24 @@ export async function upscaleImage(input: UpscaleInput): Promise<UpscaleResult> 
 
   console.log(`[upscale] Replicate returned result (${factor}×)`)
 
-  // Source dimensions from DALL-E output (known: 1024×1792)
-  const sourceWidthPx = 1024
-  const sourceHeightPx = 1792
+  // Determine source dimensions: use provided values, or detect from image
+  let sourceWidthPx = input.sourceWidthPx ?? 0
+  let sourceHeightPx = input.sourceHeightPx ?? 0
+
+  if (!sourceWidthPx || !sourceHeightPx) {
+    try {
+      const res = await fetch(input.imageUrl)
+      const buf = Buffer.from(await res.arrayBuffer())
+      const meta = await sharp(buf).metadata()
+      sourceWidthPx = meta.width ?? 1024
+      sourceHeightPx = meta.height ?? 1792
+      console.log(`[upscale] Detected source dimensions: ${sourceWidthPx}×${sourceHeightPx}`)
+    } catch (err) {
+      console.warn('[upscale] Could not detect source dimensions, defaulting to 1024×1792:', err)
+      sourceWidthPx = 1024
+      sourceHeightPx = 1792
+    }
+  }
 
   return {
     url: resultUrl,

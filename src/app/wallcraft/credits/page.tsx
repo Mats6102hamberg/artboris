@@ -47,10 +47,10 @@ export default function CreditsPage() {
       if (data.url) {
         window.location.href = data.url
       } else {
-        alert(data.error || 'Något gick fel.')
+        alert(data.error || t('wc.somethingWentWrongShort'))
       }
     } catch {
-      alert('Nätverksfel. Försök igen.')
+      alert(t('wc.checkoutNetworkError'))
     } finally {
       setLoading(null)
     }
@@ -63,7 +63,7 @@ export default function CreditsPage() {
           {t('brand.name')}
         </a>
         <Button variant="ghost" size="sm" onClick={() => router.back()}>
-          ← Tillbaka
+          {t('wc.back')}
         </Button>
       </nav>
 
@@ -75,9 +75,9 @@ export default function CreditsPage() {
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9.813 15.904L9 18.75l-.813-2.846a4.5 4.5 0 00-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 003.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 003.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 00-3.09 3.09z" />
             </svg>
           </div>
-          <h1 className="text-3xl sm:text-4xl font-light text-gray-900">Köp Credits</h1>
+          <h1 className="text-3xl sm:text-4xl font-light text-gray-900">{t('wc.buyCredits')}</h1>
           <p className="mt-3 text-gray-500 max-w-md mx-auto">
-            Credits används för Boris-analyser, AI-konst och mer. Välj ett paket nedan.
+            {t('wc.creditsDesc')}
           </p>
         </div>
 
@@ -91,7 +91,7 @@ export default function CreditsPage() {
                 </svg>
               </div>
               <div>
-                <p className="text-xs text-gray-500">Ditt saldo</p>
+                <p className="text-xs text-gray-500">{t('wc.yourBalance')}</p>
                 <p className="text-lg font-semibold text-gray-900">{balance} credits</p>
               </div>
             </div>
@@ -104,7 +104,7 @@ export default function CreditsPage() {
                 </svg>
               </div>
               <div>
-                <p className="text-xs text-gray-500">Gratis genereringar idag</p>
+                <p className="text-xs text-gray-500">{t('wc.freeGenerationsToday')}</p>
                 <p className="text-lg font-semibold text-gray-900">{dailyRemaining}/{dailyLimit}</p>
               </div>
             </div>
@@ -115,7 +115,7 @@ export default function CreditsPage() {
         {isFirstPurchase && (
           <div className="bg-gradient-to-r from-emerald-50 to-teal-50 border border-emerald-200/60 rounded-xl p-4 mb-8 text-center">
             <p className="text-sm font-medium text-emerald-800">
-              🎁 +{FIRST_PURCHASE_BONUS} bonuscredits vid ditt första köp!
+              🎁 +{FIRST_PURCHASE_BONUS} {t('wc.firstPurchaseBonus')}
             </p>
           </div>
         )}
@@ -160,7 +160,7 @@ export default function CreditsPage() {
                 )}
 
                 <div className="mt-3 text-xs text-gray-500">
-                  ~{pkg.estAnalyses} Boris-analyser
+                  ~{pkg.estAnalyses} {t('wc.borisAnalysesCount')}
                 </div>
 
                 <button
@@ -175,10 +175,10 @@ export default function CreditsPage() {
                   {loading === pkg.id ? (
                     <span className="flex items-center justify-center gap-2">
                       <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                      Laddar...
+                      {t('wc.loading')}
                     </span>
                   ) : (
-                    'Köp credits'
+                    t('wc.buyCreditsBtn')
                   )}
                 </button>
               </div>
@@ -188,15 +188,15 @@ export default function CreditsPage() {
 
         {/* What can I use credits for */}
         <div className="bg-white rounded-2xl border border-gray-200/60 p-6 mb-8">
-          <h3 className="text-base font-semibold text-gray-900 mb-4">Vad kan jag använda credits till?</h3>
+          <h3 className="text-base font-semibold text-gray-900 mb-4">{t('wc.whatCanIUse')}</h3>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             {[
-              { label: 'Boris konstanalys', cost: CREDIT_COSTS.borisAnalysis, icon: '🔍', color: 'purple' },
-              { label: 'Rum + rådgivning', cost: CREDIT_COSTS.wallAdvice, icon: '🏠', color: 'emerald' },
-              { label: 'AI-konst (generera)', cost: CREDIT_COSTS.aiGenerate, icon: '✨', color: 'blue' },
-              { label: 'Förhandsvisning (4 varianter)', cost: CREDIT_COSTS.generatePreview, icon: '🎨', color: 'amber' },
-              { label: 'Ny variant (shuffle)', cost: CREDIT_COSTS.refineVariant, icon: '🔄', color: 'teal' },
-              { label: 'Tryckfil (högupplöst)', cost: CREDIT_COSTS.finalRender, icon: '🖨️', color: 'rose' },
+              { label: t('wc.borisAnalysis'), cost: CREDIT_COSTS.borisAnalysis, icon: '🔍', color: 'purple' },
+              { label: t('wc.roomAdvice'), cost: CREDIT_COSTS.wallAdvice, icon: '🏠', color: 'emerald' },
+              { label: t('wc.aiGenerate'), cost: CREDIT_COSTS.aiGenerate, icon: '✨', color: 'blue' },
+              { label: t('wc.previewVariants'), cost: CREDIT_COSTS.generatePreview, icon: '🎨', color: 'amber' },
+              { label: t('wc.newVariant'), cost: CREDIT_COSTS.refineVariant, icon: '🔄', color: 'teal' },
+              { label: t('wc.printFile'), cost: CREDIT_COSTS.finalRender, icon: '🖨️', color: 'rose' },
             ].map(item => (
               <div key={item.label} className="flex items-center gap-3 py-2">
                 <span className="text-lg w-8 text-center">{item.icon}</span>
@@ -211,20 +211,20 @@ export default function CreditsPage() {
 
         {/* Free tier info */}
         <div className="bg-gray-50 rounded-2xl p-6 mb-8 text-center">
-          <h3 className="text-base font-semibold text-gray-900 mb-2">Gratis varje dag</h3>
+          <h3 className="text-base font-semibold text-gray-900 mb-2">{t('wc.freeEveryDay')}</h3>
           <p className="text-sm text-gray-500">
-            Du får {dailyLimit} gratis AI-genereringar per dag — helt utan credits.
+            {t('wc.freeGenerationsDesc').replace('{limit}', String(dailyLimit))}
             <br />
-            Credits behövs för Boris-analyser, rådgivning och tryckfiler.
+            {t('wc.creditsNeededFor')}
           </p>
         </div>
 
         {/* Persuasion */}
         <div className="text-center pb-12">
           <p className="text-sm text-gray-500">
-            En tavla kostar ofta 3 000–6 000 kr. En Boris-analys kostar ca 15 kr.
+            {t('wc.persuasionLine1')}
             <br />
-            <span className="font-medium text-gray-700">Gör rätt val från början.</span>
+            <span className="font-medium text-gray-700">{t('wc.persuasionLine2')}</span>
           </p>
         </div>
       </div>

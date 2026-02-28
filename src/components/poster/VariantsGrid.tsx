@@ -22,6 +22,7 @@ interface VariantsGridProps {
   onSelect: (index: number) => void
   isLoading?: boolean
   controls?: ImageControls
+  onFullscreen?: () => void
 }
 
 export default function VariantsGrid({
@@ -30,6 +31,7 @@ export default function VariantsGrid({
   onSelect,
   isLoading = false,
   controls,
+  onFullscreen,
 }: VariantsGridProps) {
   const [viewIndex, setViewIndex] = useState(0)
 
@@ -182,6 +184,19 @@ export default function VariantsGrid({
             </button>
           ))}
         </div>
+
+        {/* Fullscreen button — mobile only */}
+        {onFullscreen && (
+          <button
+            onClick={onFullscreen}
+            className="mt-3 md:hidden flex items-center justify-center gap-2 w-full py-2.5 bg-gray-100 hover:bg-gray-200 rounded-xl text-sm font-medium text-gray-700 transition-colors"
+          >
+            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 8V4m0 0h4M4 4l5 5m11-1V4m0 0h-4m4 0l-5 5M4 16v4m0 0h4m-4 0l5-5m11 5l-5-5m5 5v-4m0 4h-4" />
+            </svg>
+            Fullskärm
+          </button>
+        )}
 
       </div>
 

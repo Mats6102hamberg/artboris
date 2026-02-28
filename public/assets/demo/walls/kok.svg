@@ -1,0 +1,45 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="640" viewBox="150 60 900 480">
+  <!-- Floor — tile pattern -->
+  <polygon points="0,500 1200,500 1200,800 0,800" fill="#c8c0b4"/>
+  <polygon points="0,500 400,400 800,400 1200,500" fill="#d4ccc0"/>
+  <!-- Back wall — warm white -->
+  <rect x="200" y="100" width="800" height="400" fill="#f0ebe4"/>
+  <defs>
+    <pattern id="wg-k" width="4" height="4" patternUnits="userSpaceOnUse">
+      <rect width="4" height="4" fill="#e8e3dc"/>
+      <rect x="1" y="1" width="2" height="2" fill="#f0ebe4" opacity="0.5"/>
+    </pattern>
+  </defs>
+  <rect x="200" y="100" width="800" height="400" fill="url(#wg-k)" opacity="0.2"/>
+  <!-- Left wall -->
+  <polygon points="0,50 200,100 200,500 0,600" fill="#e4dfda"/>
+  <!-- Right wall -->
+  <polygon points="1200,50 1000,100 1000,500 1200,600" fill="#dcd7d2"/>
+  <!-- Baseboard -->
+  <rect x="200" y="480" width="800" height="20" fill="#b0a898" rx="2"/>
+  <!-- Crown molding -->
+  <rect x="200" y="100" width="800" height="6" fill="#e0dbd6" rx="1"/>
+  <!-- Kitchen counter -->
+  <rect x="200" y="380" width="800" height="20" rx="2" fill="#505050"/>
+  <!-- Lower cabinets -->
+  <rect x="200" y="400" width="800" height="100" fill="#e0dbd4"/>
+  <rect x="210" y="405" width="180" height="90" rx="4" fill="#d8d3cc"/>
+  <rect x="400" y="405" width="180" height="90" rx="4" fill="#d8d3cc"/>
+  <rect x="610" y="405" width="180" height="90" rx="4" fill="#d8d3cc"/>
+  <rect x="810" y="405" width="180" height="90" rx="4" fill="#d8d3cc"/>
+  <!-- Cabinet handles -->
+  <rect x="290" y="445" width="20" height="4" rx="2" fill="#999"/>
+  <rect x="480" y="445" width="20" height="4" rx="2" fill="#999"/>
+  <rect x="690" y="445" width="20" height="4" rx="2" fill="#999"/>
+  <rect x="890" y="445" width="20" height="4" rx="2" fill="#999"/>
+  <!-- Upper cabinets (smaller, leaving wall space for art) -->
+  <rect x="200" y="120" width="150" height="120" rx="4" fill="#e0dbd4"/>
+  <rect x="850" y="120" width="150" height="120" rx="4" fill="#e0dbd4"/>
+  <!-- Window between cabinets -->
+  <rect x="450" y="130" width="300" height="100" rx="4" fill="#d0e0f0" opacity="0.3"/>
+  <rect x="450" y="130" width="300" height="100" rx="4" fill="none" stroke="#c8c0b4" stroke-width="3"/>
+  <!-- Items on counter -->
+  <rect x="300" y="362" width="16" height="20" rx="4" fill="#8b7355"/>
+  <rect x="500" y="355" width="30" height="28" rx="6" fill="#e0c8a0"/>
+  <circle cx="700" cy="370" r="12" fill="#cc4444" opacity="0.7"/>
+</svg>

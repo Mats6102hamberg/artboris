@@ -145,10 +145,10 @@ export default function ArtistPage() {
       if (data.url) {
         window.location.href = data.url
       } else {
-        alert(data.error || 'Kunde inte starta Stripe-koppling.')
+        alert(data.error || t('artist.couldNotStartStripe'))
       }
     } catch {
-      alert('Nätverksfel. Försök igen.')
+      alert(t('artist.networkError'))
     } finally {
       setStripeLoading(false)
     }
@@ -187,7 +187,7 @@ export default function ArtistPage() {
         localStorage.setItem('artboris_artist_data', JSON.stringify(artistData))
         setView('dashboard')
       } else {
-        alert(data.error || 'Registrering misslyckades')
+        alert(data.error || t('artist.registrationFailed'))
         if (data.accessToken) {
           // Already exists — auto-login
           const artistData = { id: '', email: regForm.email, displayName: regForm.displayName, accessToken: data.accessToken }
@@ -198,7 +198,7 @@ export default function ArtistPage() {
         }
       }
     } catch (err) {
-      alert('Nätverksfel. Försök igen.')
+      alert(t('artist.networkError'))
     } finally {
       setLoading(false)
     }
@@ -221,10 +221,10 @@ export default function ArtistPage() {
         localStorage.setItem('artboris_artist_data', JSON.stringify(artistData))
         setView('dashboard')
       } else {
-        alert(data.error || 'Inloggning misslyckades')
+        alert(data.error || t('artist.loginFailed'))
       }
     } catch (err) {
-      alert('Nätverksfel. Försök igen.')
+      alert(t('artist.networkError'))
     } finally {
       setLoading(false)
     }
@@ -285,17 +285,17 @@ export default function ArtistPage() {
           setUploadResult(null)
         }, 4000)
       } else {
-        alert(data.error || 'Uppladdning misslyckades')
+        alert(data.error || t('artist.uploadFailed'))
       }
     } catch (err) {
-      alert('Nätverksfel. Försök igen.')
+      alert(t('artist.networkError'))
     } finally {
       setUploading(false)
     }
   }
 
   const handleDeleteListing = async (listingId: string) => {
-    if (!artist || !confirm('Vill du verkligen ta bort detta konstverk?')) return
+    if (!artist || !confirm(t('artist.confirmDeleteArtwork'))) return
     try {
       const res = await fetch(`/api/market/listings/${listingId}`, {
         method: 'DELETE',
@@ -305,7 +305,7 @@ export default function ArtistPage() {
         fetchListings()
       }
     } catch (err) {
-      alert('Kunde inte ta bort.')
+      alert(t('artist.couldNotRemove'))
     }
   }
 
@@ -373,25 +373,25 @@ export default function ArtistPage() {
               Artboris
             </a>
             <h1 className="text-3xl font-light text-gray-900 mt-4">{t('artist.registerTitle')}</h1>
-            <p className="text-gray-500 mt-2">Sälj din konst direkt till köpare som kan prova verket på sin vägg</p>
+            <p className="text-gray-500 mt-2">{t('artist.registerDesc')}</p>
           </div>
 
           {/* Terms box */}
           <div className="bg-amber-50 border border-amber-200 rounded-xl p-4 mb-6">
-            <h3 className="font-semibold text-amber-900 mb-2">Villkor — 50/50 vinstdelning</h3>
+            <h3 className="font-semibold text-amber-900 mb-2">{t('artist.termsTitle')}</h3>
             <ul className="text-sm text-amber-800 space-y-1">
-              <li>• Du sätter priset för ditt konstverk</li>
-              <li>• 50% av konstverkspriset går till dig, 50% till Artboris</li>
-              <li>• Artboris hanterar tryck, ramsättning och leverans</li>
-              <li>• Tryck- och ramkostnad läggs på köparens pris (du behöver inte betala)</li>
-              <li>• Utbetalning sker månadsvis till ditt bankkonto</li>
+              <li>• {t('artist.terms1')}</li>
+              <li>• {t('artist.terms2')}</li>
+              <li>• {t('artist.terms3')}</li>
+              <li>• {t('artist.terms4')}</li>
+              <li>• {t('artist.terms5')}</li>
             </ul>
           </div>
 
           <form onSubmit={handleRegister} className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 space-y-4">
             {/* Invite code */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Inbjudningskod *</label>
+              <label className="block text-sm font-medium text-gray-700 mb-1">{t('artist.inviteCode')} *</label>
               <div className="flex gap-2">
                 <input
                   type="text"
@@ -424,55 +424,55 @@ export default function ArtistPage() {
                   }}
                   className="px-4 py-3 bg-gray-100 text-gray-700 rounded-xl hover:bg-gray-200 transition-colors disabled:opacity-50 text-sm font-medium"
                 >
-                  {inviteChecking ? '...' : 'Verifiera'}
+                  {inviteChecking ? '...' : t('artist.verify')}
                 </button>
               </div>
               {inviteValid === true && (
                 <p className="text-sm text-emerald-600 mt-1 flex items-center gap-1">
                   <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" /></svg>
-                  Giltig kod{inviteType ? ` (${inviteType === 'PHOTOGRAPHER' ? 'Fotograf' : 'Konstnär'})` : ''}
+                  {t('artist.validCode')}{inviteType ? ` (${inviteType === 'PHOTOGRAPHER' ? t('artist.photographerType') : t('artist.artistType')})` : ''}
                 </p>
               )}
               {inviteValid === false && (
-                <p className="text-sm text-red-600 mt-1">Ogiltig eller förbrukad kod.</p>
+                <p className="text-sm text-red-600 mt-1">{t('artist.invalidCode')}</p>
               )}
             </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div className="sm:col-span-2">
-                <label className="block text-sm font-medium text-gray-700 mb-1">Visningsnamn *</label>
+                <label className="block text-sm font-medium text-gray-700 mb-1">{t('artist.displayName')} *</label>
                 <input
                   type="text"
                   required
                   value={regForm.displayName}
                   onChange={e => setRegForm({ ...regForm, displayName: e.target.value })}
                   className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-gray-900 text-gray-900"
-                  placeholder="Ditt konstnärsnamn"
+                  placeholder={t('artist.artistNamePlaceholder')}
                 />
               </div>
               <div className="sm:col-span-2">
-                <label className="block text-sm font-medium text-gray-700 mb-1">E-post *</label>
+                <label className="block text-sm font-medium text-gray-700 mb-1">{t('artist.email')} *</label>
                 <input
                   type="email"
                   required
                   value={regForm.email}
                   onChange={e => setRegForm({ ...regForm, email: e.target.value })}
                   className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-gray-900 text-gray-900"
-                  placeholder="din@email.se"
+                  placeholder={t('artist.emailPlaceholder')}
                 />
               </div>
               <div className="sm:col-span-2">
-                <label className="block text-sm font-medium text-gray-700 mb-1">Om dig</label>
+                <label className="block text-sm font-medium text-gray-700 mb-1">{t('artist.aboutYou')}</label>
                 <textarea
                   value={regForm.bio}
                   onChange={e => setRegForm({ ...regForm, bio: e.target.value })}
                   rows={3}
                   className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-gray-900 text-gray-900 resize-none"
-                  placeholder="Berätta kort om dig och din konst..."
+                  placeholder={t('artist.aboutYouPlaceholder')}
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Hemsida</label>
+                <label className="block text-sm font-medium text-gray-700 mb-1">{t('artist.website')}</label>
                 <input
                   type="url"
                   value={regForm.website}
@@ -482,7 +482,7 @@ export default function ArtistPage() {
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Instagram</label>
+                <label className="block text-sm font-medium text-gray-700 mb-1">{t('artist.instagram')}</label>
                 <input
                   type="text"
                   value={regForm.instagram}
@@ -492,7 +492,7 @@ export default function ArtistPage() {
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Telefon</label>
+                <label className="block text-sm font-medium text-gray-700 mb-1">{t('artist.phone')}</label>
                 <input
                   type="tel"
                   value={regForm.phone}
@@ -502,13 +502,13 @@ export default function ArtistPage() {
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Bankkonto (för utbetalning)</label>
+                <label className="block text-sm font-medium text-gray-700 mb-1">{t('artist.bankAccount')}</label>
                 <input
                   type="text"
                   value={regForm.bankAccount}
                   onChange={e => setRegForm({ ...regForm, bankAccount: e.target.value })}
                   className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-gray-900 text-gray-900"
-                  placeholder="Clearingnr + kontonr"
+                  placeholder={t('artist.bankAccountPlaceholder')}
                 />
               </div>
             </div>
@@ -516,7 +516,7 @@ export default function ArtistPage() {
             <div className="flex items-start gap-3 bg-gray-50 rounded-xl p-4">
               <input type="checkbox" required className="mt-1 w-4 h-4 accent-gray-900" />
               <p className="text-sm text-gray-600">
-                Jag godkänner <strong>50/50 vinstdelning</strong> och att Artboris hanterar tryck, ramsättning och leverans mot en separat kostnad som läggs på köparens pris.
+                {t('artist.termsConsent')}
               </p>
             </div>
 
@@ -591,7 +591,7 @@ export default function ArtistPage() {
                 </div>
                 <div>
                   <p className="font-medium text-emerald-900">{t('artist.stripeConnected')}</p>
-                  <p className="text-sm text-emerald-700">Utbetalningar sker automatiskt vid varje försäljning.</p>
+                  <p className="text-sm text-emerald-700">{t('artist.payoutsAutomatic')}</p>
                 </div>
               </div>
               <button
@@ -599,7 +599,7 @@ export default function ArtistPage() {
                 disabled={stripeLoading}
                 className="text-sm text-emerald-700 hover:text-emerald-900 underline underline-offset-4 sm:flex-shrink-0"
               >
-                Stripe Dashboard →
+                {t('artist.stripeDashboard')}
               </button>
             </div>
           ) : stripeStatus.connected ? (
@@ -612,7 +612,7 @@ export default function ArtistPage() {
                 </div>
                 <div>
                   <p className="font-medium text-amber-900">{t('artist.stripeOnboarding')}</p>
-                  <p className="text-sm text-amber-700">Slutför din Stripe-registrering för att ta emot automatiska utbetalningar.</p>
+                  <p className="text-sm text-amber-700">{t('artist.stripeOnboardingDesc')}</p>
                 </div>
               </div>
               <button
@@ -633,7 +633,7 @@ export default function ArtistPage() {
                 </div>
                 <div>
                   <p className="font-medium text-gray-900">{t('artist.stripeConnect')}</p>
-                  <p className="text-sm text-gray-500">Få 50% av konstverkspriset automatiskt vid varje försäljning.</p>
+                  <p className="text-sm text-gray-500">{t('artist.stripeConnectDesc')}</p>
                 </div>
               </div>
               <button
@@ -695,22 +695,22 @@ export default function ArtistPage() {
                   <h3 className="font-medium text-gray-900 truncate text-sm">{listing.title}</h3>
                   <p className="text-sm text-gray-500">{formatPriceSEK(listing.artistPriceSEK)}</p>
                   <div className="flex gap-3 text-xs text-gray-400 mt-1">
-                    <span>{listing.views} visn.</span>
-                    <span>{listing.tryOnWallCount} vägg</span>
-                    <span>{listing.printsSold} sålda</span>
+                    <span>{listing.views} {t('artist.viewsShort')}</span>
+                    <span>{listing.tryOnWallCount} {t('artist.wallShort')}</span>
+                    <span>{listing.printsSold} {t('artist.soldShort')}</span>
                   </div>
                   <div className="flex gap-2 mt-2">
                     <a
                       href={`/market/${listing.id}`}
                       className="flex-1 text-center text-xs py-1.5 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors"
                     >
-                      Visa
+                      {t('artist.view')}
                     </a>
                     <button
                       onClick={() => handleDeleteListing(listing.id)}
                       className="text-xs py-1.5 px-3 bg-red-50 text-red-600 rounded-lg hover:bg-red-100 transition-colors"
                     >
-                      Ta bort
+                      {t('artist.remove')}
                     </button>
                   </div>
                 </div>
@@ -726,7 +726,7 @@ export default function ArtistPage() {
           <div className="bg-white rounded-2xl shadow-xl max-w-lg w-full max-h-[90vh] overflow-y-auto">
             <div className="p-6">
               <div className="flex items-center justify-between mb-6">
-                <h2 className="text-xl font-medium text-gray-900">Ladda upp konstverk</h2>
+                <h2 className="text-xl font-medium text-gray-900">{t('artist.uploadArtwork')}</h2>
                 <button onClick={() => setShowUpload(false)} className="text-gray-400 hover:text-gray-600 text-2xl">
                   &times;
                 </button>
@@ -738,20 +738,20 @@ export default function ArtistPage() {
                   <div className="bg-emerald-50 border border-emerald-200 rounded-xl p-4 space-y-2">
                     <div className="flex items-center gap-2">
                       <svg className="w-5 h-5 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" /></svg>
-                      <p className="font-medium text-emerald-800">Uppladdning klar!</p>
+                      <p className="font-medium text-emerald-800">{t('artist.uploadComplete')}</p>
                     </div>
                     <p className="text-sm text-emerald-700">
-                      Bild: {uploadResult.optimizedSize}px
-                      {uploadResult.wasResized && ` (nedskalad från ${uploadResult.originalSize})`}
+                      {t('artist.imageLabel')}: {uploadResult.optimizedSize}px
+                      {uploadResult.wasResized && ` (${t('artist.resizedFrom')} ${uploadResult.originalSize})`}
                     </p>
                     <p className="text-sm text-emerald-700">
-                      Tryckkvalitet: <strong>{{
-                        perfect: 'Perfekt — 300+ DPI',
-                        good: 'Bra — 200+ DPI',
-                        fair: 'Acceptabel — 150+ DPI',
-                        low: 'Låg upplösning',
+                      {t('artist.printQualityLabel')}: <strong>{{
+                        perfect: t('artist.printQualityPerfect'),
+                        good: t('artist.printQualityGood'),
+                        fair: t('artist.printQualityFair'),
+                        low: t('artist.printQualityLow'),
                       }[uploadResult.overallQuality as string] || uploadResult.overallQuality}</strong>
-                      {uploadResult.maxPrintSize && ` (upp till ${uploadResult.maxPrintSize})`}
+                      {uploadResult.maxPrintSize && ` (${t('artist.upTo')} ${uploadResult.maxPrintSize})`}
                     </p>
                   </div>
                 )}
@@ -771,7 +771,7 @@ export default function ArtistPage() {
                       <div className="aspect-[3/4] cursor-pointer" onClick={() => fileInputRef.current?.click()}>
                         <img src={uploadPreview} alt="Preview" className="w-full h-full object-cover" />
                         <div className="absolute inset-0 bg-black/20 flex items-center justify-center opacity-0 hover:opacity-100 transition-opacity">
-                          <span className="text-white font-medium">Byt bild</span>
+                          <span className="text-white font-medium">{t('artist.changeImage')}</span>
                         </div>
                       </div>
                       {imageResolution && (
@@ -787,10 +787,10 @@ export default function ArtistPage() {
                               : 'bg-red-500/90 text-white'
                           }`}>
                             {Math.max(imageResolution.w, imageResolution.h) >= 5000
-                              ? 'Hög upplösning ✓'
+                              ? t('artist.highRes')
                               : Math.max(imageResolution.w, imageResolution.h) >= 3000
-                              ? 'Medel upplösning'
-                              : 'Låg upplösning — kan påverka tryckkvalitet'}
+                              ? t('artist.mediumRes')
+                              : t('artist.lowResWarning')}
                           </span>
                         </div>
                       )}
@@ -804,15 +804,15 @@ export default function ArtistPage() {
                       <svg className="w-10 h-10 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 4v16m8-8H4" />
                       </svg>
-                      <span className="text-gray-500">Välj bild (max 50 MB)</span>
-                      <span className="text-xs text-gray-400">Rekommenderat: minst 4000×6000 px för bästa tryck</span>
+                      <span className="text-gray-500">{t('artist.chooseImageDesc')}</span>
+                      <span className="text-xs text-gray-400">{t('artist.chooseImageRecommended')}</span>
                     </button>
                   )}
                 </div>
                 )}
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Titel *</label>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">{t('artist.title')} *</label>
                   <input
                     type="text"
                     required
@@ -823,7 +823,7 @@ export default function ArtistPage() {
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Beskrivning</label>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">{t('artist.description')}</label>
                   <textarea
                     value={uploadForm.description}
                     onChange={e => setUploadForm({ ...uploadForm, description: e.target.value })}
@@ -834,7 +834,7 @@ export default function ArtistPage() {
 
                 <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Kategori</label>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">{t('artist.category')}</label>
                     <select
                       value={uploadForm.category}
                       onChange={e => setUploadForm({ ...uploadForm, category: e.target.value })}
@@ -852,16 +852,16 @@ export default function ArtistPage() {
                       onChange={e => setUploadForm({ ...uploadForm, technique: e.target.value })}
                       className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-gray-900 text-gray-900"
                     >
-                      <option value="">Välj...</option>
-                      {MARKET_TECHNIQUES.map(t => (
-                        <option key={t} value={t}>{t}</option>
+                      <option value="">{t('artist.chooseTechnique')}</option>
+                      {MARKET_TECHNIQUES.map(tech => (
+                        <option key={tech} value={tech}>{tech}</option>
                       ))}
                     </select>
                   </div>
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Pris (SEK) *</label>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">{t('artist.price')} *</label>
                   <input
                     type="number"
                     required
@@ -869,18 +869,18 @@ export default function ArtistPage() {
                     value={uploadForm.artistPriceSEK}
                     onChange={e => setUploadForm({ ...uploadForm, artistPriceSEK: e.target.value })}
                     className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-gray-900 text-gray-900"
-                    placeholder="Ditt pris för konstverket"
+                    placeholder={t('artist.pricePlaceholder')}
                   />
                   {uploadForm.artistPriceSEK && (
                     <p className="text-xs text-gray-500 mt-1">
-                      Du får {formatPriceSEK(Math.round(parseInt(uploadForm.artistPriceSEK) / 2))} per försäljning (50%)
+                      {t('artist.pricePerSale')}: {formatPriceSEK(Math.round(parseInt(uploadForm.artistPriceSEK) / 2))}
                     </p>
                   )}
                 </div>
 
                 <div className="grid grid-cols-3 gap-4">
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Bredd (cm)</label>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">{t('artist.widthCm')}</label>
                     <input
                       type="number"
                       value={uploadForm.widthCm}
@@ -889,7 +889,7 @@ export default function ArtistPage() {
                     />
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Höjd (cm)</label>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">{t('artist.heightCm')}</label>
                     <input
                       type="number"
                       value={uploadForm.heightCm}
@@ -898,7 +898,7 @@ export default function ArtistPage() {
                     />
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">År</label>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">{t('artist.yearCreated')}</label>
                     <input
                       type="number"
                       value={uploadForm.year}
@@ -915,7 +915,7 @@ export default function ArtistPage() {
                     onChange={e => setUploadForm({ ...uploadForm, isOriginal: e.target.checked })}
                     className="w-4 h-4 accent-gray-900"
                   />
-                  <label className="text-sm text-gray-700">Detta är ett original (säljs bara 1 gång)</label>
+                  <label className="text-sm text-gray-700">{t('artist.isOriginalDesc')}</label>
                 </div>
 
                 <button
@@ -923,7 +923,7 @@ export default function ArtistPage() {
                   disabled={uploading || !uploadFile || !uploadForm.title || !uploadForm.artistPriceSEK}
                   className="w-full py-3 bg-gray-900 text-white rounded-xl hover:bg-gray-800 transition-colors disabled:opacity-50"
                 >
-                  {uploading ? 'Laddar upp...' : 'Skicka för granskning'}
+                  {uploading ? t('artist.uploading') : t('artist.submitForReview')}
                 </button>
               </form>
             </div>

@@ -1,0 +1,45 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="640" viewBox="150 60 900 480">
+  <!-- Floor -->
+  <polygon points="0,500 1200,500 1200,800 0,800" fill="#b0a090"/>
+  <polygon points="0,500 400,400 800,400 1200,500" fill="#c0b0a0"/>
+  <!-- Back wall — warm terracotta/blush -->
+  <rect x="200" y="100" width="800" height="400" fill="#e8ddd4"/>
+  <defs>
+    <pattern id="wg-h" width="4" height="4" patternUnits="userSpaceOnUse">
+      <rect width="4" height="4" fill="#e0d5cc"/>
+      <rect x="1" y="1" width="2" height="2" fill="#e8ddd4" opacity="0.5"/>
+    </pattern>
+  </defs>
+  <rect x="200" y="100" width="800" height="400" fill="url(#wg-h)" opacity="0.25"/>
+  <!-- Left wall -->
+  <polygon points="0,50 200,100 200,500 0,600" fill="#dcd1c8"/>
+  <!-- Right wall -->
+  <polygon points="1200,50 1000,100 1000,500 1200,600" fill="#d4c9c0"/>
+  <!-- Baseboard -->
+  <rect x="200" y="480" width="800" height="20" fill="#a89888" rx="2"/>
+  <!-- Crown molding -->
+  <rect x="200" y="100" width="800" height="6" fill="#d8cdc4" rx="1"/>
+  <!-- Console table -->
+  <rect x="400" y="400" width="400" height="15" rx="3" fill="#7b6a58"/>
+  <rect x="410" y="415" width="8" height="85" rx="2" fill="#6b5a48"/>
+  <rect x="782" y="415" width="8" height="85" rx="2" fill="#6b5a48"/>
+  <!-- Items on console -->
+  <rect x="440" y="375" width="20" height="28" rx="6" fill="#c4a882"/>
+  <circle cx="530" cy="385" r="14" fill="#5a8a5a"/>
+  <circle cx="525" cy="380" r="10" fill="#4a7a4a"/>
+  <rect x="523" y="396" width="14" height="8" rx="3" fill="#b89872"/>
+  <!-- Mirror above console -->
+  <rect x="480" y="160" width="240" height="200" rx="8" fill="#d0d8e0" opacity="0.3"/>
+  <rect x="480" y="160" width="240" height="200" rx="8" fill="none" stroke="#a08060" stroke-width="5"/>
+  <!-- Coat hooks right -->
+  <circle cx="880" cy="250" r="6" fill="#666"/>
+  <circle cx="880" cy="310" r="6" fill="#666"/>
+  <circle cx="880" cy="370" r="6" fill="#666"/>
+  <!-- Rug -->
+  <ellipse cx="600" cy="490" rx="200" ry="15" fill="#c8a878" opacity="0.4"/>
+  <!-- Shoes -->
+  <rect x="830" y="475" width="30" height="12" rx="4" fill="#5a4a3a"/>
+  <rect x="865" y="478" width="28" height="10" rx="4" fill="#4a3a2a"/>
+  <!-- Shadow -->
+  <ellipse cx="600" cy="505" rx="180" ry="5" fill="#000" opacity="0.05"/>
+</svg>

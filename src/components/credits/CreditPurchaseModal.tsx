@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
+import { useTranslation } from '@/lib/i18n/context'
 import { CREDIT_PACKAGES, CREDIT_COSTS, FIRST_PURCHASE_BONUS } from '@/lib/pricing/credits'
 
 interface CreditPurchaseModalProps {
@@ -20,6 +21,7 @@ export default function CreditPurchaseModal({
   onPurchased,
   userId,
 }: CreditPurchaseModalProps) {
+  const { t } = useTranslation()
   const [loading, setLoading] = useState<string | null>(null)
   const [isFirstPurchase, setIsFirstPurchase] = useState(true)
 
@@ -49,10 +51,10 @@ export default function CreditPurchaseModal({
       if (data.url) {
         window.location.href = data.url
       } else {
-        alert(data.error || 'Något gick fel.')
+        alert(data.error || t('creditModal.somethingWentWrong'))
       }
     } catch {
-      alert('Nätverksfel. Försök igen.')
+      alert(t('creditModal.networkError'))
     } finally {
       setLoading(null)
     }
@@ -89,14 +91,14 @@ export default function CreditPurchaseModal({
               </svg>
             </div>
             <h2 className="text-2xl font-light text-gray-900">
-              Få Boris expertråd innan du bestämmer dig
+              {t('creditModal.title')}
             </h2>
             <p className="mt-2 text-gray-500">
-              Undvik felköp — se hur tavlan fungerar i ditt rum.
+              {t('creditModal.subtitle')}
             </p>
             {neededCredits && neededCredits > 0 && (
               <p className="mt-2 text-sm text-amber-600 font-medium">
-                Du behöver {neededCredits} fler credits för {actionLabel}.
+                {t('creditModal.needMoreCredits')} {neededCredits} credits — {actionLabel}.
               </p>
             )}
           </div>
@@ -105,7 +107,7 @@ export default function CreditPurchaseModal({
           {isFirstPurchase && (
             <div className="bg-gradient-to-r from-emerald-50 to-teal-50 border border-emerald-200/60 rounded-xl p-3 mb-6 text-center">
               <p className="text-sm font-medium text-emerald-800">
-                🎁 +{FIRST_PURCHASE_BONUS} bonuscredits vid första köp
++{FIRST_PURCHASE_BONUS} {t('creditModal.firstPurchaseBonus')}
               </p>
             </div>
           )}
@@ -150,7 +152,7 @@ export default function CreditPurchaseModal({
                   )}
 
                   <div className="mt-3 text-xs text-gray-500">
-                    ~{pkg.estAnalyses} Boris-analyser
+                    ~{pkg.estAnalyses} {t('creditModal.borisAnalysis')}
                   </div>
 
                   <button
@@ -168,10 +170,10 @@ export default function CreditPurchaseModal({
                           <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
                           <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
                         </svg>
-                        Laddar...
+{t('creditModal.loading')}
                       </span>
                     ) : (
-                      'Köp credits'
+                      t('creditModal.buyCredits')
                     )}
                   </button>
                 </div>
@@ -182,7 +184,7 @@ export default function CreditPurchaseModal({
           {/* Value explainer */}
           <div className="bg-gray-50 rounded-xl p-5 mb-6">
             <h4 className="text-sm font-semibold text-gray-900 mb-3">
-              Vad kan jag använda credits till?
+              {t('creditModal.whatCanCreditsDoTitle')}
             </h4>
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
               <div className="flex items-center gap-3">
@@ -192,7 +194,7 @@ export default function CreditPurchaseModal({
                   </svg>
                 </div>
                 <div>
-                  <p className="text-sm font-medium text-gray-900">Boris konstanalys</p>
+                  <p className="text-sm font-medium text-gray-900">{t('creditModal.borisAnalysis')}</p>
                   <p className="text-xs text-gray-500">{CREDIT_COSTS.borisAnalysis} credits</p>
                 </div>
               </div>
@@ -203,7 +205,7 @@ export default function CreditPurchaseModal({
                   </svg>
                 </div>
                 <div>
-                  <p className="text-sm font-medium text-gray-900">Rum + rådgivning</p>
+                  <p className="text-sm font-medium text-gray-900">{t('creditModal.roomAdvice')}</p>
                   <p className="text-xs text-gray-500">{CREDIT_COSTS.wallAdvice} credits</p>
                 </div>
               </div>
@@ -214,7 +216,7 @@ export default function CreditPurchaseModal({
                   </svg>
                 </div>
                 <div>
-                  <p className="text-sm font-medium text-gray-900">AI-konst</p>
+                  <p className="text-sm font-medium text-gray-900">{t('creditModal.aiArt')}</p>
                   <p className="text-xs text-gray-500">{CREDIT_COSTS.aiGenerate} credits</p>
                 </div>
               </div>
@@ -224,9 +226,9 @@ export default function CreditPurchaseModal({
           {/* Persuasion line */}
           <div className="text-center">
             <p className="text-sm text-gray-500">
-              En tavla kostar ofta 3 000–6 000 kr. En analys kostar ca 15 kr.
+              {t('creditModal.persuasionLine1')}
               <br />
-              <span className="font-medium text-gray-700">Gör rätt val från början.</span>
+              <span className="font-medium text-gray-700">{t('creditModal.persuasionLine2')}</span>
             </p>
           </div>
         </div>

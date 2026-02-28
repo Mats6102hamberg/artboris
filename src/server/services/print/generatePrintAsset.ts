@@ -1,5 +1,6 @@
 import { prisma } from '@/lib/prisma'
 import { put } from '@vercel/blob'
+import sharp from 'sharp'
 import { upscaleImage, getTargetDimensions, meetsTargetDpi } from '../ai/upscale'
 import { calculateCropRect, type CropMode } from '@/lib/image/crop'
 import type { PrintProductType } from '@prisma/client'
@@ -52,11 +53,33 @@ export async function generatePrintAsset(
   input: GeneratePrintAssetInput,
 ): Promise<GeneratePrintAssetResult> {
   const { designId, imageUrl, sizeCode, productType } = input
-  const upscaleFactor = input.upscaleFactor ?? SIZE_UPSCALE_FACTOR[sizeCode] ?? 4
   const targetDpi = input.targetDpi ?? 150
   const startTime = Date.now()
 
   const logPrefix = `[generatePrintAsset] design=${designId} size=${sizeCode}`
+
+  // ── Detect source dimensions to auto-adjust upscale factor ──
+  let sourceWidth = 1024
+  try {
+    const imgRes = await fetch(imageUrl)
+    const buf = Buffer.from(await imgRes.arrayBuffer())
+    const meta = await sharp(buf).metadata()
+    sourceWidth = meta.width ?? 1024
+    console.log(`${logPrefix} Detected source width: ${sourceWidth}px`)
+  } catch (err) {
+    console.warn(`${logPrefix} Could not detect source dimensions, assuming 1024px`)
+  }
+
+  // For low-res sources (≤600px, e.g. 512px previews), double the upscale factor
+  const baseUpscaleFactor = input.upscaleFactor ?? SIZE_UPSCALE_FACTOR[sizeCode] ?? 4
+  const sourceIsLowRes = sourceWidth <= 600
+  const upscaleFactor = sourceIsLowRes
+    ? Math.min(baseUpscaleFactor * 2, 8)
+    : baseUpscaleFactor
+
+  if (sourceIsLowRes) {
+    console.log(`${logPrefix} Low-res source (${sourceWidth}px) → adjusted upscale from ${baseUpscaleFactor}× to ${upscaleFactor}×`)
+  }
 
   // ── Idempotens: kolla om PRINT-asset redan finns (med upscale-data) ──
   const existing = await prisma.designAsset.findUnique({

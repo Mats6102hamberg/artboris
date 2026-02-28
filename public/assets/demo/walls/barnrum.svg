@@ -1,0 +1,46 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="640" viewBox="150 60 900 480">
+  <!-- Floor -->
+  <polygon points="0,500 1200,500 1200,800 0,800" fill="#c4b8a0"/>
+  <polygon points="0,500 400,400 800,400 1200,500" fill="#d4c8b0"/>
+  <!-- Back wall — soft pink/peach -->
+  <rect x="200" y="100" width="800" height="400" fill="#f0e0d8"/>
+  <defs>
+    <pattern id="wg-b" width="4" height="4" patternUnits="userSpaceOnUse">
+      <rect width="4" height="4" fill="#e8d8d0"/>
+      <rect x="1" y="1" width="2" height="2" fill="#f0e0d8" opacity="0.5"/>
+    </pattern>
+  </defs>
+  <rect x="200" y="100" width="800" height="400" fill="url(#wg-b)" opacity="0.2"/>
+  <!-- Left wall -->
+  <polygon points="0,50 200,100 200,500 0,600" fill="#e4d4cc"/>
+  <!-- Right wall -->
+  <polygon points="1200,50 1000,100 1000,500 1200,600" fill="#dcccc4"/>
+  <!-- Baseboard -->
+  <rect x="200" y="480" width="800" height="20" fill="#b0a898" rx="2"/>
+  <!-- Crown molding -->
+  <rect x="200" y="100" width="800" height="6" fill="#e0d0c8" rx="1"/>
+  <!-- Small bed / daybed -->
+  <rect x="250" y="380" width="350" height="100" rx="10" fill="#e8dcd0"/>
+  <rect x="240" y="370" width="20" height="130" rx="6" fill="#a08868"/>
+  <rect x="590" y="370" width="20" height="130" rx="6" fill="#a08868"/>
+  <!-- Pillows on bed -->
+  <rect x="270" y="390" width="80" height="40" rx="14" fill="#e0c8e0"/>
+  <rect x="360" y="395" width="70" height="35" rx="12" fill="#c8e0e8"/>
+  <!-- Blanket -->
+  <rect x="250" y="430" width="350" height="20" rx="6" fill="#d8c0d8"/>
+  <!-- Toy chest -->
+  <rect x="700" y="420" width="120" height="80" rx="8" fill="#e0c8a0"/>
+  <rect x="700" y="415" width="120" height="12" rx="4" fill="#c8b088"/>
+  <!-- Teddy bear on chest -->
+  <circle cx="760" cy="400" r="15" fill="#c8a878"/>
+  <circle cx="760" cy="386" r="10" fill="#c8a878"/>
+  <circle cx="753" cy="383" r="3" fill="#333"/>
+  <circle cx="767" cy="383" r="3" fill="#333"/>
+  <!-- Star decorations on wall -->
+  <polygon points="350,180 355,195 370,195 358,205 363,220 350,210 337,220 342,205 330,195 345,195" fill="#f0d080" opacity="0.4"/>
+  <polygon points="750,150 753,160 763,160 756,166 758,176 750,170 742,176 744,166 737,160 747,160" fill="#f0d080" opacity="0.3"/>
+  <!-- Rug -->
+  <ellipse cx="500" cy="492" rx="160" ry="12" fill="#d0b8d0" opacity="0.35"/>
+  <!-- Shadow -->
+  <ellipse cx="450" cy="505" rx="200" ry="5" fill="#000" opacity="0.04"/>
+</svg>

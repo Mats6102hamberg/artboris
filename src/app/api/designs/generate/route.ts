@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { generatePreview } from '@/server/services/ai/generatePreview'
 import { StylePreset, DesignControls } from '@/types/design'
-import { getStyleDefinition } from '@/lib/prompts/styles'
+import { getStyleDefinition, isArtistStyle } from '@/lib/prompts/styles'
 import { getUserId } from '@/lib/auth/getUserId'
 import { getUsage, incrementGeneration } from '@/server/services/usage/dailyUsage'
 import { borisLogIncident } from '@/lib/boris/autoIncident'
@@ -27,7 +27,7 @@ export async function POST(request: NextRequest) {
     }
 
     const body = await request.json()
-    const { style, controls, userDescription, roomImageUrl, wallCorners, inputImageUrl, promptStrength, aspectRatio } = body as {
+    const { style, controls, userDescription, roomImageUrl, wallCorners, inputImageUrl, promptStrength, aspectRatio, quality } = body as {
       style: StylePreset
       controls: DesignControls
       userDescription?: string
@@ -36,7 +36,9 @@ export async function POST(request: NextRequest) {
       inputImageUrl?: string
       promptStrength?: number
       aspectRatio?: 'portrait' | 'landscape' | 'square'
+      quality?: 'preview' | 'standard'
     }
+    const effectiveQuality = quality ?? (isArtistStyle(style) ? 'preview' : 'standard')
 
     if (!style) {
       return NextResponse.json({ error: 'Style is required.' }, { status: 400 })
@@ -72,6 +74,7 @@ export async function POST(request: NextRequest) {
       inputImageUrl,
       promptStrength,
       aspectRatio,
+      quality: effectiveQuality,
     })
 
     if (!result.success) {

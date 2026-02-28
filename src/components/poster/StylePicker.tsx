@@ -1,7 +1,8 @@
 'use client'
 
+import { useState } from 'react'
 import { StylePreset, StyleDefinition } from '@/types/design'
-import { getBorisStyles, getRegularStyles } from '@/lib/prompts/styles'
+import { getBorisStyles, getRegularStyles, getArtistStyles } from '@/lib/prompts/styles'
 
 interface StylePickerProps {
   selectedStyle: StylePreset | null
@@ -9,11 +10,32 @@ interface StylePickerProps {
 }
 
 export default function StylePicker({ selectedStyle, onSelect }: StylePickerProps) {
+  const artistStyles = getArtistStyles()
   const borisStyles = getBorisStyles()
   const regularStyles = getRegularStyles()
 
   return (
     <div className="w-full">
+      {/* Artist Collection */}
+      <div className="mb-6">
+        <div className="flex items-center gap-2 mb-3">
+          <h3 className="text-sm font-semibold text-gray-900">Konstnärsstilar</h3>
+          <span className="text-[10px] font-medium px-1.5 py-0.5 rounded-full bg-purple-100 text-purple-700 border border-purple-200">
+            Artist
+          </span>
+        </div>
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5 sm:gap-3">
+          {artistStyles.map((style) => (
+            <ArtistCard
+              key={style.id}
+              style={style}
+              isSelected={selectedStyle === style.id}
+              onSelect={() => onSelect(style.id)}
+            />
+          ))}
+        </div>
+      </div>
+
       {/* Boris Collection */}
       <div className="mb-6">
         <div className="flex items-center gap-2 mb-3">
@@ -108,8 +130,67 @@ export default function StylePicker({ selectedStyle, onSelect }: StylePickerProp
   )
 }
 
+function ArtistCard({
+  style,
+  isSelected,
+  onSelect,
+}: {
+  style: StyleDefinition
+  isSelected: boolean
+  onSelect: () => void
+}) {
+  const [imgError, setImgError] = useState(false)
+
+  return (
+    <button
+      onClick={onSelect}
+      className={`
+        group relative rounded-xl overflow-hidden border-2 transition-all duration-200 active:scale-95
+        ${isSelected
+          ? 'border-purple-500 ring-2 ring-purple-200 scale-[1.02]'
+          : 'border-purple-200/60 hover:border-purple-300 hover:shadow-md'
+        }
+      `}
+    >
+      <div className="aspect-[3/4] relative">
+        {!imgError ? (
+          <img
+            src={style.previewUrl}
+            alt={style.label}
+            loading="lazy"
+            onError={() => setImgError(true)}
+            className="w-full h-full object-cover"
+          />
+        ) : (
+          <div
+            className="w-full h-full flex items-center justify-center"
+            style={{
+              background: `linear-gradient(135deg, ${style.defaultColors[0]}, ${style.defaultColors[1] || style.defaultColors[0]})`,
+            }}
+          >
+            <span className="text-2xl opacity-80">
+              {getStyleEmoji(style.id)}
+            </span>
+          </div>
+        )}
+      </div>
+      <div className="p-1.5 sm:p-2 bg-gradient-to-r from-purple-50 to-white">
+        <p className="text-[11px] sm:text-xs font-medium text-gray-900 truncate">{style.label}</p>
+        <p className="text-[9px] sm:text-[10px] text-gray-500 truncate hidden sm:block">{style.description}</p>
+      </div>
+      {isSelected && (
+        <div className="absolute top-1.5 right-1.5 w-5 h-5 bg-purple-500 rounded-full flex items-center justify-center">
+          <svg className="w-3 h-3 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
+          </svg>
+        </div>
+      )}
+    </button>
+  )
+}
+
 function getStyleEmoji(style: StylePreset): string {
-  const emojis: Record<StylePreset, string> = {
+  const emojis: Partial<Record<StylePreset, string>> = {
     nordic: '🌿',
     retro: '📻',
     minimal: '◻️',
@@ -131,6 +212,14 @@ function getStyleEmoji(style: StylePreset): string {
     'boris-silence': '🤫',
     'boris-between': '🌗',
     'boris-awakening': '🌅',
+    'artist-matisse': '🎨',
+    'artist-warhol': '🍿',
+    'artist-zorn': '🖌️',
+    'artist-sommarang': '🌾',
+    'artist-monet': '🌷',
+    'artist-hokusai': '🌊',
+    'artist-klimt': '✨',
+    'artist-mondrian': '🔲',
   }
   return emojis[style] || '🎨'
 }

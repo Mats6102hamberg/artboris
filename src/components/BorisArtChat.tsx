@@ -19,7 +19,7 @@ interface BorisArtChatProps {
 }
 
 export default function BorisArtChat({ artworks, selectedArtwork, scannedItems, portfolio }: BorisArtChatProps) {
-  const { t } = useTranslation()
+  const { t, locale } = useTranslation()
   const [messages, setMessages] = useState<Message[]>([
     {
       id: '1',
@@ -39,7 +39,7 @@ export default function BorisArtChat({ artworks, selectedArtwork, scannedItems, 
       const response = await fetch('/api/boris-ai', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ action, data, ...context })
+        body: JSON.stringify({ action, data, locale, ...context })
       })
       
       const result = await response.json()

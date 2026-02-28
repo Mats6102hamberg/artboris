@@ -1,0 +1,47 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="640" viewBox="150 60 900 480">
+  <!-- Floor -->
+  <polygon points="0,500 1200,500 1200,800 0,800" fill="#b8a088"/>
+  <polygon points="0,500 400,400 800,400 1200,500" fill="#c8b098"/>
+  <!-- Back wall — soft blue-grey -->
+  <rect x="200" y="100" width="800" height="400" fill="#d8dde4"/>
+  <defs>
+    <pattern id="wg-s" width="4" height="4" patternUnits="userSpaceOnUse">
+      <rect width="4" height="4" fill="#d0d5dc"/>
+      <rect x="1" y="1" width="2" height="2" fill="#d8dde4" opacity="0.5"/>
+    </pattern>
+  </defs>
+  <rect x="200" y="100" width="800" height="400" fill="url(#wg-s)" opacity="0.3"/>
+  <!-- Left wall -->
+  <polygon points="0,50 200,100 200,500 0,600" fill="#ccd1d8"/>
+  <!-- Right wall -->
+  <polygon points="1200,50 1000,100 1000,500 1200,600" fill="#c4c9d0"/>
+  <!-- Baseboard -->
+  <rect x="200" y="480" width="800" height="20" fill="#a09080" rx="2"/>
+  <!-- Crown molding -->
+  <rect x="200" y="100" width="800" height="6" fill="#c8cdd4" rx="1"/>
+  <!-- Bed headboard -->
+  <rect x="350" y="340" width="500" height="100" rx="12" fill="#6b5a48"/>
+  <rect x="360" y="345" width="480" height="90" rx="10" fill="#8b7a68"/>
+  <!-- Bed frame -->
+  <rect x="330" y="440" width="540" height="60" rx="6" fill="#e8e0d4"/>
+  <!-- Pillows -->
+  <rect x="380" y="380" width="120" height="55" rx="20" fill="#f0ebe4"/>
+  <rect x="520" y="380" width="120" height="55" rx="20" fill="#e8e3dc"/>
+  <rect x="660" y="380" width="100" height="55" rx="20" fill="#f0ebe4"/>
+  <!-- Blanket fold -->
+  <rect x="330" y="435" width="540" height="15" rx="4" fill="#d0c8bc"/>
+  <!-- Bedside table left -->
+  <rect x="240" y="410" width="70" height="90" rx="6" fill="#7b6a58"/>
+  <rect x="245" y="405" width="60" height="8" rx="3" fill="#8b7a68"/>
+  <!-- Lamp on table -->
+  <rect x="268" y="360" width="8" height="48" fill="#c0b0a0"/>
+  <ellipse cx="272" cy="355" rx="22" ry="14" fill="#f5e8d0"/>
+  <circle cx="272" cy="355" r="6" fill="#fff8e0" opacity="0.5"/>
+  <!-- Bedside table right -->
+  <rect x="890" y="410" width="70" height="90" rx="6" fill="#7b6a58"/>
+  <rect x="895" y="405" width="60" height="8" rx="3" fill="#8b7a68"/>
+  <!-- Window light -->
+  <rect x="500" y="130" width="200" height="180" fill="#fff" opacity="0.05" rx="3"/>
+  <!-- Shadow under bed -->
+  <ellipse cx="600" cy="505" rx="260" ry="6" fill="#000" opacity="0.05"/>
+</svg>

@@ -1,0 +1,56 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="640" viewBox="150 60 900 480">
+  <!-- Floor -->
+  <polygon points="0,500 1200,500 1200,800 0,800" fill="#a89878"/>
+  <polygon points="0,500 400,400 800,400 1200,500" fill="#b8a888"/>
+  <!-- Back wall — deep warm grey -->
+  <rect x="200" y="100" width="800" height="400" fill="#ddd8d2"/>
+  <defs>
+    <pattern id="wg-m" width="4" height="4" patternUnits="userSpaceOnUse">
+      <rect width="4" height="4" fill="#d5d0ca"/>
+      <rect x="1" y="1" width="2" height="2" fill="#ddd8d2" opacity="0.5"/>
+    </pattern>
+  </defs>
+  <rect x="200" y="100" width="800" height="400" fill="url(#wg-m)" opacity="0.25"/>
+  <!-- Left wall -->
+  <polygon points="0,50 200,100 200,500 0,600" fill="#d1ccc6"/>
+  <!-- Right wall -->
+  <polygon points="1200,50 1000,100 1000,500 1200,600" fill="#c9c4be"/>
+  <!-- Baseboard -->
+  <rect x="200" y="480" width="800" height="20" fill="#a09080" rx="2"/>
+  <!-- Crown molding -->
+  <rect x="200" y="100" width="800" height="6" fill="#cdc8c2" rx="1"/>
+  <!-- Dining table -->
+  <rect x="350" y="400" width="500" height="20" rx="4" fill="#7b6a50"/>
+  <!-- Table legs -->
+  <rect x="380" y="420" width="10" height="78" rx="3" fill="#6b5a40"/>
+  <rect x="810" y="420" width="10" height="78" rx="3" fill="#6b5a40"/>
+  <!-- Chairs left side -->
+  <rect x="300" y="410" width="50" height="12" rx="4" fill="#8b7a58"/>
+  <rect x="310" y="360" width="30" height="55" rx="6" fill="#9b8a68"/>
+  <rect x="308" y="422" width="6" height="76" rx="2" fill="#6b5a40"/>
+  <rect x="338" y="422" width="6" height="76" rx="2" fill="#6b5a40"/>
+  <!-- Chair right side -->
+  <rect x="850" y="410" width="50" height="12" rx="4" fill="#8b7a58"/>
+  <rect x="860" y="360" width="30" height="55" rx="6" fill="#9b8a68"/>
+  <rect x="858" y="422" width="6" height="76" rx="2" fill="#6b5a40"/>
+  <rect x="888" y="422" width="6" height="76" rx="2" fill="#6b5a40"/>
+  <!-- Centerpiece -->
+  <rect x="560" y="378" width="18" height="24" rx="6" fill="#c4a882"/>
+  <ellipse cx="569" cy="378" rx="10" ry="4" fill="#b89872"/>
+  <circle cx="569" cy="368" r="14" fill="#5a8a5a"/>
+  <circle cx="562" cy="362" r="10" fill="#4a7a4a"/>
+  <!-- Pendant lamp -->
+  <rect x="595" y="60" width="4" height="120" fill="#888"/>
+  <ellipse cx="597" cy="185" rx="50" ry="20" fill="#f5e8d0"/>
+  <circle cx="597" cy="185" r="8" fill="#fff8e0" opacity="0.5"/>
+  <!-- Sideboard left -->
+  <rect x="210" y="380" width="70" height="120" rx="4" fill="#8b7a58"/>
+  <rect x="215" y="375" width="60" height="8" rx="3" fill="#9b8a68"/>
+  <!-- Candles on sideboard -->
+  <rect x="230" y="356" width="6" height="22" rx="2" fill="#f0e8d8"/>
+  <rect x="252" y="360" width="6" height="18" rx="2" fill="#f0e8d8"/>
+  <!-- Rug -->
+  <ellipse cx="600" cy="492" rx="220" ry="14" fill="#c8b898" opacity="0.3"/>
+  <!-- Shadow -->
+  <ellipse cx="600" cy="505" rx="240" ry="5" fill="#000" opacity="0.05"/>
+</svg>

@@ -30,7 +30,7 @@ export default function BorisButton({
   variant = 'floating',
   label,
 }: BorisButtonProps) {
-  const { t } = useTranslation()
+  const { t, locale } = useTranslation()
   const [isOpen, setIsOpen] = useState(false)
   const [messages, setMessages] = useState<Message[]>([])
   const [input, setInput] = useState('')
@@ -65,7 +65,7 @@ export default function BorisButton({
       const res = await fetch('/api/boris/wallcraft', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ action, message: text.trim(), context }),
+        body: JSON.stringify({ action, message: text.trim(), context, locale }),
       })
 
       const data = await res.json()

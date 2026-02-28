@@ -41,11 +41,11 @@ function CreateFromMotifContent() {
       if (data.success && data.designId) {
         router.push(`/wallcraft/design/${data.designId}`)
       } else {
-        alert(data.error || 'Kunde inte skapa konst just nu. Försök igen!')
+        alert(data.error || t('wc.couldNotCreate'))
         setIsGenerating(false)
       }
     } catch {
-      alert('Något gick fel. Försök igen!')
+      alert(t('wc.somethingWentWrong'))
       setIsGenerating(false)
     }
   }
@@ -67,11 +67,11 @@ function CreateFromMotifContent() {
       if (data.success && data.designId) {
         router.push(`/wallcraft/design/${data.designId}`)
       } else {
-        alert(data.error || 'Kunde inte skapa konst just nu.')
+        alert(data.error || t('wc.couldNotCreateShort'))
         setIsGenerating(false)
       }
     } catch {
-      alert('Något gick fel.')
+      alert(t('wc.somethingWentWrongShort'))
       setIsGenerating(false)
     }
   }
@@ -83,7 +83,7 @@ function CreateFromMotifContent() {
           {t('brand.name')}
         </a>
         <Button variant="ghost" size="sm" onClick={() => router.back()}>
-          ← Tillbaka
+          {t('wc.back')}
         </Button>
       </nav>
 
@@ -92,8 +92,8 @@ function CreateFromMotifContent() {
         {sourceImageUrl ? (
           <div className="space-y-8 animate-fadeIn">
             <div className="text-center">
-              <h1 className="text-2xl sm:text-3xl font-light text-gray-900">Skapa ny konst från motiv</h1>
-              <p className="text-gray-500 mt-2">Använd motivet nedan som grund och skapa något nytt</p>
+              <h1 className="text-2xl sm:text-3xl font-light text-gray-900">{t('wc.createFromMotif')}</h1>
+              <p className="text-gray-500 mt-2">{t('wc.useMotifAsBase')}</p>
             </div>
 
             {/* Source preview */}
@@ -110,12 +110,12 @@ function CreateFromMotifContent() {
 
             {/* Format selector */}
             <div>
-              <p className="text-sm font-medium text-gray-700 mb-3 text-center">Välj format</p>
+              <p className="text-sm font-medium text-gray-700 mb-3 text-center">{t('wc.chooseFormat')}</p>
               <div className="flex justify-center gap-3">
                 {([
-                  { id: 'portrait' as AspectRatio, label: 'Stående', w: 'w-8', h: 'h-12' },
-                  { id: 'landscape' as AspectRatio, label: 'Liggande', w: 'w-12', h: 'h-8' },
-                  { id: 'square' as AspectRatio, label: 'Fyrkantigt', w: 'w-10', h: 'h-10' },
+                  { id: 'portrait' as AspectRatio, label: t('wc.portrait'), w: 'w-8', h: 'h-12' },
+                  { id: 'landscape' as AspectRatio, label: t('wc.landscape'), w: 'w-12', h: 'h-8' },
+                  { id: 'square' as AspectRatio, label: t('wc.square'), w: 'w-10', h: 'h-10' },
                 ]).map((fmt) => (
                   <button
                     key={fmt.id}
@@ -139,9 +139,9 @@ function CreateFromMotifContent() {
 
             {/* Prompt strength slider */}
             <div className="bg-white rounded-2xl p-5 border border-gray-200/60">
-              <h3 className="text-sm font-medium text-gray-900 mb-3">Hur mycket ska ändras?</h3>
+              <h3 className="text-sm font-medium text-gray-900 mb-3">{t('wc.howMuchChange')}</h3>
               <div className="flex items-center gap-4">
-                <span className="text-xs text-gray-500 w-16">Lite</span>
+                <span className="text-xs text-gray-500 w-16">{t('wc.little')}</span>
                 <input
                   type="range"
                   min={0.3}
@@ -151,16 +151,16 @@ function CreateFromMotifContent() {
                   onChange={(e) => setPromptStrength(parseFloat(e.target.value))}
                   className="flex-1 accent-purple-600"
                 />
-                <span className="text-xs text-gray-500 w-16 text-right">Mycket</span>
+                <span className="text-xs text-gray-500 w-16 text-right">{t('wc.much')}</span>
               </div>
               <p className="text-xs text-gray-400 mt-2 text-center">
-                {promptStrength < 0.5 ? 'Nära originalet' : promptStrength < 0.7 ? 'Balanserad mix' : 'Mer kreativ frihet'}
+                {promptStrength < 0.5 ? t('wc.closeToOriginal') : promptStrength < 0.7 ? t('wc.balancedMix') : t('wc.moreCreativeFreedom')}
               </p>
             </div>
 
             {/* Style picker */}
             <div>
-              <h3 className="text-sm font-medium text-gray-900 mb-3">Välj ny stil</h3>
+              <h3 className="text-sm font-medium text-gray-900 mb-3">{t('wc.chooseNewStyle')}</h3>
               <StylePicker selectedStyle={selectedStyle} onSelect={setSelectedStyle} />
             </div>
 
@@ -168,7 +168,7 @@ function CreateFromMotifContent() {
             <textarea
               value={userDescription}
               onChange={(e) => setUserDescription(e.target.value)}
-              placeholder="Beskriv vad du vill ändra (valfritt)..."
+              placeholder={t('wc.describeChanges')}
               className="w-full rounded-xl border border-gray-200 px-4 py-3 text-sm text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500/20 focus:border-purple-300 resize-none bg-white"
               rows={3}
             />
@@ -183,14 +183,14 @@ function CreateFromMotifContent() {
               {isGenerating ? (
                 <>
                   <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                  Skapar ny konst...
+                  {t('wc.creatingNewArt')}
                 </>
               ) : (
                 <>
                   <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9.813 15.904L9 18.75l-.813-2.846a4.5 4.5 0 00-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 003.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 003.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 00-3.09 3.09z" />
                   </svg>
-                  Skapa ny konst
+                  {t('wc.createNewArt')}
                 </>
               )}
             </Button>
@@ -199,18 +199,18 @@ function CreateFromMotifContent() {
           /* Mode: no source image — quick AI generate with style choice */
           <div className="space-y-8 animate-fadeIn">
             <div className="text-center">
-              <h1 className="text-2xl sm:text-3xl font-light text-gray-900">Skapa AI-konst</h1>
-              <p className="text-gray-500 mt-2">Välj en stil eller låt Boris välja åt dig</p>
+              <h1 className="text-2xl sm:text-3xl font-light text-gray-900">{t('wc.createAIArt')}</h1>
+              <p className="text-gray-500 mt-2">{t('wc.chooseStyleOrBoris')}</p>
             </div>
 
             {/* Format selector */}
             <div>
-              <p className="text-sm font-medium text-gray-700 mb-3 text-center">Välj format</p>
+              <p className="text-sm font-medium text-gray-700 mb-3 text-center">{t('wc.chooseFormat')}</p>
               <div className="flex justify-center gap-3">
                 {([
-                  { id: 'portrait' as AspectRatio, label: 'Stående', w: 'w-8', h: 'h-12' },
-                  { id: 'landscape' as AspectRatio, label: 'Liggande', w: 'w-12', h: 'h-8' },
-                  { id: 'square' as AspectRatio, label: 'Fyrkantigt', w: 'w-10', h: 'h-10' },
+                  { id: 'portrait' as AspectRatio, label: t('wc.portrait'), w: 'w-8', h: 'h-12' },
+                  { id: 'landscape' as AspectRatio, label: t('wc.landscape'), w: 'w-12', h: 'h-8' },
+                  { id: 'square' as AspectRatio, label: t('wc.square'), w: 'w-10', h: 'h-10' },
                 ]).map((fmt) => (
                   <button
                     key={fmt.id}
@@ -250,9 +250,9 @@ function CreateFromMotifContent() {
                   )}
                 </div>
                 <div>
-                  <h3 className="text-lg font-semibold text-white">Boris skapar åt dig</h3>
+                  <h3 className="text-lg font-semibold text-white">{t('wc.borisCreatesForYou')}</h3>
                   <p className="text-sm text-gray-400 mt-1">
-                    {isGenerating ? 'Skapar fyra unika motiv...' : 'Klicka — Boris väljer stil och skapar fyra unika AI-motiv'}
+                    {isGenerating ? t('wc.creatingFourMotifs') : t('wc.clickBorisCreates')}
                   </p>
                 </div>
               </div>
@@ -260,7 +260,7 @@ function CreateFromMotifContent() {
 
             <div className="flex items-center gap-4">
               <div className="flex-1 h-px bg-gray-200" />
-              <span className="text-xs text-gray-400 font-medium">eller välj stil själv</span>
+              <span className="text-xs text-gray-400 font-medium">{t('wc.orChooseStyleYourself')}</span>
               <div className="flex-1 h-px bg-gray-200" />
             </div>
 
@@ -271,7 +271,7 @@ function CreateFromMotifContent() {
             <textarea
               value={userDescription}
               onChange={(e) => setUserDescription(e.target.value)}
-              placeholder="Beskriv vad du vill se (valfritt)..."
+              placeholder={t('wc.describeWhatYouWant')}
               className="w-full rounded-xl border border-gray-200 px-4 py-3 text-sm text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500/20 focus:border-purple-300 resize-none bg-white"
               rows={3}
             />
@@ -286,11 +286,11 @@ function CreateFromMotifContent() {
               {isGenerating ? (
                 <>
                   <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                  Skapar...
+                  {t('wc.creating')}
                 </>
               ) : (
                 <>
-                  Skapa med {selectedStyle || '...'}-stil
+                  {t('wc.createWithStyle')} {selectedStyle || '...'}-{t('wc.style')}
                   <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" />
                   </svg>

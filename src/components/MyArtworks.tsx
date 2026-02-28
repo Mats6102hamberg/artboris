@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
+import { useTranslation } from '@/lib/i18n/context'
 
 interface Artwork {
   id: string
@@ -18,6 +19,7 @@ interface Artwork {
 }
 
 export default function MyArtworks() {
+  const { t } = useTranslation()
   const [artworks, setArtworks] = useState<Artwork[]>([])
   const [loading, setLoading] = useState(true)
   const [showAddForm, setShowAddForm] = useState(false)
@@ -106,14 +108,14 @@ export default function MyArtworks() {
       }
     } catch (error) {
       console.error('Error getting AI analysis:', error)
-      setAiAnalysis('Tyvärr kunde jag inte analysera detta verk just nu. Försök igen senare.')
+      setAiAnalysis(t('myArtworks.analysisError'))
     } finally {
       setLoadingAnalysis(false)
     }
   }
 
   const handleDelete = async (id: string) => {
-    if (!confirm('Är du säker på att du vill ta bort detta konstverk?')) return
+    if (!confirm(t('myArtworks.confirmDelete'))) return
     
     try {
       const response = await fetch('/api/my-artworks', {
@@ -147,29 +149,29 @@ export default function MyArtworks() {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h2 className="text-2xl font-bold text-gray-900">Mina Tavlor</h2>
-          <p className="text-gray-600 mt-1">Hantera dina konstverk och få AI-analys</p>
+          <h2 className="text-2xl font-bold text-gray-900">{t('myArtworks.title')}</h2>
+          <p className="text-gray-600 mt-1">{t('myArtworks.subtitle')}</p>
         </div>
         <button
           onClick={() => setShowAddForm(!showAddForm)}
           className="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 transition-colors"
         >
-          + Lägg till tavla
+          {t('myArtworks.addArtwork')}
         </button>
       </div>
 
       {/* Statistics */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         <div className="bg-white rounded-lg shadow p-6">
-          <h3 className="text-sm font-medium text-gray-500">Totalt antal</h3>
+          <h3 className="text-sm font-medium text-gray-500">{t('myArtworks.totalCount')}</h3>
           <p className="text-2xl font-bold text-gray-900">{artworks.length}</p>
         </div>
         <div className="bg-white rounded-lg shadow p-6">
-          <h3 className="text-sm font-medium text-gray-500">Totalt värde</h3>
+          <h3 className="text-sm font-medium text-gray-500">{t('myArtworks.totalValue')}</h3>
           <p className="text-2xl font-bold text-green-600">{totalValue.toLocaleString()} kr</p>
         </div>
         <div className="bg-white rounded-lg shadow p-6">
-          <h3 className="text-sm font-medium text-gray-500">Genomsnittspris</h3>
+          <h3 className="text-sm font-medium text-gray-500">{t('myArtworks.averagePrice')}</h3>
           <p className="text-2xl font-bold text-blue-600">{averagePrice.toLocaleString()} kr</p>
         </div>
       </div>
@@ -177,11 +179,11 @@ export default function MyArtworks() {
       {/* Add Form */}
       {showAddForm && (
         <div className="bg-white rounded-lg shadow-lg p-6">
-          <h3 className="text-lg font-semibold text-gray-900 mb-4">Lägg till ny tavla</h3>
+          <h3 className="text-lg font-semibold text-gray-900 mb-4">{t('myArtworks.addNewTitle')}</h3>
           <form onSubmit={handleSubmit} className="space-y-4">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Titel</label>
+                <label className="block text-sm font-medium text-gray-700 mb-1">{t('myArtworks.titleLabel')}</label>
                 <input
                   type="text"
                   required
@@ -191,7 +193,7 @@ export default function MyArtworks() {
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Artist</label>
+                <label className="block text-sm font-medium text-gray-700 mb-1">{t('myArtworks.artistLabel')}</label>
                 <input
                   type="text"
                   required
@@ -201,7 +203,7 @@ export default function MyArtworks() {
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Pris (kr)</label>
+                <label className="block text-sm font-medium text-gray-700 mb-1">{t('myArtworks.priceLabel')}</label>
                 <input
                   type="number"
                   required
@@ -211,7 +213,7 @@ export default function MyArtworks() {
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">År</label>
+                <label className="block text-sm font-medium text-gray-700 mb-1">{t('myArtworks.yearLabel')}</label>
                 <input
                   type="number"
                   required
@@ -221,20 +223,20 @@ export default function MyArtworks() {
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Kategori</label>
+                <label className="block text-sm font-medium text-gray-700 mb-1">{t('myArtworks.categoryLabel')}</label>
                 <select
                   value={formData.category}
                   onChange={(e) => setFormData({...formData, category: e.target.value})}
                   className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                 >
-                  <option value="målning">Målning</option>
-                  <option value="skulptur">Skulptur</option>
-                  <option value="foto">Fotografi</option>
-                  <option value="digital">Digital konst</option>
+                  <option value="målning">{t('myArtworks.painting')}</option>
+                  <option value="skulptur">{t('myArtworks.sculpture')}</option>
+                  <option value="foto">{t('myArtworks.photography')}</option>
+                  <option value="digital">{t('myArtworks.digitalArt')}</option>
                 </select>
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Bild URL</label>
+                <label className="block text-sm font-medium text-gray-700 mb-1">{t('myArtworks.imageUrl')}</label>
                 <input
                   type="url"
                   value={formData.imageUrl}
@@ -245,7 +247,7 @@ export default function MyArtworks() {
               </div>
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Beskrivning</label>
+              <label className="block text-sm font-medium text-gray-700 mb-1">{t('myArtworks.descriptionLabel')}</label>
               <textarea
                 required
                 value={formData.description}
@@ -259,14 +261,14 @@ export default function MyArtworks() {
                 type="submit"
                 className="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 transition-colors"
               >
-                Spara tavla
+{t('myArtworks.saveArtwork')}
               </button>
               <button
                 type="button"
                 onClick={() => setShowAddForm(false)}
                 className="bg-gray-300 text-gray-700 px-4 py-2 rounded-md hover:bg-gray-400 transition-colors"
               >
-                Avbryt
+{t('myArtworks.cancel')}
               </button>
             </div>
           </form>
@@ -286,7 +288,7 @@ export default function MyArtworks() {
                 />
               ) : (
                 <div className="w-full h-48 bg-gray-300 flex items-center justify-center">
-                  <span className="text-gray-500">Ingen bild</span>
+                  <span className="text-gray-500">{t('myArtworks.noImage')}</span>
                 </div>
               )}
             </div>
@@ -302,7 +304,7 @@ export default function MyArtworks() {
                     ? 'bg-green-100 text-green-800'
                     : 'bg-gray-100 text-gray-800'
                 }`}>
-                  {artwork.status === 'available' ? 'tillgänglig' : artwork.status}
+                  {artwork.status === 'available' ? t('myArtworks.available') : artwork.status}
                 </span>
               </div>
               <div className="mt-4 flex space-x-2">
@@ -310,7 +312,7 @@ export default function MyArtworks() {
                   onClick={() => handleAIAnalysis(artwork)}
                   className="flex-1 bg-blue-600 text-white px-3 py-2 rounded text-sm hover:bg-blue-700 transition-colors"
                 >
-                  🤖 AI-analys
+{t('myArtworks.aiAnalysis')}
                 </button>
                 <button
                   onClick={() => handleDelete(artwork.id)}
@@ -328,13 +330,13 @@ export default function MyArtworks() {
       {artworks.length === 0 && (
         <div className="text-center py-12">
           <div className="text-gray-400 text-6xl mb-4">🎨</div>
-          <h3 className="text-lg font-medium text-gray-900 mb-2">Inga tavlor än</h3>
-          <p className="text-gray-600 mb-4">Börja med att lägga till ditt första konstverk</p>
+          <h3 className="text-lg font-medium text-gray-900 mb-2">{t('myArtworks.noArtworksYet')}</h3>
+          <p className="text-gray-600 mb-4">{t('myArtworks.noArtworksDesc')}</p>
           <button
             onClick={() => setShowAddForm(true)}
             className="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 transition-colors"
           >
-            + Lägg till tavla
+            {t('myArtworks.addArtwork')}
           </button>
         </div>
       )}
@@ -345,7 +347,7 @@ export default function MyArtworks() {
           <div className="bg-white rounded-lg shadow-xl max-w-2xl w-full max-h-[80vh] overflow-y-auto">
             <div className="p-6">
               <div className="flex items-center justify-between mb-4">
-                <h2 className="text-xl font-bold text-gray-900">🤖 AI-analys</h2>
+                <h2 className="text-xl font-bold text-gray-900">{t('myArtworks.aiAnalysis')}</h2>
                 <button
                   onClick={() => setSelectedArtwork(null)}
                   className="text-gray-400 hover:text-gray-600 text-2xl"
@@ -362,24 +364,24 @@ export default function MyArtworks() {
                   {loadingAnalysis ? (
                     <div className="flex items-center space-x-2">
                       <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-600"></div>
-                      <p className="text-gray-700 italic">Boris AI analyserar ditt verk...</p>
+                      <p className="text-gray-700 italic">{t('myArtworks.borisAnalyzing')}</p>
                     </div>
                   ) : aiAnalysis ? (
                     <p className="text-gray-700 whitespace-pre-wrap">{aiAnalysis}</p>
                   ) : (
                     <p className="text-gray-700 italic">
-                      "🤖 Boris AI analyserar detta verk... AI-analys kommer snart!"
+                      {t('myArtworks.borisAnalysisPlaceholder')}
                     </p>
                   )}
                 </div>
                 <div className="grid grid-cols-2 gap-4">
                   <div className="bg-blue-50 rounded-lg p-4">
-                    <h4 className="font-semibold text-blue-900">Prisbedömning</h4>
+                    <h4 className="font-semibold text-blue-900">{t('myArtworks.priceEstimate')}</h4>
                     <p className="text-blue-700">{selectedArtwork.price.toLocaleString()} kr</p>
                   </div>
                   <div className="bg-green-50 rounded-lg p-4">
-                    <h4 className="font-semibold text-green-900">Marknadsvärde</h4>
-                    <p className="text-green-700">Beräknas av AI...</p>
+                    <h4 className="font-semibold text-green-900">{t('myArtworks.marketValue')}</h4>
+                    <p className="text-green-700">{t('myArtworks.calculatingByAI')}</p>
                   </div>
                 </div>
               </div>

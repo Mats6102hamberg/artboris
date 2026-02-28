@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useRef, useEffect, useCallback } from 'react'
+import { useTranslation } from '@/lib/i18n/context'
 
 interface ChatMessage {
   role: 'user' | 'assistant'
@@ -8,6 +9,7 @@ interface ChatMessage {
 }
 
 export default function BorisChatPanel() {
+  const { t } = useTranslation()
   const [open, setOpen] = useState(false)
   const [messages, setMessages] = useState<ChatMessage[]>([])
   const [input, setInput] = useState('')
@@ -47,13 +49,13 @@ export default function BorisChatPanel() {
       } else {
         setMessages((prev) => [
           ...prev,
-          { role: 'assistant', content: data.error || 'Kunde inte svara just nu.' },
+          { role: 'assistant', content: data.error || t('borisPanel.couldNotRespond') },
         ])
       }
     } catch {
       setMessages((prev) => [
         ...prev,
-        { role: 'assistant', content: 'Nätverksfel — försök igen.' },
+        { role: 'assistant', content: t('borisPanel.networkError') },
       ])
     }
 
@@ -70,13 +72,13 @@ export default function BorisChatPanel() {
             setMessages([
               {
                 role: 'assistant',
-                content: 'Hej Mats! 🔧 Jag är Boris M — din maskinist. Fråga mig om försäljning, funnel, fel, trender eller vad som helst om ArtBoris.',
+                content: t('borisPanel.greeting'),
               },
             ])
           }
         }}
         className="fixed bottom-6 right-6 z-50 w-14 h-14 bg-gray-900 text-white rounded-full shadow-2xl flex items-center justify-center hover:bg-gray-800 transition-all hover:scale-105 active:scale-95"
-        title="Boris M — Maskinist"
+        title={`${t('borisPanel.name')} — ${t('borisPanel.role')}`}
       >
         <span className="text-2xl">🔧</span>
       </button>
@@ -87,8 +89,8 @@ export default function BorisChatPanel() {
           {/* Header */}
           <div className="bg-gray-900 text-white px-5 py-4 flex items-center justify-between shrink-0">
             <div>
-              <h3 className="font-semibold text-sm">🔧 Boris M</h3>
-              <p className="text-[11px] text-gray-400">Maskinist & Omvärldsbevakare</p>
+              <h3 className="font-semibold text-sm">{t('borisPanel.name')}</h3>
+              <p className="text-[11px] text-gray-400">{t('borisPanel.role')}</p>
             </div>
             <button
               onClick={() => setOpen(false)}
@@ -137,7 +139,7 @@ export default function BorisChatPanel() {
                 value={input}
                 onChange={(e) => setInput(e.target.value)}
                 onKeyDown={(e) => e.key === 'Enter' && sendMessage()}
-                placeholder="Fråga Boris..."
+                placeholder={t('borisPanel.placeholder')}
                 className="flex-1 px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-sm text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-gray-900/10 focus:border-gray-300"
                 disabled={loading}
               />

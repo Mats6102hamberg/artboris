@@ -27,15 +27,15 @@ const geistMono = localFont({
 
 export const metadata: Metadata = {
   title: {
-    default: "Artboris — Din kreativa plattform för väggkonst",
+    default: "Artboris — Handpicked prints for your walls",
     template: "%s | Artboris",
   },
   description:
-    "Skapa AI-genererad konst, upptäck lokala konstnärer, prova tavlor på din vägg och hitta undervärderade konstverk. Allt på ett ställe.",
-  metadataBase: new URL("https://artboris.se"),
+    "Discover handpicked prints from artists and photographers. Museum-quality printing, try art on your wall, and order — all in one place.",
+  metadataBase: new URL("https://artboris.vercel.app"),
   openGraph: {
     type: "website",
-    locale: "sv_SE",
+    locale: "en_US",
     siteName: "Artboris",
     images: [{ url: "/og-image.png", width: 1200, height: 630 }],
   },
@@ -54,7 +54,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="sv">
+    <html lang="en">
       <body
         className={`${geistSans.variable} ${geistMono.variable} ${playfair.variable} antialiased`}
       >

@@ -73,6 +73,14 @@ export type StylePreset =
   | 'boris-silence'
   | 'boris-between'
   | 'boris-awakening'
+  | 'artist-matisse'
+  | 'artist-warhol'
+  | 'artist-zorn'
+  | 'artist-sommarang'
+  | 'artist-monet'
+  | 'artist-hokusai'
+  | 'artist-klimt'
+  | 'artist-mondrian'
 
 export interface StyleDefinition {
   id: StylePreset
