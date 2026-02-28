@@ -3,7 +3,7 @@
 **GitHub:** https://github.com/Mats6102hamberg/artboris
 **Vercel:** https://artboris.vercel.app/
 **Local path:** `/Users/matshamberg/CascadeProjects/Artboris`
-**Last updated:** 2026-02-21
+**Last updated:** 2026-02-28
 
 ---
 
@@ -193,6 +193,7 @@ Upload photo → Pick style (21 styles: 3 Boris + 18 regular) + transformation s
 | BorisButton | `components/boris/BorisButton.tsx` | Floating FAB or inline chat button for Boris AI |
 | BorisChatPanel | `components/boris/BorisChatPanel.tsx` | Floating 🔧 button + chat modal for Boris M conversational AI (admin only, polls localStorage for admin_secret) |
 | BorisVoice | `components/boris/BorisVoice.tsx` | Typewriter speech bubble from Boris |
+| WallSwitcher | `components/poster/WallSwitcher.tsx` | Horizontal scrollable demo wall thumbnails, blue ring selection, custom wall button |
 | RemixMenu | `components/wallcraft/RemixMenu.tsx` | "Remix in..." dropdown, auto-save to DB, JPEG 80% 1024px |
 | RemixBanner | `components/wallcraft/RemixMenu.tsx` | "Remixed from X" banner with link to saved version |
 
@@ -382,6 +383,7 @@ No edge middleware (removed due to Vercel 1MB edge function limit with next-auth
 - [x] **AI Art creation** — Prominent "Skapa AI-konst" button in hero, "Skapa ny konst från detta" on gallery items + design page, new `/wallcraft/create` page with img2img support.
 - [x] **Credits purchase page** — `/wallcraft/credits` with 3 packages, balance display, nav link, CreditBadge clickable.
 - [x] **Design addons** — AddonsPanel: passepartout (79–149 kr), acrylic glass (149–349 kr, requires frame), screws (49 kr), screwdriver (79 kr). Integrated in design editor sidebar + pricing + checkout.
+- [x] **Swappable demo walls** — 7 demo walls (vardagsrum, sovrum, kök, kontor, hall, barnrum, matsal) with WallSwitcher component. Poster stays in place when switching walls. Custom wall upload with WallMarker. Boris comments on wall changes. i18n in 5 locales. Config: `src/lib/demo/demoWalls.ts`, SVGs in `public/assets/demo/walls/`.
 
 ### For Production
 - [x] **Auth** — NextAuth with JWT sessions, Google + Credentials providers, admin role check via layout
@@ -393,6 +395,8 @@ No edge middleware (removed due to Vercel 1MB edge function limit with next-auth
 - [ ] **Crimson costSEK** — Fill in production costs after Crimson agreement (via /admin/pricing)
 
 ### Nice to Have
+- [ ] **Demo wall photos** — Replace SVG placeholder rooms with real WebP photos for production quality
+- [ ] **Custom wall persistence** — Upload custom wall to Vercel Blob instead of using blob URL
 - [ ] **SEO** — Meta tags, OG images for Wallcraft pages
 - [ ] **Onboarding** — First-visit tutorial
 - [ ] **Gallery seeding** — Pre-populate with example designs
@@ -455,4 +459,4 @@ Push: `git push origin main`
 
 ---
 
-*Last updated: 2026-02-21 (session 8) · Built with Cascade*
+*Last updated: 2026-02-28 (session 9) · Built with Cascade*
